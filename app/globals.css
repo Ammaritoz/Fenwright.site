@@ -1,0 +1,193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-display: "Bricolage Grotesque", system-ui, sans-serif;
+    --font-sans: "Hanken Grotesk", system-ui, sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+
+  body {
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2.5px solid #13c685;
+    outline-offset: 2px;
+    border-radius: 5px;
+  }
+
+  ::selection {
+    background: #22e39a;
+    color: #0e1526;
+  }
+}
+
+@layer components {
+  .container-px {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-7 lg:px-8;
+  }
+
+  /* --- Buttons --- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[0.95rem] font-semibold transition duration-200 focus-visible:outline-2 focus-visible:outline-offset-2;
+  }
+
+  /* Primary: solid electric emerald with deep-navy text. The GO signal. */
+  .btn-primary {
+    @apply btn bg-accent text-ink shadow-emerald hover:bg-accent-600 hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  /* Secondary on light: navy outline that fills on hover. */
+  .btn-secondary {
+    @apply btn border-2 border-ink/15 bg-transparent text-ink hover:border-ink hover:bg-ink hover:text-paper;
+  }
+
+  /* On the dark navy surface. */
+  .btn-onink {
+    @apply btn bg-accent text-ink shadow-emerald hover:bg-accent-600 hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .btn-ghost-onink {
+    @apply btn border-2 border-white/20 bg-transparent text-paper hover:border-white/60 hover:bg-white/5;
+  }
+
+  .section {
+    @apply scroll-mt-24;
+  }
+}
+
+/* Blinking caret for the typing demo */
+.caret::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: currentColor;
+  animation: blink 1s steps(1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .caret::after {
+    animation: none;
+  }
+}
+
+/* --- International phone field (react-phone-number-input) to match our fields --- */
+.fw-phone .PhoneInput {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: 1px solid #d2dae8;
+  background: #fff;
+  border-radius: 0.75rem;
+  padding: 0 0.5rem 0 0.75rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.fw-phone .PhoneInput--focus,
+.fw-phone .PhoneInput:focus-within {
+  border-color: #13c685;
+  box-shadow: 0 0 0 2px rgba(34, 227, 154, 0.4);
+  outline: none;
+}
+.fw-phone--error .PhoneInput {
+  border-color: #dc2626;
+}
+.fw-phone--error .PhoneInput:focus-within {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.35);
+}
+.fw-phone .PhoneInputCountry {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  margin-right: 0.5rem;
+  padding-right: 0.5rem;
+  border-right: 1px solid #e4e9f3;
+}
+.fw-phone .PhoneInputCountryIcon {
+  width: 1.5em;
+  height: 1.1em;
+  box-shadow: none;
+}
+.fw-phone .PhoneInputCountryIcon--border {
+  box-shadow: none;
+  background: transparent;
+}
+.fw-phone .PhoneInputCountrySelectArrow {
+  color: #5b667f;
+  opacity: 1;
+  margin-left: 0.35rem;
+}
+.fw-phone .PhoneInputInput {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0.75rem 0.25rem;
+  font-size: 0.875rem;
+  color: #0e1526;
+  outline: none;
+}
+.fw-phone .PhoneInputInput::placeholder {
+  color: #5b667f;
+}
+
+/* --- Safe scroll reveal ---
+   Content is visible by default. Only when JS is confirmed running (the `js`
+   class is set on <html> before paint) do we hide-then-reveal. If JS never
+   runs (headless render, no-JS), nothing is hidden and no section ships blank. */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.js [data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .js [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

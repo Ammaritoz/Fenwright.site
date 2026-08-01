@@ -29,6 +29,7 @@ export const site = {
       { label: "What we do", href: "#services" },
       { label: "Demo", href: "#demo" },
       { label: "How it works", href: "#how-it-works" },
+      { label: "About", href: "#about" },
     ],
     cta: { label: "Book a call", href: "#book" },
   },
@@ -159,6 +160,33 @@ export const site = {
       {
         title: "We build it, you feel it",
         body: "Ammar builds the systems around how you already work. Leads answered, diary fuller, evenings back.",
+      },
+    ],
+  },
+
+  about: {
+    kicker: "Who you'll work with",
+    headline: "Two people. No account managers.",
+    subhead:
+      "You deal directly with the two of us, from the first call to the day your systems go live.",
+    // Shared business WhatsApp in E.164. Empty string hides the buttons.
+    whatsapp: "+353899406583",
+    whatsappPreset: "Hi Fenwright, I'd like to talk about my business.",
+    people: [
+      {
+        name: "Ammar Bakhet",
+        role: "Systems and software",
+        initials: "AB",
+        bio: "Ammar designs and builds the systems: the reply engines, booking flows and automations that do the work. If it runs on its own, he made it run.",
+        // Full profile URL. Empty string hides this person's LinkedIn button.
+        linkedin: "https://www.linkedin.com/in/ammar-bakhet-b66b97364",
+      },
+      {
+        name: "Billal Khan",
+        role: "Consulting",
+        initials: "BK",
+        bio: "Billal leads the consulting. He sits down with you, works out where your week leaks time and money, and turns that into a plan worth building.",
+        linkedin: "https://www.linkedin.com/in/billal-khan-100505424",
       },
     ],
   },

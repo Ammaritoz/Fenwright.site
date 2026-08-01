@@ -1,54 +1,57 @@
 import { site } from "@/config/site";
 
+type Variant = "ink" | "paper";
+
 type Props = {
   /** color scheme: on light surfaces vs on the dark ink surface */
-  variant?: "ink" | "paper";
+  variant?: Variant;
   className?: string;
-  /** height in px of the mark; wordmark scales with text */
   showWordmark?: boolean;
 };
 
 /**
- * Fenwright mark: a lightning bolt inside a speech bubble = "instant reply".
- * Monochrome-friendly. Accent bolt stays the one pop of colour.
+ * The Fenwright rule: thin line, hand-drawn double wave, thin line.
+ * Taken from the official wordmark; also used standalone as a section divider.
  */
-export function Mark({
-  className,
+export function WaveRule({
+  className = "",
   variant = "ink",
 }: {
   className?: string;
-  variant?: "ink" | "paper";
+  variant?: Variant;
 }) {
-  const stroke = variant === "paper" ? "#F4F6FB" : "#0E1526";
+  const stroke = variant === "paper" ? "#F7F5F0" : "#1A1713";
   return (
     <svg
-      viewBox="0 0 32 32"
+      viewBox="0 0 240 16"
       className={className}
-      role="img"
-      aria-label={`${site.brand.name} mark`}
+      aria-hidden="true"
       fill="none"
+      preserveAspectRatio="xMidYMid meet"
     >
+      <path d="M6 8h84" stroke={stroke} strokeWidth="1.2" strokeLinecap="round" />
       <path
-        d="M4 7.5A3.5 3.5 0 0 1 7.5 4h17A3.5 3.5 0 0 1 28 7.5v11a3.5 3.5 0 0 1-3.5 3.5H14l-6 5.5V22H7.5A3.5 3.5 0 0 1 4 18.5z"
+        d="M96 8c4-6 8-6 12 0s8 6 12 0 8-6 12 0 8 6 12 0"
         stroke={stroke}
-        strokeWidth="2"
-        strokeLinejoin="round"
+        strokeWidth="2.4"
+        strokeLinecap="round"
       />
-      <path
-        d="M18.6 7.4 12.3 15h4.2l-1.8 6 6.3-7.6h-4.2z"
-        fill="#22E39A"
-      />
+      <path d="M150 8h84" stroke={stroke} strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   );
 }
 
+/**
+ * Fenwright lockup: wave rule over a serif wordmark, per the official logo.
+ * Monochrome by design; inverts via `variant` for the dark footer.
+ */
 export function Logo({ variant = "ink", className = "", showWordmark = true }: Props) {
   const text = variant === "paper" ? "text-paper" : "text-ink";
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`}>
-      <Mark className="h-8 w-8 shrink-0" variant={variant} />
+    <span className={`inline-flex flex-col items-center ${className}`}>
+      <WaveRule className="h-2.5 w-full max-w-[9.5rem]" variant={variant} />
       {showWordmark && (
-        <span className={`font-display text-[1.4rem] font-extrabold tracking-[-0.02em] ${text}`}>
+        <span className={`font-display text-[1.45rem] font-semibold leading-none tracking-[0.01em] ${text}`}>
           {site.brand.wordmark}
         </span>
       )}

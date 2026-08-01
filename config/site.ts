@@ -198,6 +198,7 @@ export const site = {
     headline: "Prefer we text you first?",
     subhead:
       "Leave your number and a line about what you need, and one of our systems will text you back the same way it would text your customers.",
+    note: "A real reply, from a real number, straight away.",
     nameLabel: "Your name",
     phoneLabel: "Your mobile number",
     messageLabel: "What do you need?",

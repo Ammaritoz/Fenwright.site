@@ -68,7 +68,7 @@ export function ContactForm() {
           <div>
             <SectionHead size="lg" title={c.headline} lead={c.subhead} />
             <p className="mt-7 text-[0.95rem] font-semibold text-accent-700">
-              A real reply, from a real number, in seconds.
+              {c.note}
             </p>
           </div>
 

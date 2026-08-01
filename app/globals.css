@@ -52,6 +52,12 @@
     border-radius: 5px;
   }
 
+  .bg-ink :focus-visible,
+  .bg-ink-800 :focus-visible,
+  .bg-ink-900 :focus-visible {
+    outline-color: #A7C9B6;
+  }
+
   ::selection {
     background: #1A1713;
     color: #F7F5F0;

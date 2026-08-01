@@ -26,7 +26,7 @@ export function PhoneMock() {
 
           {/* header */}
           <div className="flex items-center gap-3 border-b border-stone-200 px-5 py-3.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-sm font-bold text-accent">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-sm font-bold text-accent-300">
               {p.businessName.charAt(0)}
             </span>
             <div className="leading-tight">
@@ -43,7 +43,7 @@ export function PhoneMock() {
               </div>
             </div>
             <div className="flex justify-end">
-              <div className="max-w-[86%] rounded-2xl rounded-tr-md bg-accent px-3.5 py-2.5 text-[13.5px] font-medium leading-snug text-ink">
+              <div className="max-w-[86%] rounded-2xl rounded-tr-md bg-accent px-3.5 py-2.5 text-[13.5px] font-medium leading-snug text-paper">
                 {p.reply}
               </div>
             </div>
@@ -53,7 +53,7 @@ export function PhoneMock() {
           <div className="flex items-center justify-between border-t border-stone-200 px-5 py-3">
             <span className="text-[12px] font-medium text-stone-500">Replied automatically</span>
             <span className="inline-flex items-baseline gap-1 rounded-full bg-ink px-3 py-1 text-paper">
-              <span className="text-sm font-extrabold tabular-nums text-accent">{p.badge}</span>
+              <span className="text-sm font-extrabold tabular-nums text-accent-300">{p.badge}</span>
             </span>
           </div>
         </div>

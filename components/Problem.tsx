@@ -16,7 +16,7 @@ export function Problem() {
           {/* The stat as a statement, not a card. */}
           <Reveal delay={120}>
             <p className="text-2xl font-medium leading-snug text-stone-200 sm:text-[1.6rem]">
-              <span className="block font-display text-[clamp(4.5rem,15vw,9rem)] font-extrabold leading-[0.85] tracking-[-0.04em] text-accent">
+              <span className="block font-display text-[clamp(4.5rem,15vw,9rem)] font-extrabold leading-[0.85] tracking-[-0.04em] text-accent-300">
                 {big.value}
               </span>
               <span className="mt-3 block max-w-md">{big.label}</span>
@@ -29,7 +29,7 @@ export function Problem() {
             <Reveal key={i} delay={i * 100} className="flex items-baseline gap-5">
               <span
                 className={`font-display text-4xl font-extrabold tabular-nums tracking-tight sm:text-5xl ${
-                  i === rest.length - 1 ? "text-accent" : "text-paper"
+                  i === rest.length - 1 ? "text-accent-300" : "text-paper"
                 }`}
               >
                 {s.value}

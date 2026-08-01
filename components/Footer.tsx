@@ -26,7 +26,7 @@ export function Footer() {
         <div className="flex flex-col gap-3 text-sm">
           <a
             href={`mailto:${f.email}`}
-            className="font-medium text-paper underline-offset-4 hover:text-accent hover:underline"
+            className="font-medium text-paper underline-offset-4 hover:text-accent-300 hover:underline"
           >
             {f.email}
           </a>

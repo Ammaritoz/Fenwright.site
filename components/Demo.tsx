@@ -292,7 +292,7 @@ export function Demo() {
               {(phase === "typing" || phase === "done") && (
                 <div className="flex justify-start" aria-live="polite">
                   <p
-                    className={`max-w-[95%] rounded-2xl rounded-tl-md bg-accent px-4 py-3 text-[15px] font-medium leading-snug text-ink ${
+                    className={`max-w-[95%] rounded-2xl rounded-tl-md bg-accent px-4 py-3 text-[15px] font-medium leading-snug text-paper ${
                       phase === "typing" ? "caret" : ""
                     }`}
                   >
@@ -304,7 +304,7 @@ export function Demo() {
 
             {phase === "done" && (
               <p className="mt-5 border-t border-white/10 pt-4 text-[0.9rem] leading-relaxed text-stone-300">
-                <span className="font-bold text-accent">Replied in {targetSeconds}s.</span>{" "}
+                <span className="font-bold text-accent-300">Replied in {targetSeconds}s.</span>{" "}
                 {current.averageLine}
               </p>
             )}
@@ -317,9 +317,9 @@ export function Demo() {
             <div className="rounded-xl2 border-2 border-accent-600/30 bg-accent-soft p-6 sm:p-7">
               {smsState === "sent" ? (
                 <div className="text-center">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent text-paper">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M5 13l4 4L19 7" stroke="#0E1526" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
                   <p className="mt-3 font-display text-xl font-bold text-ink">{d.sms.successLabel}</p>
@@ -391,7 +391,7 @@ function SpeedBadge({ phase, timer, target }: { phase: Phase; timer: number; tar
   }
   const value = phase === "done" ? target : timer;
   return (
-    <span className="inline-flex items-center rounded-full bg-accent px-3 py-1 text-xs font-extrabold tabular-nums text-ink">
+    <span className="inline-flex items-center rounded-full bg-accent px-3 py-1 text-xs font-extrabold tabular-nums text-paper">
       {value.toFixed(phase === "done" ? 0 : 1)}s
     </span>
   );

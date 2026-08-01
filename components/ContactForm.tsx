@@ -75,9 +75,9 @@ export function ContactForm() {
           <div className="rounded-xl2 border border-stone-200 bg-paper p-6 shadow-card sm:p-8">
             {state === "done" ? (
               <div className="py-6 text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent text-paper">
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M5 13l4 4L19 7" stroke="#0E1526" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
                 <p className="mt-4 font-display text-xl font-bold text-ink">

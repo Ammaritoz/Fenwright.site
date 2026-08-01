@@ -9,41 +9,42 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Deep ink navy: dominant brand surface + heading ink.
+        // Warm near-black ink: heading text + the dark brand surface.
         ink: {
-          DEFAULT: "#0E1526",
-          900: "#090E1B",
-          800: "#0E1526",
-          700: "#17203A",
-          600: "#212C4B",
-          500: "#33406A",
+          DEFAULT: "#1A1713",
+          900: "#121009",
+          800: "#1A1713",
+          700: "#2A251D",
+          600: "#3A342A",
+          500: "#4E463A",
         },
-        // Electric emerald: the "live / GO" signal. CTAs, highlights, indicators.
+        // Fen green: muted, deep, used sparingly. 300 is the light sage tone
+        // for accent text ON dark ink surfaces (the deep green fails contrast there).
         accent: {
-          DEFAULT: "#22E39A",
-          500: "#22E39A",
-          600: "#13C685",
-          700: "#0E9E6B",
-          ink: "#053B29", // deep green for text ON emerald where needed
-          soft: "#D6FBEC",
+          DEFAULT: "#1F6B4E",
+          300: "#A7C9B6",
+          500: "#1F6B4E",
+          600: "#185A41",
+          700: "#124733",
+          ink: "#F7F5F0", // text ON the deep green
+          soft: "#E7EFE9",
         },
-        // Cool off-white background, tinted toward the navy hue (NOT warm cream).
+        // Warm off-white paper, matching the logo background.
         paper: {
-          DEFAULT: "#F4F6FB",
-          alt: "#E8ECF5",
+          DEFAULT: "#F7F5F0",
+          alt: "#EFEBE3",
         },
-        // Cool neutral ramp for text + borders (navy-tinted, not warm). Keyed as
-        // `stone` (overriding Tailwind's warm default) so existing classes cool down.
+        // Warm neutral ramp (still keyed `stone` so existing classes just re-tint).
         stone: {
-          50: "#F1F4FA",
-          100: "#E4E9F3",
-          200: "#D2DAE8",
-          300: "#B4BFD3",
-          400: "#8B98B2",
-          500: "#5B667F",
-          600: "#4A5670",
-          700: "#333E56",
-          800: "#212B41",
+          50: "#F5F3EE",
+          100: "#EAE6DE",
+          200: "#DAD4C8",
+          300: "#C0B8A8",
+          400: "#9A9081",
+          500: "#6E665A",
+          600: "#5A5348",
+          700: "#403A31",
+          800: "#2B261F",
         },
       },
       fontFamily: {
@@ -51,10 +52,10 @@ const config: Config = {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       boxShadow: {
-        card: "0 1px 2px rgba(14,21,38,0.04), 0 14px 34px -20px rgba(14,21,38,0.28)",
-        lift: "0 40px 80px -32px rgba(14,21,38,0.45)",
-        tight: "0 1px 2px rgba(14,21,38,0.10), 0 2px 10px -4px rgba(14,21,38,0.16)",
-        emerald: "0 16px 40px -18px rgba(19,198,133,0.55)",
+        card: "0 1px 2px rgba(26,23,19,0.04), 0 14px 34px -20px rgba(26,23,19,0.28)",
+        lift: "0 40px 80px -32px rgba(26,23,19,0.45)",
+        tight: "0 1px 2px rgba(26,23,19,0.10), 0 2px 10px -4px rgba(26,23,19,0.16)",
+        soft: "0 16px 40px -18px rgba(26,23,19,0.35)",
       },
       borderRadius: {
         xl2: "1.5rem",

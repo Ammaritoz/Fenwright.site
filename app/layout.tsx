@@ -1,15 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Hanken_Grotesk } from "next/font/google";
+import { Fraunces, Hanken_Grotesk } from "next/font/google";
 import { site } from "@/config/site";
 import "./globals.css";
 
-// Display: characterful, confident grotesque. Carries the headlines with weight
-// and a touch of human warmth, without the AI-default serif/geometric look.
-const display = Bricolage_Grotesque({
+// Display: classical serif to match the Fenwright wordmark. Editorial,
+// established-firm feel; deliberately not a tech-startup grotesque.
+const display = Fraunces({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
-  weight: ["500", "600", "700", "800"],
+  weight: ["500", "600", "700"],
 });
 
 // Body/UI: clean, friendly humanist grotesk. Highly legible at text sizes.
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0E1526",
+  themeColor: "#1A1713",
   width: "device-width",
   initialScale: 1,
 };

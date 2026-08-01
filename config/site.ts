@@ -28,7 +28,6 @@ export const site = {
     links: [
       { label: "How it works", href: "#how-it-works" },
       { label: "Demo", href: "#demo" },
-      { label: "Book a call", href: "#book" },
     ],
     cta: { label: "Book a call", href: "#book" },
   },

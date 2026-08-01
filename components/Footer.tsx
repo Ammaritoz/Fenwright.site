@@ -31,7 +31,7 @@ export function Footer() {
             {f.email}
           </a>
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-stone-400">
-            {site.nav.links.map((link) => (
+            {[...site.nav.links, site.nav.cta].map((link) => (
               <a key={link.href} href={link.href} className="hover:text-paper">
                 {link.label}
               </a>

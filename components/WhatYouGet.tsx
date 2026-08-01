@@ -28,7 +28,7 @@ export function WhatYouGet() {
                   aria-hidden="true"
                   className="mt-0.5 shrink-0"
                 >
-                  <path d="M4 12.5l5 5L20 6.5" stroke="#22E39A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M4 12.5l5 5L20 6.5" stroke="#A7C9B6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <div>
                   <h3 className="font-display text-xl font-bold text-paper">{b.title}</h3>

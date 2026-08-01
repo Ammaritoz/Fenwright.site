@@ -64,7 +64,7 @@ export function PhoneField({ id, value, onChange, placeholder, ariaLabel }: Prop
         {valid && (
           <p id={statusId} className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-stone-700">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="12" cy="12" r="10" fill="#13C685" />
+              <circle cx="12" cy="12" r="10" fill="#1F6B4E" />
               <path d="M8 12.5l2.5 2.5L16 9.5" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             That number looks good.

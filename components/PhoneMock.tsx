@@ -8,11 +8,11 @@ export function PhoneMock() {
   const p = site.hero.phone;
   return (
     <div className="relative mx-auto w-full max-w-[360px]">
-      {/* soft emerald depth behind the device */}
+      {/* soft deep-green depth behind the device */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -inset-6 -z-10 rounded-[3rem] opacity-70 blur-2xl"
-        style={{ background: "radial-gradient(60% 55% at 70% 25%, rgba(34,227,154,0.28), transparent 70%)" }}
+        style={{ background: "radial-gradient(60% 55% at 70% 25%, rgba(31,107,78,0.28), transparent 70%)" }}
       />
 
       <div className="rounded-[2.75rem] border border-ink/10 bg-ink p-2.5 shadow-lift">

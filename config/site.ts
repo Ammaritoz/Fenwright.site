@@ -20,25 +20,27 @@ export const site = {
   brand: {
     name: "Fenwright",
     wordmark: "Fenwright",
-    tagline: "The AI receptionist that texts every lead back in seconds.",
+    tagline: "Consulting and systems that give small businesses their time back.",
     email: "contact@fenwright.ie",
   },
 
   nav: {
     links: [
-      { label: "How it works", href: "#how-it-works" },
+      { label: "What we do", href: "#services" },
       { label: "Demo", href: "#demo" },
+      { label: "How it works", href: "#how-it-works" },
     ],
     cta: { label: "Book a call", href: "#book" },
   },
 
   hero: {
-    kicker: "Speed to lead, done for you",
-    headline: "Your next customer texts three businesses. Only the fastest reply wins.",
+    kicker: "For busy service businesses in Ireland and the UK",
+    headline: "You did not start your business to chase paperwork and missed calls.",
     subhead:
-      "Fenwright answers every missed call and web enquiry with a warm, on-brand text in about 60 seconds, so the lead is yours before it goes cold.",
+      "Fenwright works with clinics, salons and trades to find where the week leaks time and money, then builds the quiet systems that plug it. Enquiries answered, bookings kept, admin handled.",
     primaryCta: { label: "Book a call", href: "#book" },
-    secondaryCta: { label: "Try the live demo", href: "#demo" },
+    secondaryCta: { label: "See a live example", href: "#demo" },
+    note: "No jargon, no big-agency retainers. Two people who fix how your week runs.",
     // The mock phone badge
     phone: {
       badge: "8s",
@@ -50,9 +52,9 @@ export const site = {
   },
 
   problem: {
-    kicker: "The real cost of a slow reply",
-    headline: "Leads do not wait. Most businesses make them.",
-    body: "When someone enquires, they are ready to buy right now. Reach them in the first five minutes and you are far more likely to win the job. Wait, and they have already booked with whoever answered first.",
+    kicker: "Where the day goes",
+    headline: "Small businesses rarely lose money in big ways. They lose it in minutes.",
+    body: "A call missed while you are with a customer. A quote you meant to send on Friday. An evening gone to invoices. None of it looks like a crisis, and together it quietly caps how far your business can grow. The clearest leak of all is the enquiry that never got answered:",
     stats: [
       {
         value: "21x",
@@ -63,20 +65,16 @@ export const site = {
         value: "40+ hrs",
         label: "the average business response time to a new online enquiry.",
       },
-      {
-        value: "~60s",
-        label: "Fenwright's reply time, every time, day or night.",
-      },
     ],
     source:
       "Source: lead response research from MIT and InsideSales.com (Oldroyd, McElheran and Elkington). Figures reflect the widely cited findings; results vary by business.",
   },
 
   demo: {
-    kicker: "The demo is the product",
-    headline: "Watch it reply. Then have it text your phone.",
+    kicker: "Proof, not promises",
+    headline: "Try one of our systems right now.",
     subhead:
-      "Pick an industry, send a mock enquiry, and see the exact kind of reply your customers would get. This page runs on the same system we build for you.",
+      "This is a reception system we build for clinics, salons and trades, running live on this page. Pick an industry, send a mock enquiry, and watch the reply come back in seconds. Then have it text your actual phone.",
     generateLabel: "Generate reply",
     regenerateLabel: "Try another",
     enquiryLabel: "What is the customer asking?",
@@ -148,58 +146,58 @@ export const site = {
 
   howItWorks: {
     kicker: "How it works",
-    headline: "A lead comes in. It never goes cold.",
+    headline: "One short call. A clear plan. Systems that quietly run.",
     steps: [
       {
-        title: "A lead comes in",
-        body: "A missed call, a website form, or a Facebook or Instagram ad enquiry. Fenwright catches all of them.",
+        title: "Book a call",
+        body: "Thirty minutes with Billal about how your week actually runs. No pitch, no jargon, just questions about where the time goes.",
       },
       {
-        title: "The AI replies in about 60 seconds",
-        body: "A warm, on-brand text goes out straight away, asks the right question, and keeps the conversation moving.",
+        title: "Get a plain-English plan",
+        body: "We come back with the two or three fixes worth doing first, what each one is worth to you, and a fixed price.",
       },
       {
-        title: "You get a warm, captured lead",
-        body: "Every detail is logged, and if a human is needed you get an instant handoff alert. Nothing slips through.",
+        title: "We build it, you feel it",
+        body: "Ammar builds the systems around how you already work. Leads answered, diary fuller, evenings back.",
       },
     ],
   },
 
-  whatYouGet: {
-    kicker: "What you get",
-    headline: "A receptionist that never misses, never sleeps, never forgets.",
+  services: {
+    kicker: "What we do",
+    headline: "We find the leak, then build the fix.",
     bullets: [
       {
-        title: "Every lead source, covered",
-        body: "Missed calls, website forms, and Facebook or Instagram lead ads all get an instant reply.",
+        title: "Every enquiry answered",
+        body: "Missed calls, website forms and ad enquiries get a warm reply straight away, so the job is yours before anyone else picks up the phone.",
       },
       {
-        title: "Replies that sound like you",
-        body: "Natural, on-brand messages that ask the right questions and move people toward booking.",
+        title: "Bookings that look after themselves",
+        body: "Confirmations, reminders and follow-ups go out on time, every time. Fewer no-shows, a fuller diary.",
       },
       {
-        title: "Nothing gets lost",
-        body: "Every enquiry is captured and logged, so you always know who reached out and what they needed.",
+        title: "Admin off your plate",
+        body: "Quotes, invoices and customer records kept tidy automatically, instead of eating your evenings.",
       },
       {
-        title: "A human handoff when it matters",
-        body: "When a lead needs a person, you get an alert with the full context, ready to take over.",
+        title: "One clear picture",
+        body: "Every lead, job and follow-up logged in one place, so you always know where the money is.",
       },
     ],
   },
 
   book: {
     kicker: "Book a call",
-    headline: "See what this looks like for your business.",
+    headline: "Tell us how your week runs. We will tell you what we would fix.",
     subhead:
-      "A short, no pressure call. We will show you exactly how Fenwright would answer your leads and what it takes to get live.",
+      "A short, no-pressure call. If we cannot see a fix worth paying for, we will say so.",
   },
 
   contact: {
-    kicker: "The instant text back",
+    kicker: "Prefer to text?",
     headline: "Prefer we text you first?",
     subhead:
-      "Leave your number and a line about what you need. You will get a real text back from Fenwright in seconds, the same thing your customers would feel.",
+      "Leave your number and a line about what you need, and one of our systems will text you back the same way it would text your customers.",
     nameLabel: "Your name",
     phoneLabel: "Your mobile number",
     messageLabel: "What do you need?",
@@ -216,7 +214,8 @@ export const site = {
   },
 
   footer: {
-    blurb: "AI speed to lead for small service businesses in Ireland and the UK.",
+    blurb:
+      "Fenwright helps small service businesses in Ireland and the UK run faster. Enquiries answered, bookings kept, admin handled.",
     email: "contact@fenwright.ie",
     copyright: `© ${new Date().getFullYear()} Fenwright. All rights reserved.`,
   },

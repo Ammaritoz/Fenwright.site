@@ -2,10 +2,10 @@ import { site } from "@/config/site";
 import { SectionHead } from "@/components/SectionHead";
 import { Reveal } from "@/components/Reveal";
 
-export function WhatYouGet() {
-  const w = site.whatYouGet;
+export function Services() {
+  const w = site.services;
   return (
-    <section id="what-you-get" className="section bg-ink py-24 text-paper sm:py-32">
+    <section id="services" className="section bg-ink py-24 text-paper sm:py-32">
       <div className="container-px">
         <Reveal>
           <SectionHead tone="dark" size="lg" title={w.headline} />

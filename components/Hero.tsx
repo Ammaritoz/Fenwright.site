@@ -32,7 +32,7 @@ export function Hero() {
           </div>
 
           <p className="animate-fade-up [animation-delay:320ms] mt-8 text-[0.95rem] font-medium text-stone-500">
-            Missed calls, web forms and Facebook or Instagram leads, answered day and night.
+            {h.note}
           </p>
         </div>
 

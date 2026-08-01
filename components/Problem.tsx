@@ -26,7 +26,13 @@ export function Problem() {
 
         <div className="mt-16 grid gap-10 border-t border-white/10 pt-10 sm:grid-cols-2">
           {rest.map((s, i) => (
-            <Reveal key={i} delay={i * 100} className="flex items-baseline gap-5">
+            <Reveal
+              key={i}
+              delay={i * 100}
+              className={`flex items-baseline gap-5 ${
+                rest.length === 1 ? "sm:col-span-2" : ""
+              }`}
+            >
               <span
                 className={`font-display text-4xl font-extrabold tabular-nums tracking-tight sm:text-5xl ${
                   i === rest.length - 1 ? "text-accent-300" : "text-paper"

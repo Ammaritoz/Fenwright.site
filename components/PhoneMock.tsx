@@ -51,7 +51,7 @@ export function PhoneMock() {
 
           {/* speed footer */}
           <div className="flex items-center justify-between border-t border-stone-200 px-5 py-3">
-            <span className="text-[12px] font-medium text-stone-500">Replied automatically</span>
+            <span className="text-[12px] font-medium text-stone-500">{p.caption}</span>
             <span className="inline-flex items-baseline gap-1 rounded-full bg-ink px-3 py-1 text-paper">
               <span className="text-sm font-extrabold tabular-nums text-accent-300">{p.badge}</span>
             </span>

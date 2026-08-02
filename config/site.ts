@@ -45,6 +45,7 @@ export const site = {
     // The mock phone badge
     phone: {
       badge: "8s",
+      caption: "A system we built for them",
       businessName: "Bright Smile Dental",
       incoming: "Hi, do you have any appointments this week for a check up and clean?",
       reply:

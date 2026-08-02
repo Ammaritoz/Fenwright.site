@@ -167,16 +167,16 @@ export const site = {
 
   about: {
     kicker: "Who you'll work with",
-    headline: "Two people. No account managers.",
+    headline: "Two people, fully dedicated to your business.",
     subhead:
-      "You deal directly with the two of us, from the first call to the day your systems go live.",
+      "From the first call to the day your systems go live, you're working directly with the two of us, not passed between departments.",
     // Shared business WhatsApp in E.164. Empty string hides the buttons.
     whatsapp: "+353899406583",
     whatsappPreset: "Hi Fenwright, I'd like to talk about my business.",
     people: [
       {
         name: "Ammar Bakhet",
-        role: "Systems and software",
+        role: "CTO",
         initials: "AB",
         bio: "Ammar designs and builds the systems: the reply engines, booking flows and automations that do the work. If it runs on its own, he made it run.",
         // Full profile URL. Empty string hides this person's LinkedIn button.
@@ -184,7 +184,7 @@ export const site = {
       },
       {
         name: "Billal Khan",
-        role: "Consulting",
+        role: "Consulting & COO",
         initials: "BK",
         bio: "Billal leads the consulting. He sits down with you, works out where your week leaks time and money, and turns that into a plan worth building.",
         linkedin: "https://www.linkedin.com/in/billal-khan-100505424",

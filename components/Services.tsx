@@ -5,7 +5,7 @@ import { Reveal } from "@/components/Reveal";
 export function Services() {
   const w = site.services;
   return (
-    <section id="services" className="section bg-ink py-24 text-paper sm:py-32">
+    <section id="services" className="section border-t border-white/10 bg-ink py-24 text-paper sm:py-32">
       <div className="container-px">
         <Reveal>
           <SectionHead tone="dark" size="lg" title={w.headline} />

@@ -109,7 +109,7 @@ export default function PrivacyPage() {
                   <tbody className="divide-y divide-stone-200">
                     <tr>
                       <td className="py-3 pr-4 font-medium text-ink">Anthropic (Claude)</td>
-                      <td className="py-3 pr-4">Generates the AI reply text</td>
+                      <td className="py-3 pr-4">Generates the demo reply text</td>
                       <td className="py-3">United States. Data Processing Agreement with EU Standard Contractual Clauses; inputs are not used to train models.</td>
                     </tr>
                     <tr>

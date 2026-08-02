@@ -10,8 +10,9 @@ type Props = {
 };
 
 /**
- * The Fenwright rule: thin line, hand-drawn double wave, thin line.
- * Taken from the official wordmark; also used standalone as a section divider.
+ * The Fenwright rule, cropped directly from the official logo artwork
+ * (public/logo.JPG, see scripts/extract-logo.py) -- not hand-drawn. Used
+ * standalone as a section divider, and inside `Logo` for the full lockup.
  */
 export function WaveRule({
   className = "",
@@ -20,41 +21,19 @@ export function WaveRule({
   className?: string;
   variant?: Variant;
 }) {
-  const stroke = variant === "paper" ? "#F7F5F0" : "#1A1713";
-  return (
-    <svg
-      viewBox="0 0 240 16"
-      className={className}
-      aria-hidden="true"
-      fill="none"
-      preserveAspectRatio="xMidYMid meet"
-    >
-      <path d="M6 8h84" stroke={stroke} strokeWidth="1.2" strokeLinecap="round" />
-      <path
-        d="M96 8c4-6 8-6 12 0s8 6 12 0 8-6 12 0 8 6 12 0"
-        stroke={stroke}
-        strokeWidth="2.4"
-        strokeLinecap="round"
-      />
-      <path d="M150 8h84" stroke={stroke} strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
+  const src = variant === "paper" ? "/brand/rule-paper.png" : "/brand/rule-ink.png";
+  return <img src={src} alt="" aria-hidden="true" className={className} />;
 }
 
 /**
- * Fenwright lockup: wave rule over a serif wordmark, per the official logo.
- * Monochrome by design; inverts via `variant` for the dark footer.
+ * Fenwright lockup: the official logo artwork (public/logo.JPG), cropped and
+ * keyed to a transparent background. The `paper` variant is the same
+ * artwork recolored for the dark ink surface (footer), not a redraw.
  */
 export function Logo({ variant = "ink", className = "", showWordmark = true }: Props) {
-  const text = variant === "paper" ? "text-paper" : "text-ink";
-  return (
-    <span className={`inline-flex flex-col items-center ${className}`}>
-      <WaveRule className="h-2.5 w-full max-w-[9.5rem]" variant={variant} />
-      {showWordmark && (
-        <span className={`font-display text-[1.45rem] font-semibold leading-none tracking-[0.01em] ${text}`}>
-          {site.brand.wordmark}
-        </span>
-      )}
-    </span>
-  );
+  if (!showWordmark) {
+    return <WaveRule className={`h-2 w-auto ${className}`} variant={variant} />;
+  }
+  const src = variant === "paper" ? "/brand/logo-paper.png" : "/brand/logo-ink.png";
+  return <img src={src} alt={site.brand.wordmark} className={`h-10 w-auto ${className}`} />;
 }

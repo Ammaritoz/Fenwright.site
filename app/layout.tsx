@@ -47,6 +47,16 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: site.brand.name,
+  url: "https://fenwright.ie",
+  description: site.brand.tagline,
+  email: site.legal.contactEmail,
+  areaServed: ["IE", "GB"],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -55,6 +65,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${display.variable} ${sans.variable}`} suppressHydrationWarning>
       <body className="bg-paper text-ink antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         {/* Confirm JS before paint so scroll-reveal only hides content when it can reveal it. */}
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
         <a

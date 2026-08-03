@@ -2,13 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { demoReplySchema } from "@/lib/validation";
 import { generateReply } from "@/lib/receptionist";
 import { rateLimit, incrementDailyCounter } from "@/lib/ratelimit";
-import { clientIp } from "@/lib/request";
+import { clientIp, guardRequest } from "@/lib/request";
 import { limits, demoReplyDailyCap } from "@/config/limits";
+import { errMeta } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  // Same-origin JSON only: this endpoint spends Anthropic tokens and must not
+  // be triggerable from a third-party page using a visitor's browser and IP.
+  const blocked = guardRequest(req);
+  if (blocked) return blocked;
+
   // Rate limit by IP: cheap AI-only calls.
   const ip = clientIp(req);
   const rl = await rateLimit(
@@ -58,7 +64,7 @@ export async function POST(req: NextRequest) {
     const seconds = Math.floor(6 + Math.random() * 7);
     return NextResponse.json({ reply, seconds });
   } catch (err) {
-    console.error("[fenwright] demo-reply failed:", err);
+    console.error("[fenwright] demo-reply failed:", errMeta(err));
     return NextResponse.json(
       { error: "The demo hit a snag. Please try again in a moment." },
       { status: 500 }

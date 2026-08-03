@@ -28,6 +28,19 @@ function getBase(): Airtable.Base | null {
   return base;
 }
 
+/**
+ * Neutralise spreadsheet formula injection.
+ *
+ * Lead values are visitor-supplied. Airtable itself treats them as plain text,
+ * but the moment the Leads table is exported to CSV and opened in Excel, Sheets
+ * or Numbers, a cell beginning with =, +, -, @ or a control character is
+ * evaluated as a formula. Prefixing with an apostrophe keeps the value readable
+ * while forcing every spreadsheet to treat it as text.
+ */
+function deFormula(value: string): string {
+  return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+}
+
 export async function logLead(lead: LeadRecord): Promise<void> {
   const b = getBase();
   if (!b) {
@@ -39,10 +52,10 @@ export async function logLead(lead: LeadRecord): Promise<void> {
     Source: lead.source,
     Timestamp: new Date().toISOString(),
   };
-  if (lead.name) fields.Name = lead.name;
-  if (lead.phone) fields.Phone = lead.phone;
-  if (lead.message) fields.Message = lead.message;
-  if (lead.industry) fields.Industry = lead.industry;
+  if (lead.name) fields.Name = deFormula(lead.name);
+  if (lead.phone) fields.Phone = deFormula(lead.phone);
+  if (lead.message) fields.Message = deFormula(lead.message);
+  if (lead.industry) fields.Industry = deFormula(lead.industry);
 
   try {
     await b("Leads").create([{ fields }]);

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { contactSchema } from "@/lib/validation";
 import { generateFenwrightReply } from "@/lib/receptionist";
-import { rateLimit } from "@/lib/ratelimit";
-import { clientIp, phoneKey } from "@/lib/request";
-import { limits } from "@/config/limits";
+import { rateLimit, incrementDailyCounter } from "@/lib/ratelimit";
+import { clientIp, phoneKey, guardRequest } from "@/lib/request";
+import { limits, contactDailyCap } from "@/config/limits";
 import { sendSms, twilioConfigured } from "@/lib/twilio";
 import { logLead } from "@/lib/airtable";
 import { errMeta } from "@/lib/log";
@@ -18,6 +18,11 @@ function bookingUrl(): string {
 }
 
 export async function POST(req: NextRequest) {
+  // Same-origin JSON only. This endpoint sends a real SMS and writes a lead, so
+  // a cross-site page must not be able to fire it from a visitor's browser.
+  const blocked = guardRequest(req);
+  if (blocked) return blocked;
+
   let body: unknown;
   try {
     body = await req.json();
@@ -47,10 +52,21 @@ export async function POST(req: NextRequest) {
   const phoneRl = await rateLimit(
     "contact-phone",
     pKey,
-    limits.contact.perPhonePerHour.tokens,
-    limits.contact.perPhonePerHour.window
+    limits.contact.perPhonePerDay.tokens,
+    limits.contact.perPhonePerDay.window
   );
   if (!ipRl.success || !phoneRl.success) {
+    return NextResponse.json(
+      { error: "We have your details already. We will be in touch shortly." },
+      { status: 429 }
+    );
+  }
+
+  // Global daily budget. Without this, an attacker rotating IPs and phone
+  // numbers can drive unbounded Twilio and Anthropic spend through this route.
+  // Incremented only after validation and the per-IP/per-phone checks pass.
+  const used = await incrementDailyCounter("contact");
+  if (used > contactDailyCap()) {
     return NextResponse.json(
       { error: "We have your details already. We will be in touch shortly." },
       { status: 429 }
@@ -107,6 +123,6 @@ async function forwardToN8n(payload: {
     });
     clearTimeout(t);
   } catch (err) {
-    console.warn("[fenwright] n8n forward failed (non-blocking):", err);
+    console.warn("[fenwright] n8n forward failed (non-blocking):", errMeta(err));
   }
 }

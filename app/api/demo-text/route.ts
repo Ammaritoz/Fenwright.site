@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { demoTextSchema } from "@/lib/validation";
 import { generateReply, toGsm7 } from "@/lib/receptionist";
 import { rateLimit, incrementDailyCounter } from "@/lib/ratelimit";
-import { clientIp, phoneKey } from "@/lib/request";
+import { clientIp, phoneKey, guardRequest } from "@/lib/request";
 import { limits, demoSmsDailyCap } from "@/config/limits";
 import { sendSms, twilioConfigured, lookupAllowsSms } from "@/lib/twilio";
 import { logLead } from "@/lib/airtable";
@@ -14,6 +14,12 @@ export const dynamic = "force-dynamic";
 const MAX_SMS_CHARS = 160;
 
 export async function POST(req: NextRequest) {
+  // Same-origin JSON only. This endpoint sends a real SMS to a caller-supplied
+  // number, so a cross-site page must never be able to fire it using a
+  // visitor's browser (which would also spend the visitor's IP allowance).
+  const blocked = guardRequest(req);
+  if (blocked) return blocked;
+
   let body: unknown;
   try {
     body = await req.json();

@@ -34,6 +34,13 @@ export const metadata: Metadata = {
     siteName: site.brand.name,
     locale: "en_IE",
     type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: site.brand.name }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${site.brand.name} | ${site.brand.tagline}`,
+    description: site.hero.subhead,
+    images: ["/og-image.png"],
   },
   robots: { index: true, follow: true },
   icons: {

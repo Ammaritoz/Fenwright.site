@@ -29,7 +29,7 @@ export function Nav() {
         }`}
         aria-label="Primary"
       >
-        <a href="#top" className="rounded-lg" aria-label={`${site.brand.name} home`}>
+        <a href="/#top" className="rounded-lg" aria-label={`${site.brand.name} home`}>
           <Logo />
         </a>
 

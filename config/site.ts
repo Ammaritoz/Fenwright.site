@@ -25,13 +25,16 @@ export const site = {
   },
 
   nav: {
+    // Leading "/" makes these resolve correctly from every route (e.g.
+    // /privacy), not just from "/" itself -- a bare "#services" only
+    // works when you're already on the homepage.
     links: [
-      { label: "What we do", href: "#services" },
-      { label: "Demo", href: "#demo" },
-      { label: "How it works", href: "#how-it-works" },
-      { label: "About", href: "#about" },
+      { label: "What we do", href: "/#services" },
+      { label: "Demo", href: "/#demo" },
+      { label: "How it works", href: "/#how-it-works" },
+      { label: "About", href: "/#about" },
     ],
-    cta: { label: "Book a call", href: "#book" },
+    cta: { label: "Book a call", href: "/#book" },
   },
 
   hero: {

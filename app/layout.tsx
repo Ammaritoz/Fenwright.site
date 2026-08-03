@@ -54,13 +54,18 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+// ProfessionalService is a LocalBusiness subtype -- the closest honest fit
+// while site.legal.address is still blank. Once a public address exists,
+// add `address: { "@type": "PostalAddress", ... }` here to become eligible
+// for Google's local pack / Maps results, which a bare Organization isn't.
 const organizationJsonLd = {
   "@context": "https://schema.org",
-  "@type": "Organization",
+  "@type": "ProfessionalService",
   name: site.brand.name,
   url: "https://fenwright.ie",
   description: site.brand.tagline,
   email: site.legal.contactEmail,
+  image: "https://fenwright.ie/og-image.png",
   areaServed: ["IE", "GB"],
 };
 

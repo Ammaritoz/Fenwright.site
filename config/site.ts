@@ -253,6 +253,13 @@ export const site = {
     copyright: `© ${new Date().getFullYear()} Fenwright. All rights reserved.`,
   },
 
+  cookieConsent: {
+    text: "We use analytics cookies to see how the site is doing. They're off until you say yes.",
+    acceptLabel: "Accept",
+    declineLabel: "Decline",
+    privacyLabel: "Privacy Policy",
+  },
+
   // Cal.com: public link + instance used by the inline embed.
   // This account is on Cal's EU cloud (cal.eu), so the embed origin points there.
   calcom: {

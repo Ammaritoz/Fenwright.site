@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Hanken_Grotesk } from "next/font/google";
 import { site } from "@/config/site";
+import { CookieConsent } from "@/components/CookieConsent";
 import "./globals.css";
 
 // Display: classical serif to match the Fenwright wordmark. Editorial,
@@ -90,6 +91,7 @@ export default function RootLayout({
           Skip to content
         </a>
         {children}
+        <CookieConsent />
       </body>
     </html>
   );

@@ -182,10 +182,15 @@ export default function PrivacyPage() {
 
               <H2>Cookies</H2>
               <P>
-                This site does not set advertising or analytics cookies. The
+                We do not set advertising or analytics cookies unless you say yes
+                to the cookie banner shown on your first visit. If you accept, we
+                use Google Analytics to see how the site is doing; if you decline
+                or don&rsquo;t respond, no analytics cookies are set. You can
+                change your mind at any time by clearing your browser&rsquo;s
+                site data for fenwright.ie, which shows the banner again. The
                 embedded Cal.com booking calendar may set storage that is
-                necessary for it to function when you interact with it. If we add
-                analytics in future, we will ask for your consent first.
+                necessary for it to function when you interact with it,
+                independent of this choice.
               </P>
 
               <H2>Changes</H2>

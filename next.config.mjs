@@ -41,6 +41,11 @@ const connectSrc = [
   GTAG,
   GA,
   "https://*.google-analytics.com",
+  // GA4's actual collect beacon lands on one of these depending on setup --
+  // analytics.google.com is GA4's newer collect domain, www.google.com is
+  // used when the property is linked to a Google Ads account (ours is).
+  "https://analytics.google.com",
+  "https://www.google.com",
   ...(isDev ? ["ws:"] : []),
 ];
 

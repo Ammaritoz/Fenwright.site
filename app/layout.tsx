@@ -22,16 +22,20 @@ const sans = Hanken_Grotesk({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://fenwright.ie"),
+  // www, not apex: fenwright.ie redirects to www.fenwright.ie (308), so www
+  // is what actually serves content. Every URL below needs to agree on that
+  // or Search Console flags it as an unresolved duplicate.
+  metadataBase: new URL("https://www.fenwright.ie"),
   title: {
     default: `${site.brand.name} | ${site.brand.tagline}`,
     template: `%s | ${site.brand.name}`,
   },
   description: site.hero.subhead,
+  alternates: { canonical: "/" },
   openGraph: {
     title: `${site.brand.name} | ${site.brand.tagline}`,
     description: site.hero.subhead,
-    url: "https://fenwright.ie",
+    url: "https://www.fenwright.ie",
     siteName: site.brand.name,
     locale: "en_IE",
     type: "website",
@@ -74,10 +78,10 @@ const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "ProfessionalService",
   name: site.brand.name,
-  url: "https://fenwright.ie",
+  url: "https://www.fenwright.ie",
   description: site.brand.tagline,
   email: site.legal.contactEmail,
-  image: "https://fenwright.ie/og-image.png",
+  image: "https://www.fenwright.ie/og-image.png",
   areaServed: ["IE", "GB"],
 };
 

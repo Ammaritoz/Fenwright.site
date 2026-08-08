@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
     "How Fenwright collects, uses, and protects your personal data, and your rights under GDPR.",
+  alternates: { canonical: "/privacy" },
   robots: { index: true, follow: true },
 };
 

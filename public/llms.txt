@@ -6,8 +6,8 @@ Fenwright works with clinics, salons and trades in Ireland and the UK. We find w
 leaks time and money, then build the systems that plug it: enquiries answered, bookings kept,
 admin handled.
 
-- [Homepage](https://fenwright.ie/): overview, services, live demo and how we work
-- [About](https://fenwright.ie/#about): who runs Fenwright
-- [Privacy](https://fenwright.ie/privacy): privacy policy and data handling
+- [Homepage](https://www.fenwright.ie/): overview, services, live demo and how we work
+- [About](https://www.fenwright.ie/#about): who runs Fenwright
+- [Privacy](https://www.fenwright.ie/privacy): privacy policy and data handling
 
 Contact: contact@fenwright.ie

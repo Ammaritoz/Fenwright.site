@@ -55,6 +55,15 @@ export const contactSchema = z.object({
   }),
 });
 
+export const unsubscribeSchema = z.object({
+  email: z
+    .string({ required_error: "Enter your email address.", invalid_type_error: "Enter your email address." })
+    .trim()
+    .toLowerCase()
+    .email("That doesn't look like a valid email address."),
+});
+
 export type DemoReplyInput = z.infer<typeof demoReplySchema>;
 export type DemoTextInput = z.infer<typeof demoTextSchema>;
 export type ContactInput = z.infer<typeof contactSchema>;
+export type UnsubscribeInput = z.infer<typeof unsubscribeSchema>;

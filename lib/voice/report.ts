@@ -16,10 +16,17 @@ export function toCallRecord(payload: unknown): CallRecord | null {
 
   const startedAt: string = message.startedAt ?? new Date().toISOString();
   const endedAt: string = message.endedAt ?? startedAt;
-  const durationSeconds = Math.max(
-    0,
-    Math.round((Date.parse(endedAt) - Date.parse(startedAt)) / 1000)
-  );
+  // startedAt/endedAt are only defaulted with ??, so a non-nullish but
+  // non-ISO value (epoch millis, 0, false) reaches Date.parse unguarded and
+  // yields NaN, which Math.max would propagate silently. Fall back to the
+  // same "absent date defaults to 0" behaviour rather than invent a new
+  // sentinel.
+  const startedMs = Date.parse(startedAt);
+  const endedMs = Date.parse(endedAt);
+  const durationSeconds =
+    Number.isFinite(startedMs) && Number.isFinite(endedMs)
+      ? Math.max(0, Math.round((endedMs - startedMs) / 1000))
+      : 0;
 
   const endedReason: string = message.endedReason ?? "";
   const outcome = outcomeFor(endedReason);

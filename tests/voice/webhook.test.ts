@@ -51,4 +51,22 @@ describe("toCallRecord", () => {
     odd.message.endedReason = "something-new-from-the-platform";
     expect(toCallRecord(odd)!.outcome).toBe("answered");
   });
+
+  it("falls back to a zero duration rather than NaN when endedAt is unparsable", () => {
+    const malformed = structuredClone(report);
+    malformed.message.endedAt = "not-a-date";
+    expect(toCallRecord(malformed)!.durationSeconds).toBe(0);
+  });
+
+  it("falls back to a zero duration rather than NaN when startedAt is not an ISO string", () => {
+    const malformed = structuredClone(report) as { message: Record<string, unknown> };
+    malformed.message.startedAt = 1756717200000;
+    expect(toCallRecord(malformed)!.durationSeconds).toBe(0);
+  });
+
+  it("still computes the real duration for a well-formed report", () => {
+    // Pinned separately from the malformed-input cases above so a guard that
+    // always returns 0 cannot pass this whole file.
+    expect(toCallRecord(report)!.durationSeconds).toBe(132);
+  });
 });

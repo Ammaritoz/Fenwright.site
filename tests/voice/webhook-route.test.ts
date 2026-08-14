@@ -119,4 +119,33 @@ describe("POST /api/voice/webhook", () => {
     expect(res.status).toBe(200);
     expect(vi.mocked(logCall)).toHaveBeenCalledTimes(1);
   });
+
+  it("rejects with 400, not a speakable 200, when the body cannot be read", async () => {
+    const { logCall } = await import("@/lib/voice/calls");
+    const erroringBody = new ReadableStream({
+      start(controller) {
+        controller.error(new Error("client aborted"));
+      },
+    });
+    // `duplex: "half"` is required by undici for a streaming request body but
+    // is not yet reflected in NextRequest's RequestInit type, so the init
+    // object is cast directly to the constructor's own parameter type. Same
+    // approach as the sibling tools route's equivalent test.
+    const req = new NextRequest(
+      "http://localhost/api/voice/webhook",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: erroringBody,
+        duplex: "half",
+      } as unknown as ConstructorParameters<typeof NextRequest>[1]
+    );
+
+    const res = await POST(req);
+
+    // This request was never authenticated, so it must not receive the
+    // speakable-200 treatment reserved for authenticated failures.
+    expect(res.status).toBe(400);
+    expect(vi.mocked(logCall)).not.toHaveBeenCalled();
+  });
 });

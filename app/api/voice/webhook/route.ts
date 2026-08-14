@@ -13,7 +13,16 @@ export const dynamic = "force-dynamic";
  * not retry.
  */
 export async function POST(req: NextRequest) {
-  const rawBody = await req.text();
+  let rawBody: string;
+  try {
+    rawBody = await req.text();
+  } catch (err) {
+    // The body never fully arrived, so this request cannot be verified. It is
+    // not authenticated, so it must not get the speakable-200 treatment
+    // reserved below for calls that already passed signature verification.
+    console.error("[fenwright] voice webhook body read failed:", errMeta(err));
+    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+  }
 
   const verified = verifyVoiceRequest(req.headers, rawBody, Date.now());
   if (!verified.ok) {

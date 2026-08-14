@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { claimOnce, idempotencyKey } from "@/lib/voice/idempotency";
+import { claimOnce, idempotencyKey, releaseClaim } from "@/lib/voice/idempotency";
 
 describe("claimOnce", () => {
   it("returns true the first time and false after", async () => {
@@ -12,6 +12,23 @@ describe("claimOnce", () => {
   it("treats different keys independently", async () => {
     expect(await claimOnce(`a-${Math.random()}`)).toBe(true);
     expect(await claimOnce(`b-${Math.random()}`)).toBe(true);
+  });
+});
+
+describe("releaseClaim", () => {
+  it("allows a subsequent claimOnce to succeed again after release", async () => {
+    const key = `release-${Math.random()}`;
+    expect(await claimOnce(key)).toBe(true);
+    expect(await claimOnce(key)).toBe(false);
+
+    await releaseClaim(key);
+
+    expect(await claimOnce(key)).toBe(true);
+  });
+
+  it("resolves without throwing for a key that was never claimed", async () => {
+    const key = `never-claimed-${Math.random()}`;
+    await expect(releaseClaim(key)).resolves.toBeUndefined();
   });
 });
 

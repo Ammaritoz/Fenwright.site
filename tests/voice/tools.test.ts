@@ -66,6 +66,28 @@ describe("runTool", () => {
     expect(vi.mocked(createBooking)).toHaveBeenCalledTimes(1);
   });
 
+  it("retries booking after a failed attempt instead of falsely reporting it as already booked", async () => {
+    const { createBooking } = await import("@/lib/voice/calcom");
+    const callId = uniqueCall();
+    const args = {
+      personaId: "electrician",
+      slotStart: "2026-09-01T09:00:00.000Z",
+      name: "Bob",
+      phone: "+353833378541",
+    };
+    vi.mocked(createBooking).mockResolvedValueOnce({ ok: false, reason: "test_failure" });
+
+    const first = await runTool("book_appointment", callId, args);
+    expect(first.result).not.toMatch(/already booked/i);
+
+    const second = await runTool("book_appointment", callId, args);
+    expect(second.result).toMatch(/booked/i);
+
+    // The regression this guards: a claim-before-act key must be released on
+    // failure, or the second call never reaches createBooking at all.
+    expect(vi.mocked(createBooking)).toHaveBeenCalledTimes(2);
+  });
+
   it("captures a lead", async () => {
     const { logLead } = await import("@/lib/airtable");
     const res = await runTool("capture_lead", uniqueCall(), {
@@ -104,5 +126,27 @@ describe("runTool", () => {
     await runTool("send_recap_sms", callId, args);
     await runTool("send_recap_sms", callId, args);
     expect(vi.mocked(sendSms)).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries a recap SMS after a failed send instead of falsely reporting it as already sent", async () => {
+    const { sendSms } = await import("@/lib/twilio");
+    const callId = uniqueCall();
+    const args = {
+      personaId: "electrician",
+      phone: "+353833378541",
+      kind: "callback" as const,
+      name: "Bob",
+    };
+    vi.mocked(sendSms).mockRejectedValueOnce(new Error("network blip"));
+
+    const first = await runTool("send_recap_sms", callId, args);
+    expect(first.result).toMatch(/could not/i);
+
+    const second = await runTool("send_recap_sms", callId, args);
+    expect(second.result).toMatch(/sent|text/i);
+
+    // Same regression as booking: the failure must release the claim so the
+    // retry genuinely attempts the send again.
+    expect(vi.mocked(sendSms)).toHaveBeenCalledTimes(2);
   });
 });

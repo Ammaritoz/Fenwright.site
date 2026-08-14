@@ -1,6 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { Redis } from "@upstash/redis";
+import { errMeta } from "@/lib/log";
 
 const hasUpstash = Boolean(
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
@@ -39,6 +40,28 @@ export async function claimOnce(key: string, ttlSeconds = 3600): Promise<boolean
   if (expiresAt && expiresAt > now) return false;
   memStore.set(namespaced, now + ttlSeconds * 1000);
   return true;
+}
+
+/**
+ * Release a claim so a failed action can genuinely be retried.
+ *
+ * claimOnce is deliberately claim-before-act, because the platform retries on
+ * timeout and the first attempt may still be in flight. That ordering is what
+ * prevents a double booking, but it means a failed action would otherwise hold
+ * its key for the full TTL and report false success to an honest retry.
+ */
+export async function releaseClaim(key: string): Promise<void> {
+  const namespaced = `fenwright:once:${key}`;
+  if (hasUpstash) {
+    try {
+      await getRedis().del(namespaced);
+    } catch (err) {
+      // Best effort: a stuck claim expires with its TTL.
+      console.error("[fenwright] releaseClaim failed:", errMeta(err));
+    }
+    return;
+  }
+  memStore.delete(namespaced);
 }
 
 /** Stable key for a tool invocation. Object key order must not matter. */

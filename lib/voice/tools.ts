@@ -9,7 +9,7 @@ import {
 } from "@/lib/voice/schemas";
 import { createBooking, getAvailability, spokenTime } from "@/lib/voice/calcom";
 import { bookingRecap, callbackRecap } from "@/lib/voice/recap";
-import { claimOnce, idempotencyKey } from "@/lib/voice/idempotency";
+import { claimOnce, idempotencyKey, releaseClaim } from "@/lib/voice/idempotency";
 import { logLead } from "@/lib/airtable";
 import { sendSms, twilioConfigured } from "@/lib/twilio";
 import { errMeta } from "@/lib/log";
@@ -99,6 +99,9 @@ async function bookAppointment(callId: string, args: unknown): Promise<ToolResul
   });
 
   if (!booking.ok) {
+    // Release so an honest retry with the same arguments tries again rather
+    // than being told it is already booked when nothing was ever booked.
+    await releaseClaim(key);
     return {
       result:
         "That slot would not take, it may have just gone. Would another time suit, or shall I have someone ring you back?",
@@ -155,6 +158,11 @@ async function sendRecap(callId: string, args: unknown): Promise<ToolResult> {
       : callbackRecap(persona, { name: input.name });
 
   const sent = await trySms(input.phone, body);
+  if (!sent) {
+    // Same reasoning as the booking failure path: release so a retry
+    // genuinely attempts the send rather than being told it already went.
+    await releaseClaim(key);
+  }
   return {
     result: sent
       ? "I have sent that to you by text."

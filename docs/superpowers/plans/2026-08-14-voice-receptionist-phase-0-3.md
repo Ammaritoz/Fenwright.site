@@ -453,7 +453,7 @@ export const personaIds = personas.map((p) => p.id) as [string, ...string[]];
 - [ ] **Step 5: Run the tests**
 
 Run: `npm test -- personas`
-Expected: PASS, 6 tests.
+Expected: PASS, 7 tests.
 
 - [ ] **Step 6: Commit**
 

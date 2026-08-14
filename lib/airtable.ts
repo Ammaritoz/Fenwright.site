@@ -13,7 +13,7 @@ export type LeadRecord = {
   phone?: string;
   message?: string;
   industry?: string;
-  source: "site-demo" | "site-contact";
+  source: "site-demo" | "site-contact" | "voice-inbound" | "voice-outbound";
 };
 
 let base: Airtable.Base | null = null;

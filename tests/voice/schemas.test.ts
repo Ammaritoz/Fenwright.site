@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bookAppointmentSchema, captureLeadSchema } from "@/lib/voice/schemas";
+import { bookAppointmentSchema, captureLeadSchema, checkAvailabilitySchema, sendRecapSchema } from "@/lib/voice/schemas";
 
 describe("bookAppointmentSchema", () => {
   const valid = {
@@ -58,5 +58,47 @@ describe("captureLeadSchema", () => {
       urgency: "soon",
     });
     expect(res.success).toBe(true);
+  });
+});
+
+describe("checkAvailabilitySchema", () => {
+  it("defaults partOfDay to any when omitted", () => {
+    const res = checkAvailabilitySchema.safeParse({ personaId: "electrician" });
+    expect(res.success).toBe(true);
+    if (res.success) expect(res.data.partOfDay).toBe("any");
+  });
+
+  it("rejects an unknown partOfDay", () => {
+    const res = checkAvailabilitySchema.safeParse({
+      personaId: "electrician",
+      partOfDay: "midnight",
+    });
+    expect(res.success).toBe(false);
+  });
+
+  it("rejects an unknown persona", () => {
+    expect(checkAvailabilitySchema.safeParse({ personaId: "nope" }).success).toBe(false);
+  });
+});
+
+describe("sendRecapSchema", () => {
+  const valid = {
+    personaId: "electrician",
+    phone: "+353833378541",
+    kind: "booking",
+    name: "Bob Fenwick",
+    spokenTime: "Tuesday the 1st of September at 10am",
+  };
+
+  it("accepts a valid booking recap", () => {
+    expect(sendRecapSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("rejects a non-E.164 phone", () => {
+    expect(sendRecapSchema.safeParse({ ...valid, phone: "0833378541" }).success).toBe(false);
+  });
+
+  it("rejects an unknown kind", () => {
+    expect(sendRecapSchema.safeParse({ ...valid, kind: "voicemail" }).success).toBe(false);
   });
 });

@@ -1388,7 +1388,9 @@ export async function createBooking({
 - [ ] **Step 4: Run the tests**
 
 Run: `npm test -- calcom`
-Expected: PASS, 7 tests. If `spokenTime` assertions fail on the meridiem or spacing, adjust the expected strings to match `Intl` output on Node 20 rather than fighting the formatter, then re-run.
+Expected: PASS, 7 tests.
+
+The two `spokenTime` expectations were verified against real `Intl` output on Node 24 before this plan was written: 1 September 2026 is a Tuesday, and `en-IE` with `hour12: true` emits a lowercase `am`/`pm` with no full stops. If these assertions fail, the implementation is wrong. Do not edit the expected strings to match whatever the code happens to produce.
 
 - [ ] **Step 5: Commit**
 
@@ -1736,7 +1738,6 @@ vi.mock("@/lib/voice/calcom", () => ({
   createBooking: vi.fn().mockResolvedValue({ ok: true, ref: "abc123" }),
   spokenTime: (iso: string) => `spoken(${iso})`,
 }));
-vi.mock("@/lib/voice/calls", () => ({ logCall: vi.fn().mockResolvedValue(undefined) }));
 vi.mock("@/lib/airtable", () => ({ logLead: vi.fn().mockResolvedValue(undefined) }));
 vi.mock("@/lib/twilio", () => ({
   sendSms: vi.fn().mockResolvedValue(undefined),

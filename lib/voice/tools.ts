@@ -109,7 +109,10 @@ async function bookAppointment(callId: string, args: unknown): Promise<ToolResul
   }
 
   const when = spokenTime(input.slotStart);
-  await trySms(input.phone, bookingRecap(persona, { name: input.name, spokenTime: when }));
+  const texted = await trySms(
+    input.phone,
+    bookingRecap(persona, { name: input.name, spokenTime: when })
+  );
   await tryLogLead({
     name: input.name,
     phone: input.phone,
@@ -118,7 +121,14 @@ async function bookAppointment(callId: string, args: unknown): Promise<ToolResul
     source: "voice-inbound",
   });
 
-  return { result: `Booked, that is ${when}. I will text you a confirmation now.` };
+  // The booking itself succeeded either way. Only the promise of a text
+  // depends on whether it actually sent, so the caller is never told a
+  // confirmation is coming when it is not.
+  return {
+    result: texted
+      ? `Booked, that is ${when}. I will text you a confirmation now.`
+      : `Booked, that is ${when}. I could not get a text away just now, but you are booked in.`,
+  };
 }
 
 async function captureLead(callId: string, args: unknown): Promise<ToolResult> {

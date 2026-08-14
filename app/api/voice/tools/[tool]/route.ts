@@ -19,7 +19,16 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { tool: string } }
 ) {
-  const rawBody = await req.text();
+  let rawBody: string;
+  try {
+    rawBody = await req.text();
+  } catch (err) {
+    // The body never fully arrived, so this request cannot be verified. It is
+    // not authenticated, so it must not get the speakable-200 treatment
+    // reserved below for calls that already passed signature verification.
+    console.error("[fenwright] voice tool body read failed:", errMeta(err));
+    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+  }
 
   const verified = verifyVoiceRequest(req.headers, rawBody, Date.now());
   if (!verified.ok) {
@@ -40,7 +49,15 @@ export async function POST(
   }
 
   // A hostile or looping call must not fan out into unlimited SMS or bookings.
-  const limited = await rateLimit("voice-tool", callId, 40, "10 m");
+  let limited: { success: boolean } = { success: true };
+  try {
+    limited = await rateLimit("voice-tool", callId, 40, "10 m");
+  } catch (err) {
+    // The request is already signature-verified, and rate limiting is a secondary
+    // guard against runaway loops rather than the security boundary. A limiter
+    // outage must not become dead air on a live call, so fail open and log.
+    console.error("[fenwright] voice rate limiter unavailable:", errMeta(err));
+  }
   if (!limited.success) {
     return NextResponse.json(
       { result: "I am having trouble on my side. Let me take your number instead." },

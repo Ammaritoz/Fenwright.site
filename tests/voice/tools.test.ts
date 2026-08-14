@@ -81,11 +81,34 @@ describe("runTool", () => {
     expect(first.result).not.toMatch(/already booked/i);
 
     const second = await runTool("book_appointment", callId, args);
+    // "That is already booked in for you" also matches /booked/i, so that
+    // assertion alone is satisfied by the bug's own false message. Pin the
+    // absence of the false-positive wording explicitly.
     expect(second.result).toMatch(/booked/i);
+    expect(second.result).not.toMatch(/already/i);
 
     // The regression this guards: a claim-before-act key must be released on
     // failure, or the second call never reaches createBooking at all.
     expect(vi.mocked(createBooking)).toHaveBeenCalledTimes(2);
+  });
+
+  it("confirms a booking without promising a text when the SMS send fails", async () => {
+    const { sendSms } = await import("@/lib/twilio");
+    vi.mocked(sendSms).mockRejectedValueOnce(new Error("network blip"));
+
+    const res = await runTool("book_appointment", uniqueCall(), {
+      personaId: "electrician",
+      slotStart: "2026-09-01T09:00:00.000Z",
+      name: "Bob",
+      phone: "+353833378541",
+    });
+
+    // The booking itself succeeded (createBooking resolved ok), so the caller
+    // must be told they are booked in.
+    expect(res.result).toMatch(/booked/i);
+    // But trySms failed, so the result must not promise a text that was
+    // never sent.
+    expect(res.result).not.toMatch(/i will text you a confirmation/i);
   });
 
   it("captures a lead", async () => {
@@ -143,7 +166,11 @@ describe("runTool", () => {
     expect(first.result).toMatch(/could not/i);
 
     const second = await runTool("send_recap_sms", callId, args);
+    // "That text is already on its way" also matches /sent|text/i, so that
+    // assertion alone is satisfied by the bug's own false message. Pin the
+    // absence of the false-positive wording explicitly.
     expect(second.result).toMatch(/sent|text/i);
+    expect(second.result).not.toMatch(/already/i);
 
     // Same regression as booking: the failure must release the claim so the
     // retry genuinely attempts the send again.

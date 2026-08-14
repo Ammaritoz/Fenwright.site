@@ -36,3 +36,60 @@ describe("callbackRecap", () => {
     expect(body.length).toBeLessThanOrEqual(160);
   });
 });
+
+describe("worst-case length constraints", () => {
+  it("bookingRecap with max-length inputs stays within 160 chars", () => {
+    const body = bookingRecap(persona, {
+      name: "A".repeat(80),
+      spokenTime: "B".repeat(80),
+    });
+    expect(body.length).toBeLessThanOrEqual(160);
+  });
+
+  it("callbackRecap with max-length name stays within 160 chars", () => {
+    const body = callbackRecap(persona, { name: "A".repeat(80) });
+    expect(body.length).toBeLessThanOrEqual(160);
+  });
+});
+
+describe("phishing protection", () => {
+  it("strips URLs from spokenTime", () => {
+    const body = bookingRecap(persona, {
+      name: "Bob",
+      spokenTime: "http://evil.example.com",
+    });
+    expect(body).not.toContain("http://");
+    expect(body).not.toContain("evil.example.com");
+  });
+
+  it("yields sensible greeting when name is a URL", () => {
+    const body = bookingRecap(persona, {
+      name: "http://evil.example.com",
+      spokenTime: "Tuesday at 10am",
+    });
+    expect(body).toContain("Hi there");
+    expect(body).not.toContain("http://");
+  });
+});
+
+describe("legitimate content preservation", () => {
+  it("preserves legitimate spokenTime with date and time", () => {
+    const body = bookingRecap(persona, {
+      name: "Bob",
+      spokenTime: "Tuesday the 1st of September at 2.30pm",
+    });
+    expect(body).toContain("Tuesday the 1st of September at 2.30pm");
+  });
+
+  it("callbackRecap is distinct from bookingRecap and lacks time reference", () => {
+    const callbackBody = callbackRecap(persona, { name: "Bob" });
+    const bookingBody = bookingRecap(persona, {
+      name: "Bob",
+      spokenTime: "Tuesday at 10am",
+    });
+    expect(callbackBody).not.toBe(bookingBody);
+    expect(callbackBody).not.toContain("Tuesday");
+    expect(callbackBody).not.toContain("booked");
+    expect(callbackBody).toContain("thanks for calling");
+  });
+});

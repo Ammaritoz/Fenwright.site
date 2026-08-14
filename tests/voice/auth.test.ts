@@ -39,6 +39,17 @@ describe("verifyVoiceRequest", () => {
     expect(res).toEqual({ ok: false, reason: "stale_timestamp" });
   });
 
+  it("rejects a valid signature replayed under a fresh timestamp", () => {
+    const later = NOW + 60_000;
+    const h = headers({ "x-fenwright-timestamp": String(Math.floor(later / 1000)) });
+    expect(verifyVoiceRequest(h, BODY, later)).toEqual({ ok: false, reason: "bad_signature" });
+  });
+
+  it("rejects a non-numeric timestamp", () => {
+    const res = verifyVoiceRequest(headers({ "x-fenwright-timestamp": "not-a-number" }), BODY, NOW);
+    expect(res).toEqual({ ok: false, reason: "bad_timestamp" });
+  });
+
   it("rejects a missing signature header", () => {
     const h = headers();
     h.delete("x-fenwright-signature");

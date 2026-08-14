@@ -32,8 +32,8 @@ export function verifyVoiceRequest(
   const signature = headers.get(SIGNATURE_HEADER);
   if (!timestamp || !signature) return { ok: false, reason: "missing_headers" };
 
+  if (!/^\d+$/.test(timestamp)) return { ok: false, reason: "bad_timestamp" };
   const tsSeconds = Number(timestamp);
-  if (!Number.isFinite(tsSeconds)) return { ok: false, reason: "bad_timestamp" };
   if (Math.abs(nowMs - tsSeconds * 1000) > FRESHNESS_MS) {
     return { ok: false, reason: "stale_timestamp" };
   }

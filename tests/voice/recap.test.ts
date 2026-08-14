@@ -136,24 +136,22 @@ describe("conditional closing sentence and time preservation", () => {
     }
   });
 
-  it("hard-caps output to exactly 160 chars when necessary", () => {
-    // Create a synthetic persona with a very long business name
+  it("hard-caps output to exactly 160 characters when the assembled body overflows", () => {
+    // A business name long enough that even the core sentence overflows a single
+    // segment, forcing oneSegment()'s slice rather than merely dropping the invite.
     const syntheticPersona = {
       ...persona,
       identity: {
         ...persona.identity,
-        businessName: "A".repeat(50),
+        businessName: "A".repeat(100),
       },
     };
+
     const body = bookingRecap(syntheticPersona, {
       name: "Bob",
       spokenTime: "Monday at ten o'clock in the morning",
     });
-    // The output should be capped at 160 chars by oneSegment()
-    expect(body.length).toBeLessThanOrEqual(160);
-    // With an extremely long business name, it should be exactly at the limit
-    if (body.length === 160) {
-      expect(body).toBe(body);
-    }
+
+    expect(body.length).toBe(160);
   });
 });

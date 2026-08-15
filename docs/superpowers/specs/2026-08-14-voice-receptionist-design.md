@@ -296,6 +296,16 @@ repository and are never free text from the model (the same reasoning as
 payload); and every handler is idempotent on a `callId` + tool + arguments key,
 because a retried tool call must not create a second booking.
 
+### Status codes
+
+Tool and webhook responses are 200 with speakable text for any failure
+occurring **after** a tool has been dispatched or a report accepted. Failures
+**before** that point — an unreadable body, an unparsable body, or a missing
+`callId` — return 4xx with no speakable text: there is no identified tool to
+apologise for, and a malformed request from a sender that signed it correctly
+is a platform bug that should be visible rather than smoothed over. Signature
+failures return a bare 401 with no reason.
+
 ## 7. Data model
 
 **Airtable `Calls`** (new table):

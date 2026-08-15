@@ -256,6 +256,38 @@ describe("POST /api/voice/tools/[tool]", () => {
     expect(vi.mocked(runTool)).toHaveBeenCalledOnce();
   });
 
+  /**
+   * Pins a deliberate ruling rather than an accident. The speakable-200
+   * treatment starts once a tool has been dispatched. Before that there is no
+   * identified tool to apologise for, and a malformed body from a sender that
+   * signed it correctly is a platform bug that a 200 would smooth over.
+   */
+  it("returns 400, not a speakable 200, for a signed body that does not parse", async () => {
+    const { runTool } = await import("@/lib/voice/tools");
+    const rawBody = "{ this is not json";
+
+    const req = buildRequest(rawBody, signedHeaders(rawBody));
+    const res = await POST(req, { params: { tool: "check_availability" } });
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body).not.toHaveProperty("result");
+    expect(vi.mocked(runTool)).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for a signed, parsable body with no callId", async () => {
+    const { runTool } = await import("@/lib/voice/tools");
+    const rawBody = JSON.stringify({ arguments: { personaId: "electrician" } });
+
+    const req = buildRequest(rawBody, signedHeaders(rawBody));
+    const res = await POST(req, { params: { tool: "check_availability" } });
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body).not.toHaveProperty("result");
+    expect(vi.mocked(runTool)).not.toHaveBeenCalled();
+  });
+
   it("rejects with 400, not a speakable 200, when the body cannot be read", async () => {
     const { runTool } = await import("@/lib/voice/tools");
     const erroringBody = new ReadableStream({

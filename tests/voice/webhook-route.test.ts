@@ -160,6 +160,24 @@ describe("POST /api/voice/webhook", () => {
     expect(vi.mocked(logCall)).toHaveBeenCalledTimes(1);
   });
 
+  /**
+   * The sibling ruling to the tools route's. A 200 here would swallow a genuine
+   * platform serialisation bug: the sender signed the body correctly, so it is
+   * authentic, and the only thing wrong with it is that it is malformed.
+   */
+  it("returns 400, not 200, for a signed body that does not parse", async () => {
+    const { logCall } = await import("@/lib/voice/calls");
+    const rawBody = "{ this is not json";
+
+    const req = buildRequest(rawBody, signedHeaders(rawBody));
+    const res = await POST(req);
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body).not.toHaveProperty("ok");
+    expect(vi.mocked(logCall)).not.toHaveBeenCalled();
+  });
+
   it("rejects with 400, not a speakable 200, when the body cannot be read", async () => {
     const { logCall } = await import("@/lib/voice/calls");
     const erroringBody = new ReadableStream({

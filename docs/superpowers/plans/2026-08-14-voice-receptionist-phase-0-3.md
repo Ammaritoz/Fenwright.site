@@ -19,6 +19,7 @@
 - **Caller speech is untrusted input.** It is passed to the model inside tagged blocks and is data, never instructions. Tool arguments are zod-validated server-side before any write.
 - **Every tool handler is idempotent** on `callId` + tool + arguments. A retried tool call must not create a second booking.
 - **Tool handlers must respond within 8 seconds.** A live conversation is waiting.
+- **Failures become speakable 200s only once a tool has been dispatched.** Tool and webhook responses are 200 with speakable text for any failure occurring **after** a tool has been dispatched or a report accepted. Failures **before** that point — an unreadable body, an unparsable body, or a missing `callId` — return 4xx with no speakable text: there is no identified tool to apologise for, and a malformed request from a sender that signed it correctly is a platform bug that should be visible rather than smoothed over. Signature failures return a bare 401 with no reason.
 - **Never log PII.** `lib/log.ts` logs metadata only; transcripts and recordings never enter application logs.
 - **Node runtime, dynamic rendering** on every voice route: `export const runtime = "nodejs";` and `export const dynamic = "force-dynamic";`
 - Persona ids must be drawn from the existing industry ids in `config/site.ts`: `dental`, `aesthetics`, `salon`, `plumber`, `electrician`, `trades`, `other`.

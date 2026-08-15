@@ -80,10 +80,7 @@ export async function POST(
     console.error("[fenwright] voice rate limiter unavailable:", errMeta(err));
   }
   if (!limited.success) {
-    return NextResponse.json(
-      { result: "I am having trouble on my side. Let me take your number instead." },
-      { status: 200 }
-    );
+    return speakable("I am having trouble on my side. Let me take your number instead.");
   }
 
   // send_recap_sms is the fan-out risk. The limiter above is one budget of 40

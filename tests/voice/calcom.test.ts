@@ -57,13 +57,16 @@ describe("getAvailability", () => {
   // looks identical whether the calendar is genuinely full or the event type
   // ID is simply wrong. Only this warning tells the two apart, so it has to
   // name the actual ID in play.
-  it("warns with the event type id when Cal.com returns 200 but no slots", async () => {
+  it("warns with the full request URL when Cal.com returns 200 but no slots", async () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     stubFetch({ data: { slots: {} } });
 
     await getAvailability({});
 
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("eventTypeId=123456"));
+    // The key is a header, never a query param, so the logged URL must not
+    // be able to leak it even by accident.
+    expect(warnSpy.mock.calls[0][0]).not.toContain("test-calcom-key");
     warnSpy.mockRestore();
   });
 

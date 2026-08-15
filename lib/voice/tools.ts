@@ -12,8 +12,9 @@ import { bookingRecap, callbackRecap } from "@/lib/voice/recap";
 import { claimOnce, idempotencyKey, releaseClaim } from "@/lib/voice/idempotency";
 import { logLead } from "@/lib/airtable";
 import { sendSms, twilioConfigured } from "@/lib/twilio";
+import { incrementDailyCounter } from "@/lib/ratelimit";
 import { errMeta } from "@/lib/log";
-import { limits } from "@/config/limits";
+import { limits, voiceSmsDailyCap } from "@/config/limits";
 
 /** Shared with Cal.com so the whole tool path stays inside the 8 second budget. */
 const SMS_TIMEOUT_MS = limits.voice.externalTimeoutMs;
@@ -228,6 +229,32 @@ async function trySms(to: string, body: string): Promise<boolean> {
     console.warn("[fenwright] Twilio not configured, skipping voice recap SMS");
     return false;
   }
+
+  // Global daily budget, the same backstop every other spending route in this
+  // repo carries. It matters more here than anywhere else: callId arrives in
+  // the request body, so every limit keyed on it restarts for free with an
+  // invented id, and this is the only one a sender cannot restart.
+  //
+  // It gates the send, not the tool, and that placement is the point. Every
+  // caller of trySms already branches on this boolean and degrades to "I could
+  // not get a text away just now, but you are booked in", so an exhausted
+  // budget costs a courtesy text and never the appointment. The booking is the
+  // product; the text is a nicety. Counting here also counts real send
+  // attempts rather than tool dispatches, so a booking that fails before the
+  // SMS stage no longer burns budget.
+  try {
+    const used = await incrementDailyCounter("voice-sms");
+    if (used > voiceSmsDailyCap()) {
+      console.warn("[fenwright] voice SMS daily cap reached, skipping send");
+      return false;
+    }
+  } catch (err) {
+    // Fail open, same as the route's limiters: a counter outage must not
+    // become dead air on a live call. The signature is the security boundary,
+    // this is a spend backstop.
+    console.error("[fenwright] voice SMS daily counter unavailable:", errMeta(err));
+  }
+
   try {
     return await withSmsTimeout(sendSms(to, body));
   } catch (err) {

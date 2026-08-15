@@ -46,7 +46,8 @@ export const limits = {
     recapSmsPerCall: { tokens: 3, window: "10 m" as const },
     // Global daily cap, overridable via env VOICE_SMS_DAILY_CAP. callId comes
     // from the request body, so a sender gets a fresh per-call allowance for
-    // every id it invents; this is the only limit it cannot restart.
+    // every id it invents; this is the only limit it cannot restart. Enforced
+    // in trySms so it caps the text and never the booking.
     smsDailyCapDefault: 100,
   },
 } as const;

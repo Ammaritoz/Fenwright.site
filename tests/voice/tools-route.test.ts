@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { POST } from "@/app/api/voice/tools/[tool]/route";
 import { signPayload, SIGNATURE_HEADER, TIMESTAMP_HEADER } from "@/lib/voice/auth";
-import { rateLimit, incrementDailyCounter } from "@/lib/ratelimit";
+import { rateLimit } from "@/lib/ratelimit";
 import { limits } from "@/config/limits";
 
 vi.mock("@/lib/voice/tools", () => ({
@@ -10,13 +10,11 @@ vi.mock("@/lib/voice/tools", () => ({
 }));
 vi.mock("@/lib/ratelimit", () => ({
   rateLimit: vi.fn().mockResolvedValue({ success: true, remaining: 39, reset: 0 }),
-  incrementDailyCounter: vi.fn().mockResolvedValue(1),
 }));
 
 afterEach(() => {
   vi.clearAllMocks();
   vi.mocked(rateLimit).mockResolvedValue({ success: true, remaining: 39, reset: 0 });
-  vi.mocked(incrementDailyCounter).mockResolvedValue(1);
 });
 
 const SECRET = "test-secret-do-not-use-in-production";
@@ -184,76 +182,6 @@ describe("POST /api/voice/tools/[tool]", () => {
     expect(body.result).toMatch(/text/i);
     expect(body).not.toHaveProperty("error");
     expect(vi.mocked(runTool)).not.toHaveBeenCalled();
-  });
-
-  it("burns global daily budget for a tool that can send a text", async () => {
-    const rawBody = JSON.stringify({
-      callId: uniqueCall(),
-      arguments: {
-        personaId: "electrician",
-        slotStart: "2026-09-01T09:00:00.000Z",
-        name: "Bob",
-        phone: "+353833378541",
-      },
-    });
-
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
-    await POST(req, { params: { tool: "book_appointment" } });
-
-    expect(vi.mocked(incrementDailyCounter)).toHaveBeenCalledWith("voice-sms");
-  });
-
-  it("does not burn global daily budget for a tool that cannot send a text", async () => {
-    const rawBody = JSON.stringify({
-      callId: uniqueCall(),
-      arguments: { personaId: "electrician", partOfDay: "any" },
-    });
-
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
-    await POST(req, { params: { tool: "check_availability" } });
-
-    expect(vi.mocked(incrementDailyCounter)).not.toHaveBeenCalled();
-  });
-
-  // callId comes from the request body, so a sender gets a fresh per-call
-  // allowance for every id it invents. This is the only limit it cannot restart.
-  it("answers the global daily cap in speakable words and does not reach the tool", async () => {
-    const { runTool } = await import("@/lib/voice/tools");
-    vi.mocked(incrementDailyCounter).mockResolvedValueOnce(
-      limits.voice.smsDailyCapDefault + 1
-    );
-
-    const rawBody = JSON.stringify({
-      callId: uniqueCall(),
-      arguments: { personaId: "electrician", phone: "+353833378541", kind: "callback", name: "Bob" },
-    });
-
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
-    const res = await POST(req, { params: { tool: "send_recap_sms" } });
-
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.result).toMatch(/name and number/i);
-    expect(body).not.toHaveProperty("error");
-    expect(vi.mocked(runTool)).not.toHaveBeenCalled();
-  });
-
-  it("fails open and still reaches the tool when the daily counter throws", async () => {
-    const { runTool } = await import("@/lib/voice/tools");
-    vi.mocked(incrementDailyCounter).mockRejectedValueOnce(new Error("upstash blip"));
-
-    const rawBody = JSON.stringify({
-      callId: uniqueCall(),
-      arguments: { personaId: "electrician", phone: "+353833378541", kind: "callback", name: "Bob" },
-    });
-
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
-    const res = await POST(req, { params: { tool: "send_recap_sms" } });
-
-    // A counter outage is not the security boundary, so it must degrade to
-    // allowing the call rather than taking the phone line down.
-    expect(res.status).toBe(200);
-    expect(vi.mocked(runTool)).toHaveBeenCalledOnce();
   });
 
   /**

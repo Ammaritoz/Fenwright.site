@@ -133,7 +133,19 @@ export async function getAvailability({
       cache: "no-store",
       signal: controller.signal,
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      // A non-ok response returns [] the same as genuine "no slots", which is
+      // right for the caller: both are "nothing to offer". But silently, that
+      // is indistinguishable from a misconfigured key, wrong host, or an
+      // event type that no longer exists, and the receptionist would say "I
+      // do not have anything showing" forever with no trace of why. Log the
+      // status so a misconfiguration is loud here even though it stays quiet
+      // on the call.
+      console.error(
+        `[fenwright] Cal.com availability request failed: ${res.status} ${await res.text()}`
+      );
+      return [];
+    }
     const body = (await res.json()) as {
       data?: { slots?: Record<string, Array<{ start: string }>> };
     };

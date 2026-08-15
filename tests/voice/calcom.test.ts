@@ -13,6 +13,7 @@ function stubFetch(payload: unknown, ok = true) {
     ok,
     status: ok ? 200 : 500,
     json: async () => payload,
+    text: async () => JSON.stringify(payload),
   });
   vi.stubGlobal("fetch", fn);
   return fn;
@@ -165,6 +166,21 @@ describe("getAvailability", () => {
   it("returns an empty list when Cal.com errors", async () => {
     stubFetch({}, false);
     expect(await getAvailability({})).toEqual([]);
+  });
+
+  // A non-ok response returns [] the same as genuine "no slots available",
+  // which is right for the caller, but silently that is indistinguishable
+  // from a misconfigured key or a wrong API host. Only the log line tells
+  // the two apart, so it has to actually fire, not fall through to a
+  // different catch path.
+  it("logs the failing status rather than swallowing it silently", async () => {
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    stubFetch({ message: "Invalid API Key" }, false);
+
+    await getAvailability({});
+
+    expect(errSpy).toHaveBeenCalledWith(expect.stringContaining("500"));
+    errSpy.mockRestore();
   });
 
   // Regression: date maths on `fromIso` used to run before the try block, so

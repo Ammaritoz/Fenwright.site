@@ -1,8 +1,18 @@
 import "server-only";
 import { errMeta } from "@/lib/log";
+import { limits } from "@/config/limits";
 
 const API_BASE = "https://api.cal.com/v2";
 const DEFAULT_TZ = "Europe/Dublin";
+
+/**
+ * A tool handler has 8 seconds before the live conversation notices, so neither
+ * request here is allowed to run to fetch's own (effectively unbounded) default.
+ * Both resolve to this module's existing failure sentinel on expiry, because a
+ * receptionist who says "I do not have anything showing" is recoverable and one
+ * who says nothing at all is not.
+ */
+const TIMEOUT_MS = limits.voice.externalTimeoutMs;
 
 export type Slot = { startIso: string; spoken: string };
 
@@ -86,6 +96,14 @@ export async function getAvailability({
     return [];
   }
 
+  // Same AbortController shape as forwardToN8n in app/api/contact/route.ts.
+  const controller = new AbortController();
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, TIMEOUT_MS);
+
   try {
     const start = fromIso ? new Date(fromIso) : new Date();
     const end = new Date(start.getTime() + 14 * 864e5);
@@ -102,6 +120,7 @@ export async function getAvailability({
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${apiKey}`, "cal-api-version": "2024-09-04" },
       cache: "no-store",
+      signal: controller.signal,
     });
     if (!res.ok) return [];
     const body = (await res.json()) as {
@@ -115,8 +134,14 @@ export async function getAvailability({
       .slice(0, limit)
       .map((iso) => ({ startIso: iso, spoken: spokenTime(iso, timeZone) }));
   } catch (err) {
-    console.error("[fenwright] Cal.com availability failed:", errMeta(err));
+    if (timedOut) {
+      console.error(`[fenwright] Cal.com availability timed out after ${TIMEOUT_MS}ms`);
+    } else {
+      console.error("[fenwright] Cal.com availability failed:", errMeta(err));
+    }
     return [];
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -138,6 +163,13 @@ export async function createBooking({
   const eventTypeId = process.env.CALCOM_EVENT_TYPE_ID;
   if (!apiKey || !eventTypeId) return { ok: false, reason: "not_configured" };
 
+  const controller = new AbortController();
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, TIMEOUT_MS);
+
   try {
     const res = await fetch(`${API_BASE}/bookings`, {
       method: "POST",
@@ -153,13 +185,22 @@ export async function createBooking({
         bookingFieldsResponses: notes ? { notes } : undefined,
       }),
       cache: "no-store",
+      signal: controller.signal,
     });
 
     const body = (await res.json().catch(() => ({}))) as { data?: { uid?: string } };
     if (!res.ok) return { ok: false, reason: `http_${res.status}` };
     return { ok: true, ref: body.data?.uid };
   } catch (err) {
+    if (timedOut) {
+      // Distinct from "network" so the caller's claim release and the logs can
+      // tell "Cal.com said no" apart from "Cal.com never answered in time".
+      console.error(`[fenwright] Cal.com booking timed out after ${TIMEOUT_MS}ms`);
+      return { ok: false, reason: "timeout" };
+    }
     console.error("[fenwright] Cal.com booking failed:", errMeta(err));
     return { ok: false, reason: "network" };
+  } finally {
+    clearTimeout(timer);
   }
 }

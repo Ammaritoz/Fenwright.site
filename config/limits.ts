@@ -31,6 +31,24 @@ export const limits = {
     // Global daily cap, overridable via env CONTACT_DAILY_CAP
     dailyCapDefault: 200,
   },
+
+  // POST /api/voice/tools/<tool> : real SMS and real bookings, driven by a
+  // model listening to a member of the public.
+  voice: {
+    // The plan's Global Constraints give a tool handler 8 seconds, because a
+    // live conversation is waiting. Each external dependency gets this much,
+    // which leaves headroom for our own work and the round trip. Lives here
+    // rather than in each module so the two cannot drift apart.
+    externalTimeoutMs: 6000,
+    // send_recap_sms gets its own tighter per-callId budget: the shared tool
+    // limiter is spent across four tools, so without this one signed call
+    // could text forty different numbers.
+    recapSmsPerCall: { tokens: 3, window: "10 m" as const },
+    // Global daily cap, overridable via env VOICE_SMS_DAILY_CAP. callId comes
+    // from the request body, so a sender gets a fresh per-call allowance for
+    // every id it invents; this is the only limit it cannot restart.
+    smsDailyCapDefault: 100,
+  },
 } as const;
 
 export function demoSmsDailyCap(): number {
@@ -49,4 +67,10 @@ export function contactDailyCap(): number {
   const raw = process.env.CONTACT_DAILY_CAP;
   const n = raw ? Number.parseInt(raw, 10) : NaN;
   return Number.isFinite(n) && n > 0 ? n : limits.contact.dailyCapDefault;
+}
+
+export function voiceSmsDailyCap(): number {
+  const raw = process.env.VOICE_SMS_DAILY_CAP;
+  const n = raw ? Number.parseInt(raw, 10) : NaN;
+  return Number.isFinite(n) && n > 0 ? n : limits.voice.smsDailyCapDefault;
 }

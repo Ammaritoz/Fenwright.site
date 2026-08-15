@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { runTool } from "@/lib/voice/tools";
+import { limits } from "@/config/limits";
+
+const TIMEOUT_MS = limits.voice.externalTimeoutMs;
 
 vi.mock("@/lib/voice/calcom", () => ({
   getAvailability: vi.fn().mockResolvedValue([
@@ -149,6 +152,35 @@ describe("runTool", () => {
     await runTool("send_recap_sms", callId, args);
     await runTool("send_recap_sms", callId, args);
     expect(vi.mocked(sendSms)).toHaveBeenCalledTimes(1);
+  });
+
+  // Plan Global Constraint: 8 seconds, because a live conversation is waiting.
+  // The Twilio SDK takes no AbortSignal and defaults to roughly 30 seconds, so
+  // a hung send must still resolve to trySms's `false` sentinel in time for the
+  // assistant to say something.
+  it("gives up on a hanging SMS send rather than holding the call open", async () => {
+    const { sendSms } = await import("@/lib/twilio");
+    vi.mocked(sendSms).mockImplementationOnce(() => new Promise<void>(() => {}));
+
+    vi.useFakeTimers();
+    try {
+      const pending = runTool("send_recap_sms", uniqueCall(), {
+        personaId: "electrician",
+        phone: "+353833378541",
+        kind: "callback",
+        name: "Bob",
+      });
+      // Settle the idempotency claim first so the timeout timer is registered
+      // before the clock moves.
+      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(TIMEOUT_MS + 1);
+
+      const res = await pending;
+      expect(res.result).toMatch(/could not/i);
+      expect(res.result).not.toMatch(/i have sent that/i);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("retries a recap SMS after a failed send instead of falsely reporting it as already sent", async () => {

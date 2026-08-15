@@ -13,6 +13,10 @@ import { claimOnce, idempotencyKey, releaseClaim } from "@/lib/voice/idempotency
 import { logLead } from "@/lib/airtable";
 import { sendSms, twilioConfigured } from "@/lib/twilio";
 import { errMeta } from "@/lib/log";
+import { limits } from "@/config/limits";
+
+/** Shared with Cal.com so the whole tool path stays inside the 8 second budget. */
+const SMS_TIMEOUT_MS = limits.voice.externalTimeoutMs;
 
 /**
  * Every return value is spoken aloud by the assistant, so it is always a natural
@@ -180,14 +184,43 @@ async function sendRecap(callId: string, args: unknown): Promise<ToolResult> {
   };
 }
 
+/**
+ * Give up on a slow send rather than letting it run to Twilio's own default.
+ *
+ * The plan's 8 second tool budget is the constraint: a live conversation is
+ * waiting. Unlike the Cal.com calls, the Twilio SDK accepts no AbortSignal and
+ * defaults to roughly 30 seconds, so the deadline is enforced by racing a timer
+ * instead. The request is not cancelled and may still land afterwards, which is
+ * exactly why the spoken result only ever promises a text this saw succeed:
+ * "I could not get a text away just now" survives a late delivery, and
+ * "I will text you now" would not survive a missing one.
+ */
+function withSmsTimeout(work: Promise<void>): Promise<boolean> {
+  return new Promise<boolean>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      console.warn(`[fenwright] voice recap SMS timed out after ${SMS_TIMEOUT_MS}ms`);
+      resolve(false);
+    }, SMS_TIMEOUT_MS);
+    work.then(
+      () => {
+        clearTimeout(timer);
+        resolve(true);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
 async function trySms(to: string, body: string): Promise<boolean> {
   if (!twilioConfigured()) {
     console.warn("[fenwright] Twilio not configured, skipping voice recap SMS");
     return false;
   }
   try {
-    await sendSms(to, body);
-    return true;
+    return await withSmsTimeout(sendSms(to, body));
   } catch (err) {
     console.error("[fenwright] voice recap SMS failed:", errMeta(err));
     return false;

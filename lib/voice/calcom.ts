@@ -2,8 +2,19 @@ import "server-only";
 import { errMeta } from "@/lib/log";
 import { limits } from "@/config/limits";
 
-const API_BASE = "https://api.cal.com/v2";
 const DEFAULT_TZ = "Europe/Dublin";
+
+/**
+ * Cal.com's EU data-residency accounts (app.cal.eu) run on genuinely separate
+ * infrastructure from api.cal.com, including auth: a key issued in an EU
+ * tenant is not recognised there and fails "Invalid API Key" with no hint
+ * that the host is the actual problem. Overridable per client via
+ * CALCOM_API_BASE rather than hardcoded, since a future client may be on
+ * either host. Confirmed empirically against a live cal.eu account.
+ */
+function apiBase(): string {
+  return process.env.CALCOM_API_BASE || "https://api.cal.com/v2";
+}
 
 /**
  * A tool handler has 8 seconds before the live conversation notices, so neither
@@ -108,7 +119,7 @@ export async function getAvailability({
     const start = fromIso ? new Date(fromIso) : new Date();
     const end = new Date(start.getTime() + 14 * 864e5);
 
-    const url = new URL(`${API_BASE}/slots`);
+    const url = new URL(`${apiBase()}/slots`);
     url.searchParams.set("eventTypeId", eventTypeId);
     // start/end.toISOString() throw on an invalid fromIso (e.g. a malformed
     // caller argument), so date maths lives inside this try alongside the
@@ -171,7 +182,7 @@ export async function createBooking({
   }, TIMEOUT_MS);
 
   try {
-    const res = await fetch(`${API_BASE}/bookings`, {
+    const res = await fetch(`${apiBase()}/bookings`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,

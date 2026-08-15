@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { POST } from "@/app/api/voice/webhook/route";
-import { signPayload, SIGNATURE_HEADER, TIMESTAMP_HEADER } from "@/lib/voice/auth";
+import { VAPI_SECRET_HEADER } from "@/lib/voice/vapi";
 
 vi.mock("@/lib/voice/calls", () => ({
   logCall: vi.fn().mockResolvedValue(undefined),
@@ -28,7 +28,7 @@ function endOfCallReport(callId: string, overrides: Record<string, unknown> = {}
       cost: 0.31,
       assistant: { metadata: { personaId: "electrician" } },
       analysis: { summary: "Booked a fault-finding visit", successEvaluation: "true" },
-      recordingUrl: "https://example.test/rec.mp3",
+      artifact: { recording: { stereoUrl: "https://example.test/rec-stereo.mp3" } },
       ...overrides,
     },
   };
@@ -42,11 +42,8 @@ function buildRequest(rawBody: string, headers: Record<string, string> = {}): Ne
   });
 }
 
-function signedHeaders(rawBody: string, timestamp = String(Math.floor(Date.now() / 1000))) {
-  return {
-    [TIMESTAMP_HEADER]: timestamp,
-    [SIGNATURE_HEADER]: signPayload(timestamp, rawBody, SECRET),
-  };
+function signedHeaders() {
+  return { [VAPI_SECRET_HEADER]: SECRET };
 }
 
 describe("POST /api/voice/webhook", () => {
@@ -63,15 +60,11 @@ describe("POST /api/voice/webhook", () => {
     expect(vi.mocked(logCall)).not.toHaveBeenCalled();
   });
 
-  it("rejects a wrongly signed request with 401 and does not log a call", async () => {
+  it("rejects a wrong secret with 401 and does not log a call", async () => {
     const { logCall } = await import("@/lib/voice/calls");
     const rawBody = JSON.stringify(endOfCallReport(uniqueCall()));
-    const timestamp = String(Math.floor(Date.now() / 1000));
 
-    const req = buildRequest(rawBody, {
-      [TIMESTAMP_HEADER]: timestamp,
-      [SIGNATURE_HEADER]: "0".repeat(64),
-    });
+    const req = buildRequest(rawBody, { [VAPI_SECRET_HEADER]: "wrong-secret" });
     const res = await POST(req);
 
     expect(res.status).toBe(401);
@@ -85,7 +78,7 @@ describe("POST /api/voice/webhook", () => {
     const callId = uniqueCall();
     const rawBody = JSON.stringify(endOfCallReport(callId));
 
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
+    const req = buildRequest(rawBody, signedHeaders());
     const res = await POST(req);
 
     expect(res.status).toBe(200);
@@ -99,7 +92,7 @@ describe("POST /api/voice/webhook", () => {
     const { logCall } = await import("@/lib/voice/calls");
     const rawBody = JSON.stringify({ message: { type: "status-update", call: { id: uniqueCall() } } });
 
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
+    const req = buildRequest(rawBody, signedHeaders());
     const res = await POST(req);
 
     expect(res.status).toBe(200);
@@ -113,7 +106,7 @@ describe("POST /api/voice/webhook", () => {
     const callId = uniqueCall();
     const rawBody = JSON.stringify(endOfCallReport(callId));
 
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
+    const req = buildRequest(rawBody, signedHeaders());
     const res = await POST(req);
 
     expect(res.status).toBe(200);
@@ -126,8 +119,8 @@ describe("POST /api/voice/webhook", () => {
     const { logCall } = await import("@/lib/voice/calls");
     const rawBody = JSON.stringify(endOfCallReport(uniqueCall()));
 
-    const first = await POST(buildRequest(rawBody, signedHeaders(rawBody)));
-    const second = await POST(buildRequest(rawBody, signedHeaders(rawBody)));
+    const first = await POST(buildRequest(rawBody, signedHeaders()));
+    const second = await POST(buildRequest(rawBody, signedHeaders()));
 
     expect(first.status).toBe(200);
     // Still acknowledged, or the platform simply retries again.
@@ -140,8 +133,8 @@ describe("POST /api/voice/webhook", () => {
     const bodyA = JSON.stringify(endOfCallReport(uniqueCall()));
     const bodyB = JSON.stringify(endOfCallReport(uniqueCall()));
 
-    await POST(buildRequest(bodyA, signedHeaders(bodyA)));
-    await POST(buildRequest(bodyB, signedHeaders(bodyB)));
+    await POST(buildRequest(bodyA, signedHeaders()));
+    await POST(buildRequest(bodyB, signedHeaders()));
 
     expect(vi.mocked(logCall)).toHaveBeenCalledTimes(2);
   });
@@ -151,8 +144,8 @@ describe("POST /api/voice/webhook", () => {
     vi.mocked(logCall).mockRejectedValueOnce(new Error("airtable outage"));
     const rawBody = JSON.stringify(endOfCallReport(uniqueCall()));
 
-    await POST(buildRequest(rawBody, signedHeaders(rawBody)));
-    await POST(buildRequest(rawBody, signedHeaders(rawBody)));
+    await POST(buildRequest(rawBody, signedHeaders()));
+    await POST(buildRequest(rawBody, signedHeaders()));
 
     // The exact opposite of the tools' release-on-failure trade-off, and
     // deliberately so: a missing row is one visible gap that can be reconciled
@@ -169,7 +162,7 @@ describe("POST /api/voice/webhook", () => {
     const { logCall } = await import("@/lib/voice/calls");
     const rawBody = "{ this is not json";
 
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
+    const req = buildRequest(rawBody, signedHeaders());
     const res = await POST(req);
 
     expect(res.status).toBe(400);

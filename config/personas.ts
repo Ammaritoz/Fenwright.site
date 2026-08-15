@@ -83,7 +83,11 @@ export const personas: Persona[] = [
     identity: {
       businessName: "Holcroft Electrical",
       receptionistName: "Erin",
-      voiceId: "",
+      // "vapi" provider, confirmed valid on this account (used by an
+      // existing demo assistant already there). Not chosen for accent or
+      // tone fit, only for being a real working voice to get the demo
+      // running; swap it from the Vapi dashboard once you've heard it.
+      voiceId: "Elliot",
       accent: "ie",
     },
     greeting:
@@ -139,7 +143,7 @@ export const personas: Persona[] = [
         "the caller is making a complaint",
         "two consecutive failures to understand the same detail",
       ],
-      destination: "+353000000000",
+      destination: "+353899406583",
       hoursOnly: false,
     },
     facts: {

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { POST } from "@/app/api/voice/tools/[tool]/route";
-import { signPayload, SIGNATURE_HEADER, TIMESTAMP_HEADER } from "@/lib/voice/auth";
+import { POST } from "@/app/api/voice/tools/route";
+import { VAPI_SECRET_HEADER } from "@/lib/voice/vapi";
 import { rateLimit } from "@/lib/ratelimit";
 import { limits } from "@/config/limits";
 
@@ -21,27 +21,28 @@ const SECRET = "test-secret-do-not-use-in-production";
 const uniqueCall = () => `call_${Math.random()}`;
 
 function buildRequest(rawBody: string, headers: Record<string, string> = {}): NextRequest {
-  return new NextRequest("http://localhost/api/voice/tools/check_availability", {
+  return new NextRequest("http://localhost/api/voice/tools", {
     method: "POST",
     headers: { "content-type": "application/json", ...headers },
     body: rawBody,
   });
 }
 
-function signedHeaders(rawBody: string, timestamp = String(Math.floor(Date.now() / 1000))) {
-  return {
-    [TIMESTAMP_HEADER]: timestamp,
-    [SIGNATURE_HEADER]: signPayload(timestamp, rawBody, SECRET),
-  };
+function toolCallsBody(callId: string, calls: { id: string; name: string; parameters: unknown }[]) {
+  return JSON.stringify({
+    message: { type: "tool-calls", call: { id: callId }, toolCallList: calls },
+  });
 }
 
-describe("POST /api/voice/tools/[tool]", () => {
-  it("rejects an unsigned request with 401 and does not reach the tool", async () => {
+describe("POST /api/voice/tools", () => {
+  it("rejects a request with no secret header, 401, and does not reach the tool", async () => {
     const { runTool } = await import("@/lib/voice/tools");
-    const rawBody = JSON.stringify({ callId: uniqueCall(), arguments: { personaId: "electrician" } });
+    const rawBody = toolCallsBody(uniqueCall(), [
+      { id: "tc_1", name: "check_availability", parameters: { personaId: "electrician" } },
+    ]);
 
     const req = buildRequest(rawBody);
-    const res = await POST(req, { params: { tool: "check_availability" } });
+    const res = await POST(req);
 
     expect(res.status).toBe(401);
     const body = await res.json();
@@ -49,60 +50,62 @@ describe("POST /api/voice/tools/[tool]", () => {
     expect(vi.mocked(runTool)).not.toHaveBeenCalled();
   });
 
-  it("rejects a wrongly signed request with 401 and does not reach the tool", async () => {
+  it("rejects a wrong secret with 401 and does not reach the tool", async () => {
     const { runTool } = await import("@/lib/voice/tools");
-    const rawBody = JSON.stringify({ callId: uniqueCall(), arguments: { personaId: "electrician" } });
-    const timestamp = String(Math.floor(Date.now() / 1000));
+    const rawBody = toolCallsBody(uniqueCall(), [
+      { id: "tc_1", name: "check_availability", parameters: {} },
+    ]);
 
-    const req = buildRequest(rawBody, {
-      [TIMESTAMP_HEADER]: timestamp,
-      [SIGNATURE_HEADER]: "0".repeat(64),
-    });
-    const res = await POST(req, { params: { tool: "check_availability" } });
+    const req = buildRequest(rawBody, { [VAPI_SECRET_HEADER]: "wrong-secret" });
+    const res = await POST(req);
 
     expect(res.status).toBe(401);
-    const body = await res.json();
-    expect(body).toEqual({ error: "Unauthorised." });
     expect(vi.mocked(runTool)).not.toHaveBeenCalled();
   });
 
-  it("reaches the tool and returns 200 for a correctly signed request", async () => {
+  it("reaches the tool and returns Vapi's results envelope for a correctly authenticated request", async () => {
     const { runTool } = await import("@/lib/voice/tools");
     const callId = uniqueCall();
-    const rawBody = JSON.stringify({ callId, arguments: { personaId: "electrician", partOfDay: "any" } });
+    const rawBody = toolCallsBody(callId, [
+      { id: "tc_1", name: "check_availability", parameters: { personaId: "electrician", partOfDay: "any" } },
+    ]);
 
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
-    const res = await POST(req, { params: { tool: "check_availability" } });
+    const req = buildRequest(rawBody, { [VAPI_SECRET_HEADER]: SECRET });
+    const res = await POST(req);
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toEqual({ result: "spoken result from tool" });
+    expect(body).toEqual({
+      results: [{ name: "check_availability", toolCallId: "tc_1", result: "spoken result from tool" }],
+    });
     expect(vi.mocked(runTool)).toHaveBeenCalledWith("check_availability", callId, {
       personaId: "electrician",
       partOfDay: "any",
     });
   });
 
-  it("verifies against the exact raw bytes received, not a re-serialised body", async () => {
+  it("dispatches every call in a batch and returns one result per call, in order", async () => {
     const { runTool } = await import("@/lib/voice/tools");
-    const callId = uniqueCall();
-    // Built as a literal string, not via JSON.stringify, with irregular
-    // whitespace and a non-alphabetical key order ("callId" before
-    // "arguments"). JSON.stringify(JSON.parse(rawBody)) would canonicalise
-    // this down to compact, ordered JSON, changing the bytes the signature
-    // was computed over. If the route were ever regressed to verify against
-    // that re-serialised form instead of the true rawBody, this signature
-    // would no longer match and the request would be rejected with 401
-    // instead of reaching the tool.
-    const rawBody = `{\n  "callId": "${callId}",\n  "arguments":   { "personaId":  "electrician" }\n}`;
+    vi.mocked(runTool)
+      .mockResolvedValueOnce({ result: "first result" })
+      .mockResolvedValueOnce({ result: "second result" });
 
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
-    const res = await POST(req, { params: { tool: "check_availability" } });
+    const callId = uniqueCall();
+    const rawBody = toolCallsBody(callId, [
+      { id: "tc_1", name: "check_availability", parameters: {} },
+      { id: "tc_2", name: "capture_lead", parameters: {} },
+    ]);
+
+    const req = buildRequest(rawBody, { [VAPI_SECRET_HEADER]: SECRET });
+    const res = await POST(req);
 
     expect(res.status).toBe(200);
-    expect(vi.mocked(runTool)).toHaveBeenCalledWith("check_availability", callId, {
-      personaId: "electrician",
-    });
+    const body = await res.json();
+    expect(body.results).toEqual([
+      { name: "check_availability", toolCallId: "tc_1", result: "first result" },
+      { name: "capture_lead", toolCallId: "tc_2", result: "second result" },
+    ]);
+    expect(vi.mocked(runTool)).toHaveBeenCalledTimes(2);
   });
 
   it("fails open and still reaches the tool when the rate limiter throws", async () => {
@@ -111,36 +114,35 @@ describe("POST /api/voice/tools/[tool]", () => {
     vi.mocked(rateLimit).mockRejectedValueOnce(new Error("upstash blip"));
 
     const callId = uniqueCall();
-    const rawBody = JSON.stringify({
-      callId,
-      arguments: { personaId: "electrician", partOfDay: "any" },
-    });
+    const rawBody = toolCallsBody(callId, [
+      { id: "tc_1", name: "check_availability", parameters: {} },
+    ]);
 
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
-    const res = await POST(req, { params: { tool: "check_availability" } });
+    const req = buildRequest(rawBody, { [VAPI_SECRET_HEADER]: SECRET });
+    const res = await POST(req);
 
-    // A limiter outage is not the security boundary (the signature already
-    // is), so it must degrade to allowing the call rather than taking the
-    // phone line down with a 500.
+    // A limiter outage is not the security boundary (the secret already is),
+    // so it must degrade to allowing the call rather than taking the phone
+    // line down with a 500.
     expect(res.status).toBe(200);
-    expect(vi.mocked(runTool)).toHaveBeenCalledWith("check_availability", callId, {
-      personaId: "electrician",
-      partOfDay: "any",
-    });
+    expect(vi.mocked(runTool)).toHaveBeenCalledWith("check_availability", callId, {});
   });
 
   it("gives send_recap_sms its own tighter per-call budget, not the shared 40", async () => {
     const callId = uniqueCall();
-    const rawBody = JSON.stringify({
-      callId,
-      arguments: { personaId: "electrician", phone: "+353833378541", kind: "callback", name: "Bob" },
-    });
+    const rawBody = toolCallsBody(callId, [
+      {
+        id: "tc_1",
+        name: "send_recap_sms",
+        parameters: { personaId: "electrician", phone: "+353833378541", kind: "callback", name: "Bob" },
+      },
+    ]);
 
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
-    await POST(req, { params: { tool: "send_recap_sms" } });
+    const req = buildRequest(rawBody, { [VAPI_SECRET_HEADER]: SECRET });
+    await POST(req);
 
-    // The shared limiter is spent across all four tools, so on its own a single
-    // signed call could text 40 different numbers.
+    // The shared limiter is spent across all tools in the batch, so on its own
+    // a single authenticated call could text 40 different numbers.
     expect(vi.mocked(rateLimit)).toHaveBeenCalledWith(
       "voice-recap-sms",
       callId,
@@ -150,37 +152,38 @@ describe("POST /api/voice/tools/[tool]", () => {
   });
 
   it("does not spend the recap budget on a tool that sends no text", async () => {
-    const rawBody = JSON.stringify({
-      callId: uniqueCall(),
-      arguments: { personaId: "electrician", partOfDay: "any" },
-    });
+    const rawBody = toolCallsBody(uniqueCall(), [
+      { id: "tc_1", name: "check_availability", parameters: {} },
+    ]);
 
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
-    await POST(req, { params: { tool: "check_availability" } });
+    const req = buildRequest(rawBody, { [VAPI_SECRET_HEADER]: SECRET });
+    await POST(req);
 
     const names = vi.mocked(rateLimit).mock.calls.map((c) => c[0]);
     expect(names).not.toContain("voice-recap-sms");
   });
 
-  it("answers the recap limit in speakable words rather than an error", async () => {
+  it("answers the recap limit in speakable words rather than an error, without calling the tool", async () => {
     const { runTool } = await import("@/lib/voice/tools");
     // First call is the shared voice-tool limiter, second is the recap limiter.
     vi.mocked(rateLimit)
       .mockResolvedValueOnce({ success: true, remaining: 39, reset: 0 })
       .mockResolvedValueOnce({ success: false, remaining: 0, reset: 0 });
 
-    const rawBody = JSON.stringify({
-      callId: uniqueCall(),
-      arguments: { personaId: "electrician", phone: "+353833378541", kind: "callback", name: "Bob" },
-    });
+    const rawBody = toolCallsBody(uniqueCall(), [
+      {
+        id: "tc_1",
+        name: "send_recap_sms",
+        parameters: { personaId: "electrician", phone: "+353833378541", kind: "callback", name: "Bob" },
+      },
+    ]);
 
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
-    const res = await POST(req, { params: { tool: "send_recap_sms" } });
+    const req = buildRequest(rawBody, { [VAPI_SECRET_HEADER]: SECRET });
+    const res = await POST(req);
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.result).toMatch(/text/i);
-    expect(body).not.toHaveProperty("error");
+    expect(body.results[0].result).toMatch(/text/i);
     expect(vi.mocked(runTool)).not.toHaveBeenCalled();
   });
 
@@ -188,31 +191,29 @@ describe("POST /api/voice/tools/[tool]", () => {
    * Pins a deliberate ruling rather than an accident. The speakable-200
    * treatment starts once a tool has been dispatched. Before that there is no
    * identified tool to apologise for, and a malformed body from a sender that
-   * signed it correctly is a platform bug that a 200 would smooth over.
+   * authenticated correctly is a platform bug that a 200 would smooth over.
    */
-  it("returns 400, not a speakable 200, for a signed body that does not parse", async () => {
+  it("returns 400, not a speakable 200, for an authenticated body that does not parse", async () => {
     const { runTool } = await import("@/lib/voice/tools");
     const rawBody = "{ this is not json";
 
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
-    const res = await POST(req, { params: { tool: "check_availability" } });
+    const req = buildRequest(rawBody, { [VAPI_SECRET_HEADER]: SECRET });
+    const res = await POST(req);
 
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body).not.toHaveProperty("result");
+    expect(body).not.toHaveProperty("results");
     expect(vi.mocked(runTool)).not.toHaveBeenCalled();
   });
 
-  it("returns 400 for a signed, parsable body with no callId", async () => {
+  it("returns 400 for an authenticated, parsable body that is not the tool-calls shape", async () => {
     const { runTool } = await import("@/lib/voice/tools");
-    const rawBody = JSON.stringify({ arguments: { personaId: "electrician" } });
+    const rawBody = JSON.stringify({ message: { type: "end-of-call-report" } });
 
-    const req = buildRequest(rawBody, signedHeaders(rawBody));
-    const res = await POST(req, { params: { tool: "check_availability" } });
+    const req = buildRequest(rawBody, { [VAPI_SECRET_HEADER]: SECRET });
+    const res = await POST(req);
 
     expect(res.status).toBe(400);
-    const body = await res.json();
-    expect(body).not.toHaveProperty("result");
     expect(vi.mocked(runTool)).not.toHaveBeenCalled();
   });
 
@@ -226,17 +227,14 @@ describe("POST /api/voice/tools/[tool]", () => {
     // `duplex: "half"` is required by undici for a streaming request body but
     // is not yet reflected in NextRequest's RequestInit type, so the init
     // object is cast directly to the constructor's own parameter type.
-    const req = new NextRequest(
-      "http://localhost/api/voice/tools/check_availability",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: erroringBody,
-        duplex: "half",
-      } as unknown as ConstructorParameters<typeof NextRequest>[1]
-    );
+    const req = new NextRequest("http://localhost/api/voice/tools", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: erroringBody,
+      duplex: "half",
+    } as unknown as ConstructorParameters<typeof NextRequest>[1]);
 
-    const res = await POST(req, { params: { tool: "check_availability" } });
+    const res = await POST(req);
 
     // This request was never authenticated, so it must not receive the
     // speakable-200 treatment reserved for authenticated failures.

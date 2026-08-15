@@ -43,7 +43,11 @@ export function toCallRecord(payload: unknown): CallRecord | null {
     booked: message.analysis?.successEvaluation === "true",
     escalated: outcome === "transferred",
     summary: message.analysis?.summary,
-    recordingUrl: message.recordingUrl,
+    // Vapi moved recording URLs under artifact.recording; the flat
+    // message.recordingUrl this originally read no longer exists on the
+    // platform's end-of-call-report payload. stereoUrl carries both channels;
+    // mono.combinedUrl is the fallback for older recordings.
+    recordingUrl: message.artifact?.recording?.stereoUrl ?? message.artifact?.recording?.mono?.combinedUrl,
     platformCostUsd: typeof message.cost === "number" ? message.cost : undefined,
   };
 }

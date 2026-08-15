@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyVoiceRequest } from "@/lib/voice/auth";
+import { verifyVapiSecret } from "@/lib/voice/vapi";
 import { toCallRecord } from "@/lib/voice/report";
 import { logCall } from "@/lib/voice/calls";
 import { claimOnce, idempotencyKey } from "@/lib/voice/idempotency";
@@ -32,7 +32,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  const verified = verifyVoiceRequest(req.headers, rawBody, Date.now());
+  // Vapi does not compute a per-request signature; see lib/voice/vapi.ts for
+  // why this checks a static shared secret rather than lib/voice/auth.ts's
+  // HMAC scheme.
+  const verified = verifyVapiSecret(req.headers);
   if (!verified.ok) {
     console.warn("[fenwright] voice webhook rejected:", verified.reason);
     return NextResponse.json({ error: "Unauthorised." }, { status: 401 });

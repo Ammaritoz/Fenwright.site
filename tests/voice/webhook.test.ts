@@ -16,7 +16,7 @@ const report = {
     cost: 0.31,
     assistant: { metadata: { personaId: "electrician" } },
     analysis: { summary: "Booked a fault-finding visit", successEvaluation: "true" },
-    recordingUrl: "https://example.test/rec.mp3",
+    artifact: { recording: { stereoUrl: "https://example.test/rec-stereo.mp3" } },
   },
 };
 
@@ -28,6 +28,21 @@ describe("toCallRecord", () => {
     expect(record.personaId).toBe("electrician");
     expect(record.durationSeconds).toBe(132);
     expect(record.platformCostUsd).toBe(0.31);
+    expect(record.recordingUrl).toBe("https://example.test/rec-stereo.mp3");
+  });
+
+  it("falls back to the mono combined recording when stereo is absent", () => {
+    const monoOnly = structuredClone(report) as { message: Record<string, any> };
+    monoOnly.message.artifact = {
+      recording: { mono: { combinedUrl: "https://example.test/rec-mono.mp3" } },
+    };
+    expect(toCallRecord(monoOnly)!.recordingUrl).toBe("https://example.test/rec-mono.mp3");
+  });
+
+  it("leaves recordingUrl undefined rather than throwing when no artifact is present", () => {
+    const noArtifact = structuredClone(report) as { message: Record<string, any> };
+    delete noArtifact.message.artifact;
+    expect(toCallRecord(noArtifact)!.recordingUrl).toBeUndefined();
   });
 
   it("returns null for a report with no call id", () => {

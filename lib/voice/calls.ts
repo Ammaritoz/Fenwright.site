@@ -42,8 +42,14 @@ function needsReview(record: CallRecord): boolean {
   return record.escalated || record.outcome === "failed" || record.outcome === "abandoned";
 }
 
-export function buildCallFields(record: CallRecord): Record<string, unknown> {
-  const fields: Record<string, unknown> = {
+/**
+ * Airtable's `create` takes `Partial<FieldSet>`, whose values are a union of
+ * primitives and its own collaborator/attachment shapes. Narrowing the return
+ * type to the primitives we actually write makes it structurally assignable to
+ * that parameter, so no cast is needed at the call site.
+ */
+export function buildCallFields(record: CallRecord): Record<string, string | number | boolean> {
+  const fields: Record<string, string | number | boolean> = {
     CallId: record.callId,
     Direction: record.direction,
     PersonaId: record.personaId,
@@ -85,8 +91,7 @@ export async function logCall(record: CallRecord): Promise<void> {
     return;
   }
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await b("Calls").create([{ fields: buildCallFields(record) as any }]);
+    await b("Calls").create([{ fields: buildCallFields(record) }]);
   } catch (err) {
     console.error("[fenwright] Airtable logCall failed:", errMeta(err));
   }

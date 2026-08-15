@@ -120,6 +120,46 @@ describe("POST /api/voice/webhook", () => {
     expect(vi.mocked(logCall)).toHaveBeenCalledTimes(1);
   });
 
+  // Spec section 7 makes CallId unique; Airtable does not enforce it. A
+  // duplicated report would double-count every metric in the table.
+  it("writes only one row for a repeated identical end-of-call report", async () => {
+    const { logCall } = await import("@/lib/voice/calls");
+    const rawBody = JSON.stringify(endOfCallReport(uniqueCall()));
+
+    const first = await POST(buildRequest(rawBody, signedHeaders(rawBody)));
+    const second = await POST(buildRequest(rawBody, signedHeaders(rawBody)));
+
+    expect(first.status).toBe(200);
+    // Still acknowledged, or the platform simply retries again.
+    expect(second.status).toBe(200);
+    expect(vi.mocked(logCall)).toHaveBeenCalledTimes(1);
+  });
+
+  it("still writes separate rows for two genuinely different calls", async () => {
+    const { logCall } = await import("@/lib/voice/calls");
+    const bodyA = JSON.stringify(endOfCallReport(uniqueCall()));
+    const bodyB = JSON.stringify(endOfCallReport(uniqueCall()));
+
+    await POST(buildRequest(bodyA, signedHeaders(bodyA)));
+    await POST(buildRequest(bodyB, signedHeaders(bodyB)));
+
+    expect(vi.mocked(logCall)).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry a failed write, because here a duplicate is worse than a gap", async () => {
+    const { logCall } = await import("@/lib/voice/calls");
+    vi.mocked(logCall).mockRejectedValueOnce(new Error("airtable outage"));
+    const rawBody = JSON.stringify(endOfCallReport(uniqueCall()));
+
+    await POST(buildRequest(rawBody, signedHeaders(rawBody)));
+    await POST(buildRequest(rawBody, signedHeaders(rawBody)));
+
+    // The exact opposite of the tools' release-on-failure trade-off, and
+    // deliberately so: a missing row is one visible gap that can be reconciled
+    // against the platform, a duplicate row silently corrupts every metric.
+    expect(vi.mocked(logCall)).toHaveBeenCalledTimes(1);
+  });
+
   it("rejects with 400, not a speakable 200, when the body cannot be read", async () => {
     const { logCall } = await import("@/lib/voice/calls");
     const erroringBody = new ReadableStream({

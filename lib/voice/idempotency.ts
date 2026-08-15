@@ -18,7 +18,33 @@ function getRedis(): Redis {
   return redis;
 }
 
+/**
+ * Same shape as lib/ratelimit.ts. It is repeated here rather than shared
+ * because the coupling that let it be omitted no longer holds: the tools route
+ * always calls rateLimit first, so its warning covered this module too, but the
+ * webhook route reaches claimOnce without touching a limiter at all. An unset
+ * Upstash config in production must be visible from either entry point.
+ */
+let warned = false;
+function warnOnce() {
+  if (!warned && !hasUpstash) {
+    warned = true;
+    console.warn(
+      "[fenwright] Upstash env vars not set. Using in-memory idempotency store. " +
+        "This is fine for local dev but MUST be configured in production."
+    );
+  }
+}
+
 const memStore = new Map<string, number>();
+
+function memClaim(namespaced: string, ttlSeconds: number): boolean {
+  const now = Date.now();
+  const expiresAt = memStore.get(namespaced);
+  if (expiresAt && expiresAt > now) return false;
+  memStore.set(namespaced, now + ttlSeconds * 1000);
+  return true;
+}
 
 /**
  * Claim a key exactly once within the TTL.
@@ -28,18 +54,38 @@ const memStore = new Map<string, number>();
  * only so local dev works without Redis; production must set the Upstash vars.
  */
 export async function claimOnce(key: string, ttlSeconds = 3600): Promise<boolean> {
+  warnOnce();
   const namespaced = `fenwright:once:${key}`;
 
   if (hasUpstash) {
-    const res = await getRedis().set(namespaced, "1", { nx: true, ex: ttlSeconds });
-    return res === "OK";
+    try {
+      const res = await getRedis().set(namespaced, "1", { nx: true, ex: ttlSeconds });
+      return res === "OK";
+    } catch (err) {
+      // Degrade to the in-memory path rather than throwing.
+      //
+      // This await was the last unguarded Upstash call in the live call path.
+      // releaseClaim below already caught, and the tools route was deliberately
+      // made fail-open for exactly this outage, so a single Redis incident used
+      // to produce three different behaviours inside one request. Worse, a
+      // throw here takes every booking, lead capture and recap SMS offline for
+      // as long as the outage lasts.
+      //
+      // The fallback is per-instance, which still catches the common case: the
+      // platform retries on timeout and usually lands back on the same warm
+      // instance. Across instances it is weaker, so a narrow double-booking
+      // window opens while Redis is down. That is the better failure. A caller
+      // booked twice can be rung and sorted out; a receptionist that cannot
+      // book at all is a lost job on every call.
+      console.error(
+        "[fenwright] claimOnce Redis unavailable, falling back to memory:",
+        errMeta(err)
+      );
+      return memClaim(namespaced, ttlSeconds);
+    }
   }
 
-  const now = Date.now();
-  const expiresAt = memStore.get(namespaced);
-  if (expiresAt && expiresAt > now) return false;
-  memStore.set(namespaced, now + ttlSeconds * 1000);
-  return true;
+  return memClaim(namespaced, ttlSeconds);
 }
 
 /**
@@ -51,16 +97,24 @@ export async function claimOnce(key: string, ttlSeconds = 3600): Promise<boolean
  * its key for the full TTL and report false success to an honest retry.
  */
 export async function releaseClaim(key: string): Promise<void> {
+  warnOnce();
   const namespaced = `fenwright:once:${key}`;
+
   if (hasUpstash) {
     try {
       await getRedis().del(namespaced);
+      return;
     } catch (err) {
-      // Best effort: a stuck claim expires with its TTL.
-      console.error("[fenwright] releaseClaim failed:", errMeta(err));
+      // Deliberately the same shape as claimOnce: log and fall through to the
+      // in-memory path. Best effort either way, since a claim Redis is still
+      // holding expires with its TTL.
+      console.error(
+        "[fenwright] releaseClaim Redis unavailable, falling back to memory:",
+        errMeta(err)
+      );
     }
-    return;
   }
+
   memStore.delete(namespaced);
 }
 

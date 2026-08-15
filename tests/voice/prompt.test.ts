@@ -52,3 +52,43 @@ describe("composeSystemPrompt", () => {
     expect(prompt).not.toContain("—");
   });
 });
+
+/**
+ * escalation.hoursOnly is persona data, and the composer is the only thing that
+ * can act on it. The dental persona in a later task sets it true, and that
+ * task's exit criterion is that a persona is addable with no changes to
+ * lib/voice/ at all. A field the composer ignored would make that experiment
+ * report a false pass.
+ */
+describe("composeSystemPrompt when escalation is hoursOnly", () => {
+  const hoursOnlyPersona = {
+    ...persona,
+    escalation: { ...persona.escalation, hoursOnly: true },
+  };
+  const hoursOnlyPrompt = composeSystemPrompt(hoursOnlyPersona);
+
+  it("forbids an out-of-hours transfer and takes a message instead", () => {
+    expect(hoursOnlyPrompt).toMatch(/do not attempt a transfer/i);
+    expect(hoursOnlyPrompt).toMatch(/take a message/i);
+  });
+
+  it("states the hours the restriction is measured against", () => {
+    expect(hoursOnlyPrompt).toContain(persona.facts.hours);
+  });
+
+  it("still names the escalation triggers", () => {
+    for (const t of persona.escalation.triggers) expect(hoursOnlyPrompt).toContain(t);
+  });
+
+  it("uses no em dashes", () => {
+    expect(hoursOnlyPrompt).not.toContain("—");
+  });
+
+  it("says none of it for a persona that may transfer at any hour", () => {
+    // The electrician has hoursOnly: false, and emergencies do not wait for
+    // opening time.
+    expect(persona.escalation.hoursOnly).toBe(false);
+    expect(prompt).not.toMatch(/do not attempt a transfer/i);
+    expect(prompt).not.toMatch(/take a message/i);
+  });
+});

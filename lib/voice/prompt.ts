@@ -59,6 +59,16 @@ export function composeSystemPrompt(persona: Persona): string {
     `## When to hand over`,
     `Transfer the call only when: ${persona.escalation.triggers.join("; ")}.`,
     `Otherwise finish the job yourself. Do not offer a transfer as an easy way out.`,
+    // Spec section 4: outside business hours the assistant takes a message
+    // rather than dumping the caller into a void. Composed from persona data
+    // so a new industry that sets hoursOnly needs no change in lib/voice/.
+    ...(persona.escalation.hoursOnly
+      ? [
+          `Transfers are only possible during business hours, which are: ${facts.hours}`,
+          `Outside those hours do not attempt a transfer, and do not tell the caller you are putting them through.`,
+          `Take a message instead: their name, their number and what it is about, and say someone will ring them back when the team is next in.`,
+        ]
+      : []),
     ``,
     `## Tools`,
     `Use your tools to check real availability and to make real bookings. Never state a time you have not checked.`,

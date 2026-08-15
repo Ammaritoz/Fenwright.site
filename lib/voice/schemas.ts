@@ -17,14 +17,18 @@ const e164 = z
 const isoDateTime = z
   .string()
   .trim()
-  .refine((s) => !Number.isNaN(Date.parse(s)), "slotStart must be an ISO 8601 date-time");
+  .refine((s) => !Number.isNaN(Date.parse(s)), "must be an ISO 8601 date-time");
 
 const shortText = z.string().trim().min(1).max(80);
 const longText = z.string().trim().min(1).max(500);
 
 export const checkAvailabilitySchema = z.object({
   personaId: personaField,
-  preferredDate: z.string().trim().max(40).optional(),
+  // Same refinement as slotStart, not a looser free-text field: this value is
+  // handed straight to Cal.com as the search start, so anything the module
+  // cannot parse would silently become "from today" and the caller who asked
+  // for Thursday would be read three slots from this morning instead.
+  preferredDate: isoDateTime.optional(),
   partOfDay: z.enum(["morning", "afternoon", "evening", "any"]).default("any"),
 });
 

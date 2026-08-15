@@ -75,6 +75,51 @@ describe("getAvailability", () => {
     expect(await getAvailability({ limit: 3 })).toHaveLength(3);
   });
 
+  // matchesPartOfDay had no coverage through the public API at all, so the
+  // whole filter could have been deleted with every test still green.
+  // September is IST in Dublin, so these UTC instants are 9am, 2pm and 7pm.
+  describe("partOfDay filtering", () => {
+    const acrossTheDay = {
+      data: {
+        slots: {
+          "2026-09-01": [
+            { start: "2026-09-01T08:00:00.000Z" },
+            { start: "2026-09-01T13:00:00.000Z" },
+            { start: "2026-09-01T18:00:00.000Z" },
+          ],
+        },
+      },
+    };
+
+    it("offers only morning slots when the caller asked for a morning", async () => {
+      stubFetch(acrossTheDay);
+      const slots = await getAvailability({ partOfDay: "morning" });
+      expect(slots.map((s) => s.startIso)).toEqual(["2026-09-01T08:00:00.000Z"]);
+    });
+
+    it("offers only afternoon slots when the caller asked for an afternoon", async () => {
+      stubFetch(acrossTheDay);
+      const slots = await getAvailability({ partOfDay: "afternoon" });
+      expect(slots.map((s) => s.startIso)).toEqual(["2026-09-01T13:00:00.000Z"]);
+    });
+
+    it("offers only evening slots when the caller asked for an evening", async () => {
+      stubFetch(acrossTheDay);
+      const slots = await getAvailability({ partOfDay: "evening" });
+      expect(slots.map((s) => s.startIso)).toEqual(["2026-09-01T18:00:00.000Z"]);
+    });
+
+    it("offers the whole day when the caller expressed no preference", async () => {
+      stubFetch(acrossTheDay);
+      const slots = await getAvailability({ partOfDay: "any" });
+      expect(slots.map((s) => s.startIso)).toEqual([
+        "2026-09-01T08:00:00.000Z",
+        "2026-09-01T13:00:00.000Z",
+        "2026-09-01T18:00:00.000Z",
+      ]);
+    });
+  });
+
   it("returns an empty list when Cal.com errors", async () => {
     stubFetch({}, false);
     expect(await getAvailability({})).toEqual([]);

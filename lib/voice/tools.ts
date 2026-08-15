@@ -69,7 +69,14 @@ async function checkAvailability(args: unknown): Promise<ToolResult> {
   const input = parse(checkAvailabilitySchema, args);
   if (!input) return invalid();
 
-  const slots = await getAvailability({ partOfDay: input.partOfDay, limit: 3 });
+  // preferredDate is the whole point of the caller saying "Thursday". Dropping
+  // it here would still return three slots, read out just as confidently, from
+  // today instead of the day they asked for.
+  const slots = await getAvailability({
+    fromIso: input.preferredDate,
+    partOfDay: input.partOfDay,
+    limit: 3,
+  });
   if (slots.length === 0) {
     return {
       result:

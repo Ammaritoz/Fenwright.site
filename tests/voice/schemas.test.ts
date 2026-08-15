@@ -35,6 +35,34 @@ describe("bookAppointmentSchema", () => {
   });
 });
 
+describe("checkAvailabilitySchema", () => {
+  it("accepts an ISO preferredDate", () => {
+    const res = checkAvailabilitySchema.safeParse({
+      personaId: "electrician",
+      preferredDate: "2026-09-03T00:00:00.000Z",
+      partOfDay: "morning",
+    });
+    expect(res.success).toBe(true);
+  });
+
+  // preferredDate is handed to Cal.com as the search start. A value the module
+  // cannot parse would silently fall back to "from today", so it is rejected
+  // here rather than quietly changing what the caller asked for.
+  it("rejects a non-ISO preferredDate", () => {
+    const res = checkAvailabilitySchema.safeParse({
+      personaId: "electrician",
+      preferredDate: "next Thursday",
+      partOfDay: "morning",
+    });
+    expect(res.success).toBe(false);
+  });
+
+  it("still accepts an omitted preferredDate", () => {
+    const res = checkAvailabilitySchema.safeParse({ personaId: "electrician" });
+    expect(res.success).toBe(true);
+  });
+});
+
 describe("captureLeadSchema", () => {
   it("rejects an unknown urgency", () => {
     const res = captureLeadSchema.safeParse({

@@ -30,6 +30,34 @@ describe("runTool", () => {
     expect(res.result).toContain("Tuesday the 1st of September at 10am");
   });
 
+  // Regression: preferredDate was validated by the schema and then dropped, so
+  // a caller asking for Thursday was read the next three slots from today.
+  it("searches from the caller's preferred date rather than from today", async () => {
+    const { getAvailability } = await import("@/lib/voice/calcom");
+    await runTool("check_availability", uniqueCall(), {
+      personaId: "electrician",
+      preferredDate: "2026-09-03T00:00:00.000Z",
+      partOfDay: "morning",
+    });
+    expect(vi.mocked(getAvailability)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fromIso: "2026-09-03T00:00:00.000Z",
+        partOfDay: "morning",
+      })
+    );
+  });
+
+  it("leaves fromIso unset when the caller named no date", async () => {
+    const { getAvailability } = await import("@/lib/voice/calcom");
+    await runTool("check_availability", uniqueCall(), {
+      personaId: "electrician",
+      partOfDay: "any",
+    });
+    expect(vi.mocked(getAvailability)).toHaveBeenCalledWith(
+      expect.objectContaining({ fromIso: undefined })
+    );
+  });
+
   it("rejects an unknown tool without throwing", async () => {
     const res = await runTool("delete_everything", uniqueCall(), {});
     expect(res.result).toMatch(/could not/i);

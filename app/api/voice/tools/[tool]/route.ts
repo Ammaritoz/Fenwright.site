@@ -1,11 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyVoiceRequest } from "@/lib/voice/auth";
 import { runTool } from "@/lib/voice/tools";
-import { rateLimit } from "@/lib/ratelimit";
+import { rateLimit, incrementDailyCounter } from "@/lib/ratelimit";
+import { limits, voiceSmsDailyCap } from "@/config/limits";
 import { errMeta } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/**
+ * Tools that can put a real SMS on the wire, and so must burn global budget.
+ * book_appointment texts a booking recap, so capping send_recap_sms alone
+ * would leave the identical spend vector open one tool along.
+ */
+const SMS_SENDING_TOOLS = new Set(["book_appointment", "send_recap_sms"]);
+
+/**
+ * A limit being hit is still a live phone call, so it is answered in words the
+ * assistant can read out rather than with an error the caller would hear as
+ * silence. Deliberately promises nothing: whichever limit fired, neither the
+ * booking nor the text happened.
+ */
+function speakable(result: string) {
+  return NextResponse.json({ result }, { status: 200 });
+}
+
+const AT_CAPACITY =
+  "I am having trouble on my side just now. Let me take your name and number and someone will come straight back to you.";
 
 /**
  * Tool calls from the voice platform.
@@ -63,6 +84,50 @@ export async function POST(
       { result: "I am having trouble on my side. Let me take your number instead." },
       { status: 200 }
     );
+  }
+
+  // send_recap_sms is the fan-out risk. The limiter above is one budget of 40
+  // shared across all four tools, so a single signed call could spend it
+  // texting 40 different numbers. Its own budget is much tighter.
+  if (params.tool === "send_recap_sms") {
+    let recapLimited: { success: boolean } = { success: true };
+    try {
+      recapLimited = await rateLimit(
+        "voice-recap-sms",
+        callId,
+        limits.voice.recapSmsPerCall.tokens,
+        limits.voice.recapSmsPerCall.window
+      );
+    } catch (err) {
+      // Same fail-open reasoning as the limiter above.
+      console.error("[fenwright] voice recap SMS limiter unavailable:", errMeta(err));
+    }
+    if (!recapLimited.success) {
+      return speakable(
+        "I have sent you a text on this call already. Is there anything else I can help you with?"
+      );
+    }
+  }
+
+  // Global daily budget, the same backstop every other spending route in this
+  // repo carries. It matters more here than anywhere else: callId arrives in
+  // the request body, so every limit keyed on it restarts for free with an
+  // invented id, and this is the only one that cannot be restarted. Same
+  // ordering as /api/contact: incremented only after the per-call checks pass,
+  // so blocked attempts do not burn the budget.
+  if (SMS_SENDING_TOOLS.has(params.tool)) {
+    try {
+      const used = await incrementDailyCounter("voice-sms");
+      if (used > voiceSmsDailyCap()) {
+        console.warn("[fenwright] voice SMS daily cap reached");
+        return speakable(AT_CAPACITY);
+      }
+    } catch (err) {
+      // Fail open for the same reason as the limiters: a counter outage must
+      // not become dead air. The signature is the security boundary; this is
+      // a spend backstop.
+      console.error("[fenwright] voice SMS daily counter unavailable:", errMeta(err));
+    }
   }
 
   try {

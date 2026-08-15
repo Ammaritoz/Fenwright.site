@@ -53,6 +53,20 @@ describe("spokenTime", () => {
 });
 
 describe("getAvailability", () => {
+  // A 200 with zero slots is correct on the phone ("nothing showing") but
+  // looks identical whether the calendar is genuinely full or the event type
+  // ID is simply wrong. Only this warning tells the two apart, so it has to
+  // name the actual ID in play.
+  it("warns with the event type id when Cal.com returns 200 but no slots", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    stubFetch({ data: { slots: {} } });
+
+    await getAvailability({});
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("eventTypeId=123456"));
+    warnSpy.mockRestore();
+  });
+
   it("returns spoken slots", async () => {
     stubFetch({ data: { slots: { "2026-09-01": [{ start: "2026-09-01T09:00:00.000Z" }] } } });
     const slots = await getAvailability({ limit: 3 });

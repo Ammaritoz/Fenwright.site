@@ -151,6 +151,16 @@ export async function getAvailability({
     };
 
     const all = Object.values(body.data?.slots ?? {}).flat();
+    if (all.length === 0) {
+      // A 200 with no slots is indistinguishable from "genuinely fully
+      // booked" on the phone, which is correct there, but it is also what a
+      // wrong-but-real event type ID looks like: Cal.com answers 200 for any
+      // event type it can find, whether or not it is the one this persona
+      // means. The env var name is safe to log; it holds no secret.
+      console.warn(
+        `[fenwright] Cal.com returned zero slots for eventTypeId=${eventTypeId} in the queried window`
+      );
+    }
     return all
       .map((s) => s.start)
       .filter((iso) => matchesPartOfDay(iso, partOfDay, timeZone))

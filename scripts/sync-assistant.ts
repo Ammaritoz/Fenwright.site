@@ -26,10 +26,13 @@
  */
 import { personas } from "../config/personas";
 import { composeSystemPrompt } from "../lib/voice/prompt";
-import { VAPI_SECRET_HEADER } from "../lib/voice/vapi";
 
 const PLACEHOLDER_DESTINATION = "+353000000000";
 const API_BASE = "https://api.vapi.ai";
+// Must match VAPI_SECRET_HEADER in lib/voice/vapi.ts. Not imported directly:
+// that module carries "import server-only", which throws under plain tsx
+// (no Next.js request context), and this script needs nothing else from it.
+const VAPI_SECRET_HEADER = "x-vapi-secret";
 
 type ToolDefinition = {
   type: "function";
@@ -54,6 +57,7 @@ async function main() {
   const apiKey = process.env.VAPI_PRIVATE_KEY;
   const baseUrl = process.env.VOICE_PUBLIC_BASE_URL;
   const secret = process.env.VOICE_WEBHOOK_SECRET;
+  const phoneNumberId = process.env.VAPI_PHONE_NUMBER_ID;
   if (!apiKey) throw new Error("VAPI_PRIVATE_KEY is not set");
   if (!baseUrl) throw new Error("VOICE_PUBLIC_BASE_URL is not set");
   if (!secret) throw new Error("VOICE_WEBHOOK_SECRET is not set");
@@ -112,7 +116,29 @@ async function main() {
   }
 
   const created = (await res.json()) as { id?: string };
+  if (!created.id) {
+    throw new Error("Vapi did not return an assistant id.");
+  }
   console.log(`Synced ${persona.id} -> assistant ${created.id}`);
+
+  if (phoneNumberId) {
+    // A phone number is inert without this: it is a separate resource, and
+    // Vapi does not know which assistant should answer it until told.
+    const attachRes = await fetch(`${API_BASE}/phone-number/${phoneNumberId}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ assistantId: created.id }),
+    });
+    if (!attachRes.ok) {
+      throw new Error(
+        `Assistant created (${created.id}) but attaching it to the phone number failed: ` +
+          `${attachRes.status} ${await attachRes.text()}`
+      );
+    }
+    console.log(`Attached assistant ${created.id} to phone number ${phoneNumberId}`);
+  } else {
+    console.log("VAPI_PHONE_NUMBER_ID not set; assistant created but not attached to a number.");
+  }
 }
 
 /** Find an existing resource on a Vapi list endpoint by exact name match. */

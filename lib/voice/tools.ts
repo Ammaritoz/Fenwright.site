@@ -129,6 +129,7 @@ async function bookAppointment(callId: string, args: unknown): Promise<ToolResul
     phone: input.phone,
     message: input.notes,
     industry: persona.id,
+    callId,
     source: "voice-inbound",
   });
 
@@ -157,6 +158,7 @@ async function captureLead(callId: string, args: unknown): Promise<ToolResult> {
     phone: input.phone,
     message: `[${input.intent}/${input.urgency}] ${input.summary}`,
     industry: persona.id,
+    callId,
     source: "voice-inbound",
   });
 

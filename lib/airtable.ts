@@ -13,6 +13,12 @@ export type LeadRecord = {
   phone?: string;
   message?: string;
   industry?: string;
+  /**
+   * Voice-captured leads only (spec section 7). Ties a lead back to the call it
+   * came from, so a Calls row and the lead it produced can be read together
+   * rather than matched up by phone number and timestamp.
+   */
+  callId?: string;
   source: "site-demo" | "site-contact" | "voice-inbound" | "voice-outbound";
 };
 
@@ -56,6 +62,7 @@ export async function logLead(lead: LeadRecord): Promise<void> {
   if (lead.phone) fields.Phone = deFormula(lead.phone);
   if (lead.message) fields.Message = deFormula(lead.message);
   if (lead.industry) fields.Industry = deFormula(lead.industry);
+  if (lead.callId) fields.CallId = deFormula(lead.callId);
 
   try {
     await b("Leads").create([{ fields }]);

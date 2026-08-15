@@ -120,6 +120,48 @@ describe("getAvailability", () => {
     });
   });
 
+  /**
+   * getAvailability returns [] on any non-ok response, so a regression that
+   * moved the endpoint or dropped the version header would be indistinguishable
+   * from "no slots available": the receptionist would say "I do not have
+   * anything showing just now" on every call forever, with every other test in
+   * this file still green. These pin the request itself.
+   */
+  describe("the request it actually sends", () => {
+    it("calls the v2 slots endpoint with the configured event type and time zone", async () => {
+      const fn = stubFetch({ data: { slots: {} } });
+      await getAvailability({ fromIso: "2026-09-03T00:00:00.000Z", timeZone: "Europe/Dublin" });
+
+      const url = fn.mock.calls[0][0] as URL;
+      expect(`${url.origin}${url.pathname}`).toBe("https://api.cal.com/v2/slots");
+      expect(url.searchParams.get("eventTypeId")).toBe(process.env.CALCOM_EVENT_TYPE_ID);
+      expect(url.searchParams.get("timeZone")).toBe("Europe/Dublin");
+    });
+
+    it("searches a fortnight forward from the requested start", async () => {
+      const fn = stubFetch({ data: { slots: {} } });
+      await getAvailability({ fromIso: "2026-09-03T00:00:00.000Z" });
+
+      const url = fn.mock.calls[0][0] as URL;
+      expect(url.searchParams.get("start")).toBe("2026-09-03T00:00:00.000Z");
+      expect(url.searchParams.get("end")).toBe("2026-09-17T00:00:00.000Z");
+    });
+
+    it("authenticates and pins the API version", async () => {
+      const fn = stubFetch({ data: { slots: {} } });
+      await getAvailability({ fromIso: "2026-09-03T00:00:00.000Z" });
+
+      const init = fn.mock.calls[0][1] as RequestInit;
+      const headers = init.headers as Record<string, string>;
+      expect(headers.Authorization).toBe(`Bearer ${process.env.CALCOM_API_KEY}`);
+      // Cal.com selects the response shape from this header. Dropping it
+      // returns a payload this module cannot read, which reads as "no slots".
+      expect(headers["cal-api-version"]).toBe("2024-09-04");
+      expect(init.method ?? "GET").toBe("GET");
+      expect(init.cache).toBe("no-store");
+    });
+  });
+
   it("returns an empty list when Cal.com errors", async () => {
     stubFetch({}, false);
     expect(await getAvailability({})).toEqual([]);
@@ -185,6 +227,67 @@ describe("createBooking", () => {
       phone: "+353833378541",
     });
     expect(res.ok).toBe(false);
+  });
+
+  // Same reasoning as the availability request tests: createBooking reports
+  // ok: false for any non-ok response, so a wrong endpoint, a wrong version
+  // header or a malformed body all look identical to "that slot is taken".
+  describe("the request it actually sends", () => {
+    const args = {
+      slotStart: "2026-09-01T09:00:00.000Z",
+      name: "Bob",
+      phone: "+353833378541",
+    };
+
+    it("posts to the v2 bookings endpoint, authenticated and version pinned", async () => {
+      const fn = stubFetch({ data: { uid: "abc123" } });
+      await createBooking(args);
+
+      const [url, init] = fn.mock.calls[0] as [string, RequestInit];
+      expect(url).toBe("https://api.cal.com/v2/bookings");
+      expect(init.method).toBe("POST");
+
+      const headers = init.headers as Record<string, string>;
+      expect(headers.Authorization).toBe(`Bearer ${process.env.CALCOM_API_KEY}`);
+      // A different version from the slots endpoint, and deliberately so.
+      expect(headers["cal-api-version"]).toBe("2024-08-13");
+      expect(headers["Content-Type"]).toBe("application/json");
+    });
+
+    it("sends the slot, the numeric event type and the attendee", async () => {
+      const fn = stubFetch({ data: { uid: "abc123" } });
+      await createBooking(args);
+
+      const init = fn.mock.calls[0][1] as RequestInit;
+      expect(JSON.parse(init.body as string)).toEqual({
+        start: "2026-09-01T09:00:00.000Z",
+        // Cal.com rejects a string here, and CALCOM_EVENT_TYPE_ID is a string.
+        eventTypeId: Number(process.env.CALCOM_EVENT_TYPE_ID),
+        attendee: {
+          name: "Bob",
+          phoneNumber: "+353833378541",
+          timeZone: "Europe/Dublin",
+          language: "en",
+        },
+      });
+    });
+
+    it("carries the notes through when the caller gave any", async () => {
+      const fn = stubFetch({ data: { uid: "abc123" } });
+      await createBooking({ ...args, notes: "Fuse board tripping" });
+
+      const init = fn.mock.calls[0][1] as RequestInit;
+      const body = JSON.parse(init.body as string);
+      expect(body.bookingFieldsResponses).toEqual({ notes: "Fuse board tripping" });
+    });
+
+    it("omits the notes field entirely when there are none", async () => {
+      const fn = stubFetch({ data: { uid: "abc123" } });
+      await createBooking(args);
+
+      const init = fn.mock.calls[0][1] as RequestInit;
+      expect(JSON.parse(init.body as string)).not.toHaveProperty("bookingFieldsResponses");
+    });
   });
 
   // Same 8 second budget as availability. A hung booking must land on the

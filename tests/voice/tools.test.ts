@@ -156,6 +156,35 @@ describe("runTool", () => {
     expect(res.result).toMatch(/have (your|those) details|taken/i);
   });
 
+  // Spec section 7: Leads gains the voice source values plus a CallId link.
+  // The source values landed in an earlier task, the link did not, so a lead
+  // could only be matched to its call by phone number and timestamp.
+  it("links a captured lead back to the call it came from", async () => {
+    const { logLead } = await import("@/lib/airtable");
+    const callId = uniqueCall();
+    await runTool("capture_lead", callId, {
+      personaId: "electrician",
+      name: "Bob",
+      phone: "+353833378541",
+      intent: "new_job",
+      summary: "Rewire quote",
+      urgency: "routine",
+    });
+    expect(vi.mocked(logLead)).toHaveBeenCalledWith(expect.objectContaining({ callId }));
+  });
+
+  it("links a booked lead back to the call it came from", async () => {
+    const { logLead } = await import("@/lib/airtable");
+    const callId = uniqueCall();
+    await runTool("book_appointment", callId, {
+      personaId: "electrician",
+      slotStart: "2026-09-01T09:00:00.000Z",
+      name: "Bob",
+      phone: "+353833378541",
+    });
+    expect(vi.mocked(logLead)).toHaveBeenCalledWith(expect.objectContaining({ callId }));
+  });
+
   it("sends a recap SMS and confirms it in words", async () => {
     const { sendSms } = await import("@/lib/twilio");
     const res = await runTool("send_recap_sms", uniqueCall(), {

@@ -158,7 +158,13 @@ export async function getAvailability({
       // looks like: Cal.com answers 200 for any query it can parse. The full
       // request URL is safe to log; the key is sent as a header, never a
       // query param, so nothing secret is in it.
-      console.warn(`[fenwright] Cal.com returned zero slots for ${url.toString()}`);
+      // A matching URL with a mismatched key is otherwise invisible: the key
+      // never appears in the URL, only the Authorization header, which is
+      // deliberately never logged in full. A short prefix fingerprints it
+      // without exposing enough to reuse.
+      console.warn(
+        `[fenwright] Cal.com returned zero slots for ${url.toString()} using key prefix ${apiKey.slice(0, 12)}...`
+      );
     }
     return all
       .map((s) => s.start)

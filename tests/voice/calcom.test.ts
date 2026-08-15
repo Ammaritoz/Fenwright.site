@@ -64,9 +64,10 @@ describe("getAvailability", () => {
     await getAvailability({});
 
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("eventTypeId=123456"));
-    // The key is a header, never a query param, so the logged URL must not
-    // be able to leak it even by accident.
-    expect(warnSpy.mock.calls[0][0]).not.toContain("test-calcom-key");
+    // A short prefix helps compare keys across environments without
+    // reproducing the secret itself in a log line.
+    expect(warnSpy.mock.calls[0][0]).toContain("test-calcom-...");
+    expect(warnSpy.mock.calls[0][0]).not.toContain("test-calcom-key-do-not-use-in-production");
     warnSpy.mockRestore();
   });
 

@@ -297,8 +297,9 @@ describe("createBooking", () => {
           name: "Bob",
           // Cal.com requires an attendee email even when nothing else asks
           // for one; the voice flow never collects one over the phone, so
-          // this is a synthetic .invalid placeholder, never a real address.
-          email: "353833378541@voice.invalid",
+          // this is a synthetic example.com placeholder, never a real
+          // address (see lib/voice/calcom.ts for why not .invalid).
+          email: "353833378541@example.com",
           phoneNumber: "+353833378541",
           timeZone: "Europe/Dublin",
           language: "en",
@@ -312,7 +313,7 @@ describe("createBooking", () => {
 
       const init = fn.mock.calls[0][1] as RequestInit;
       const body = JSON.parse(init.body as string) as { attendee: { email: string } };
-      expect(body.attendee.email).toBe("353833378541@voice.invalid");
+      expect(body.attendee.email).toBe("353833378541@example.com");
     });
 
     it("carries the notes through when the caller gave any", async () => {

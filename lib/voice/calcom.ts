@@ -230,13 +230,17 @@ export async function createBooking({
         // booking that otherwise rejected with "responses - {email}
         // error_required_field". The voice flow never asks a caller to
         // spell out an email on the phone, so this is a synthetic
-        // placeholder, not a real address: .invalid is the IANA-reserved
-        // TLD guaranteed never to resolve or deliver (RFC 2606), and using
-        // it rather than a specific client's domain keeps this module
-        // portable across clients rather than baking in Fenwright's own.
+        // placeholder, not a real address. example.com, not .invalid: Cal.com
+        // validates that the domain can receive mail (rejecting .invalid,
+        // which is reserved specifically to never resolve, with
+        // "email_domain_cannot_receive_mail"), confirmed against a second
+        // live booking. example.com is IANA-reserved for documentation
+        // (RFC 2606) and genuinely resolves, so it passes that check while
+        // staying universally recognised as a placeholder, never a real
+        // client's own domain.
         attendee: {
           name,
-          email: `${phone.replace(/[^\d]/g, "")}@voice.invalid`,
+          email: `${phone.replace(/[^\d]/g, "")}@example.com`,
           phoneNumber: phone,
           timeZone,
           language: "en",

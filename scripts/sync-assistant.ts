@@ -24,7 +24,7 @@
  *
  * Usage: npm run voice:sync -- electrician
  */
-import { personas } from "../config/personas";
+import { personas, type Persona } from "../config/personas";
 import { composeSystemPrompt } from "../lib/voice/prompt";
 
 const PLACEHOLDER_DESTINATION = "+353000000000";
@@ -34,7 +34,7 @@ const API_BASE = "https://api.vapi.ai";
 // (no Next.js request context), and this script needs nothing else from it.
 const VAPI_SECRET_HEADER = "x-vapi-secret";
 
-type ToolDefinition = {
+type FunctionToolDefinition = {
   type: "function";
   function: {
     name: string;
@@ -42,6 +42,31 @@ type ToolDefinition = {
     parameters: Record<string, unknown>;
   };
 };
+
+/**
+ * Native call-control, not a custom function: Vapi executes the transfer
+ * itself, so this tool carries no server config and never hits our webhook.
+ * Confirmed against docs.vapi.ai/call-forwarding, not assumed from the
+ * original plan text, which only said "platform's native call-control
+ * actions" without the shape. Unverified by an actual test call yet -
+ * check the next real transfer attempt against this.
+ */
+type TransferToolDefinition = {
+  type: "transferCall";
+  function: {
+    name: string;
+    description: string;
+  };
+  destinations: Array<{
+    type: "number";
+    number: string;
+    message?: string;
+    description?: string;
+    transferPlan?: { mode: string };
+  }>;
+};
+
+type ToolDefinition = FunctionToolDefinition | TransferToolDefinition;
 
 async function main() {
   const personaId = process.argv[2];
@@ -76,7 +101,7 @@ async function main() {
 
   console.log("Syncing tools...");
   const toolIds: string[] = [];
-  for (const def of buildToolDefinitions()) {
+  for (const def of buildToolDefinitions(persona)) {
     const id = await upsertTool(headers, def, toolServer);
     console.log(`  ${def.function.name} -> ${id}`);
     toolIds.push(id);
@@ -90,7 +115,12 @@ async function main() {
     firstMessage: persona.greeting,
     model: {
       provider: "anthropic",
-      model: "claude-sonnet-5",
+      // Swapped from claude-sonnet-5 for round-trip latency: phone turn-taking
+      // is far more latency-sensitive than the reasoning depth this task
+      // needs. Re-check response quality after the next real test call - if
+      // Haiku starts fumbling the decision-point branching, that is the
+      // signal to revert, not a guess made in advance.
+      model: "claude-haiku-4-5-20251001",
       messages: [{ role: "system", content: composeSystemPrompt(persona) }],
       toolIds,
     },
@@ -164,7 +194,9 @@ async function upsertTool(
   server: { url: string; headers: Record<string, string> }
 ): Promise<string> {
   const existing = await findByName(headers, `${API_BASE}/tool`, def.function.name);
-  const body = { ...def, server };
+  // transferCall is native call-control; attaching our webhook server here
+  // would be wrong, not just unused.
+  const body = def.type === "function" ? { ...def, server } : def;
 
   const res = await fetch(existing ? `${API_BASE}/tool/${existing.id}` : `${API_BASE}/tool`, {
     method: existing ? "PATCH" : "POST",
@@ -181,13 +213,33 @@ async function upsertTool(
 }
 
 /**
- * The four tool functions the model can call. Names match runTool's switch in
- * lib/voice/tools.ts exactly; a mismatch here means the model calls a tool
- * name our dispatcher does not recognise, which returns a speakable apology
- * rather than failing loudly, so this list is worth getting right.
+ * The four tool functions the model can call, plus the native transfer tool.
+ * Function-tool names match runTool's switch in lib/voice/tools.ts exactly; a
+ * mismatch here means the model calls a tool name our dispatcher does not
+ * recognise, which returns a speakable apology rather than failing loudly, so
+ * this list is worth getting right.
  */
-function buildToolDefinitions(): ToolDefinition[] {
+function buildToolDefinitions(persona: Persona): ToolDefinition[] {
   return [
+    {
+      type: "transferCall",
+      function: {
+        name: "transfer_call",
+        description:
+          "Transfer the caller to a human. Use only for the escalation triggers in the system prompt - " +
+          "a stated emergency, an explicit request for a person, a complaint, or repeated failure to " +
+          "understand the same detail. Do not use it as an easy way out of a hard conversation.",
+      },
+      destinations: [
+        {
+          type: "number",
+          number: persona.escalation.destination,
+          message: "Connecting you now, please hold.",
+          description: "The on-call human, for emergencies and callers who ask for a person.",
+          transferPlan: { mode: "blind-transfer" },
+        },
+      ],
+    },
     {
       type: "function",
       function: {

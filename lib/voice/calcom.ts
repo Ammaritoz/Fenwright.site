@@ -146,11 +146,17 @@ export async function getAvailability({
       );
       return [];
     }
+    // Cal.com's v2 slots response nests each date directly under `data`,
+    // keyed by day, with no intermediate "slots" property. Confirmed against
+    // a real response after this module's original assumption of
+    // data.slots turned out wrong: it silently parsed to undefined on every
+    // real call, and every test mock had encoded the same wrong shape, so
+    // nothing ever caught it.
     const body = (await res.json()) as {
-      data?: { slots?: Record<string, Array<{ start: string }>> };
+      data?: Record<string, Array<{ start: string }>>;
     };
 
-    const all = Object.values(body.data?.slots ?? {}).flat();
+    const all = Object.values(body.data ?? {}).flat();
     if (all.length === 0) {
       // A 200 with no slots is indistinguishable from "genuinely fully
       // booked" on the phone, which is correct there, but it is also what a
@@ -219,7 +225,22 @@ export async function createBooking({
       body: JSON.stringify({
         start: slotStart,
         eventTypeId: Number(eventTypeId),
-        attendee: { name, phoneNumber: phone, timeZone, language: "en" },
+        // Cal.com's booking form treats email as a required attendee field
+        // even when it collects nothing else, confirmed against a live
+        // booking that otherwise rejected with "responses - {email}
+        // error_required_field". The voice flow never asks a caller to
+        // spell out an email on the phone, so this is a synthetic
+        // placeholder, not a real address: .invalid is the IANA-reserved
+        // TLD guaranteed never to resolve or deliver (RFC 2606), and using
+        // it rather than a specific client's domain keeps this module
+        // portable across clients rather than baking in Fenwright's own.
+        attendee: {
+          name,
+          email: `${phone.replace(/[^\d]/g, "")}@voice.invalid`,
+          phoneNumber: phone,
+          timeZone,
+          language: "en",
+        },
         bookingFieldsResponses: notes ? { notes } : undefined,
       }),
       cache: "no-store",

@@ -59,7 +59,7 @@ describe("getAvailability", () => {
   // name the actual ID in play.
   it("warns with the full request URL when Cal.com returns 200 but no slots", async () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    stubFetch({ data: { slots: {} } });
+    stubFetch({ data: {} });
 
     await getAvailability({});
 
@@ -72,7 +72,7 @@ describe("getAvailability", () => {
   });
 
   it("returns spoken slots", async () => {
-    stubFetch({ data: { slots: { "2026-09-01": [{ start: "2026-09-01T09:00:00.000Z" }] } } });
+    stubFetch({ data: { "2026-09-01": [{ start: "2026-09-01T09:00:00.000Z" }] } });
     const slots = await getAvailability({ limit: 3 });
     expect(slots[0].startIso).toBe("2026-09-01T09:00:00.000Z");
     expect(slots[0].spoken).toContain("September");
@@ -81,14 +81,12 @@ describe("getAvailability", () => {
   it("caps the number of options offered", async () => {
     stubFetch({
       data: {
-        slots: {
-          "2026-09-01": [
-            { start: "2026-09-01T09:00:00.000Z" },
-            { start: "2026-09-01T10:00:00.000Z" },
-            { start: "2026-09-01T11:00:00.000Z" },
-            { start: "2026-09-01T12:00:00.000Z" },
-          ],
-        },
+        "2026-09-01": [
+          { start: "2026-09-01T09:00:00.000Z" },
+          { start: "2026-09-01T10:00:00.000Z" },
+          { start: "2026-09-01T11:00:00.000Z" },
+          { start: "2026-09-01T12:00:00.000Z" },
+        ],
       },
     });
     expect(await getAvailability({ limit: 3 })).toHaveLength(3);
@@ -100,13 +98,11 @@ describe("getAvailability", () => {
   describe("partOfDay filtering", () => {
     const acrossTheDay = {
       data: {
-        slots: {
-          "2026-09-01": [
-            { start: "2026-09-01T08:00:00.000Z" },
-            { start: "2026-09-01T13:00:00.000Z" },
-            { start: "2026-09-01T18:00:00.000Z" },
-          ],
-        },
+        "2026-09-01": [
+          { start: "2026-09-01T08:00:00.000Z" },
+          { start: "2026-09-01T13:00:00.000Z" },
+          { start: "2026-09-01T18:00:00.000Z" },
+        ],
       },
     };
 
@@ -148,7 +144,7 @@ describe("getAvailability", () => {
    */
   describe("the request it actually sends", () => {
     it("calls the v2 slots endpoint with the configured event type and time zone", async () => {
-      const fn = stubFetch({ data: { slots: {} } });
+      const fn = stubFetch({ data: {} });
       await getAvailability({ fromIso: "2026-09-03T00:00:00.000Z", timeZone: "Europe/Dublin" });
 
       const url = fn.mock.calls[0][0] as URL;
@@ -158,7 +154,7 @@ describe("getAvailability", () => {
     });
 
     it("searches a fortnight forward from the requested start", async () => {
-      const fn = stubFetch({ data: { slots: {} } });
+      const fn = stubFetch({ data: {} });
       await getAvailability({ fromIso: "2026-09-03T00:00:00.000Z" });
 
       const url = fn.mock.calls[0][0] as URL;
@@ -167,7 +163,7 @@ describe("getAvailability", () => {
     });
 
     it("authenticates and pins the API version", async () => {
-      const fn = stubFetch({ data: { slots: {} } });
+      const fn = stubFetch({ data: {} });
       await getAvailability({ fromIso: "2026-09-03T00:00:00.000Z" });
 
       const init = fn.mock.calls[0][1] as RequestInit;
@@ -299,11 +295,24 @@ describe("createBooking", () => {
         eventTypeId: Number(process.env.CALCOM_EVENT_TYPE_ID),
         attendee: {
           name: "Bob",
+          // Cal.com requires an attendee email even when nothing else asks
+          // for one; the voice flow never collects one over the phone, so
+          // this is a synthetic .invalid placeholder, never a real address.
+          email: "353833378541@voice.invalid",
           phoneNumber: "+353833378541",
           timeZone: "Europe/Dublin",
           language: "en",
         },
       });
+    });
+
+    it("derives the placeholder email from digits only, whatever punctuation the phone uses", async () => {
+      const fn = stubFetch({ data: { uid: "abc123" } });
+      await createBooking({ ...args, phone: "+353 (83) 337-8541" });
+
+      const init = fn.mock.calls[0][1] as RequestInit;
+      const body = JSON.parse(init.body as string) as { attendee: { email: string } };
+      expect(body.attendee.email).toBe("353833378541@voice.invalid");
     });
 
     it("carries the notes through when the caller gave any", async () => {

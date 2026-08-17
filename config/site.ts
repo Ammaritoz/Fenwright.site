@@ -169,10 +169,10 @@ export const site = {
   },
 
   about: {
-    kicker: "Who's behind Fenwright",
-    headline: "A small team, fully dedicated to your business.",
+    kicker: "Who you'll work with",
+    headline: "Two people, fully dedicated to your business.",
     subhead:
-      "From the first call to the day your systems go live, you're working directly with Ammar and Billal, backed by the small team that keeps everything running.",
+      "From the first call to the day your systems go live, you're working directly with the two of us, not passed between departments.",
     // Shared business WhatsApp in E.164. Empty string hides the buttons.
     whatsapp: "+353899406583",
     whatsappPreset: "Hi Fenwright, I'd like to talk about my business.",
@@ -191,13 +191,6 @@ export const site = {
         initials: "BK",
         bio: "Billal leads the consulting. He sits down with you, works out where your week leaks time and money, and turns that into a plan worth building.",
         linkedin: "https://www.linkedin.com/in/billal-khan-100505424",
-      },
-      {
-        name: "Yara Bakhet",
-        role: "Finance",
-        initials: "YB",
-        bio: "Yara keeps the numbers straight: pricing, invoicing and the books that keep everything else honest.",
-        linkedin: "https://www.linkedin.com/in/yara-bakhet/",
       },
     ],
   },

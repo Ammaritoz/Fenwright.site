@@ -114,9 +114,9 @@ export default function PrivacyPage() {
                       <td className="py-3">United States. Data Processing Agreement with EU Standard Contractual Clauses; inputs are not used to train models.</td>
                     </tr>
                     <tr>
-                      <td className="py-3 pr-4 font-medium text-ink">Twilio</td>
+                      <td className="py-3 pr-4 font-medium text-ink">Telnyx</td>
                       <td className="py-3 pr-4">Delivers the SMS</td>
-                      <td className="py-3">United States (with an EU data-residency option for messaging). Data Processing Addendum with Standard Contractual Clauses.</td>
+                      <td className="py-3">United States, with EU infrastructure for European messaging. Data Processing Addendum with Standard Contractual Clauses.</td>
                     </tr>
                     <tr>
                       <td className="py-3 pr-4 font-medium text-ink">Airtable</td>

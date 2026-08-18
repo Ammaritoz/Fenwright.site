@@ -4,7 +4,7 @@ import { generateFenwrightReply } from "@/lib/receptionist";
 import { rateLimit, incrementDailyCounter } from "@/lib/ratelimit";
 import { clientIp, phoneKey, guardRequest } from "@/lib/request";
 import { limits, contactDailyCap } from "@/config/limits";
-import { sendSms, twilioConfigured } from "@/lib/twilio";
+import { sendSms, smsConfigured } from "@/lib/sms";
 import { logLead } from "@/lib/airtable";
 import { errMeta } from "@/lib/log";
 import { site } from "@/config/site";
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Global daily budget. Without this, an attacker rotating IPs and phone
-  // numbers can drive unbounded Twilio and Anthropic spend through this route.
+  // numbers can drive unbounded SMS and Anthropic spend through this route.
   // Incremented only after validation and the per-IP/per-phone checks pass.
   const used = await incrementDailyCounter("contact");
   if (used > contactDailyCap()) {
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (!twilioConfigured()) {
+  if (!smsConfigured()) {
     // Still capture the lead even if SMS is down.
     await logLead({ name, phone, message, source: "site-contact" });
     await forwardToN8n({ name, phone, message });
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, texted: true });
   } catch (err) {
     console.error("[fenwright] contact send failed:", errMeta(err));
-    // The text failed (e.g. Twilio geo permissions / trial limits), but the lead
+    // The text failed (e.g. carrier rejection or geo permissions), but the lead
     // still matters: capture it and tell the client the text did not go out.
     await logLead({ name, phone, message, source: "site-contact" });
     await forwardToN8n({ name, phone, message });

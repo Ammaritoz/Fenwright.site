@@ -30,7 +30,7 @@ const MAX_BODY_BYTES = 16 * 1024;
 /**
  * Reject anything that is not a genuine same-origin JSON call.
  *
- * These endpoints spend real money (Anthropic tokens, Twilio SMS) and are
+ * These endpoints spend real money (Anthropic tokens, SMS) and are
  * unauthenticated, so the only thing standing between a visitor's browser and
  * an attacker-triggered send is origin checking. Two independent gates:
  *

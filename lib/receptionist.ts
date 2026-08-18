@@ -33,7 +33,7 @@ export function toGsm7(input: string): string {
  * Strip anything that could turn a generated SMS into a phishing message.
  *
  * The enquiry text is fully visitor-controlled, is fed to the model, and the
- * result is sent by SMS from our Twilio number to a number the same visitor
+ * result is sent by SMS from our own number to a number the same visitor
  * chose. The model resists instruction-injection well in testing, but that is a
  * model behaviour, not a guarantee: a future model, a prompt tweak or a novel
  * jailbreak could land attacker text in the body. Every damaging payload needs

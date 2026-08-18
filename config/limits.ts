@@ -24,7 +24,7 @@ export const limits = {
   // This route also sends a real SMS, so it needs the same layered controls as
   // /api/demo-text. 3 texts per hour to one number is an SMS-bombing vector
   // (72/day at a victim's phone), and with no global cap an attacker rotating
-  // IPs and numbers can drive unbounded Twilio and Anthropic spend.
+  // IPs and numbers can drive unbounded SMS and Anthropic spend.
   contact: {
     perIpPerHour: { tokens: 5, window: "1 h" as const },
     perPhonePerDay: { tokens: 3, window: "24 h" as const },

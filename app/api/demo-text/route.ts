@@ -4,7 +4,7 @@ import { generateReply, toGsm7 } from "@/lib/receptionist";
 import { rateLimit, incrementDailyCounter } from "@/lib/ratelimit";
 import { clientIp, phoneKey, guardRequest } from "@/lib/request";
 import { limits, demoSmsDailyCap } from "@/config/limits";
-import { sendSms, twilioConfigured, lookupAllowsSms } from "@/lib/twilio";
+import { sendSms, smsConfigured, lookupAllowsSms } from "@/lib/sms";
 import { logLead } from "@/lib/airtable";
 import { errMeta } from "@/lib/log";
 
@@ -37,8 +37,8 @@ export async function POST(req: NextRequest) {
   }
   const { industry, enquiry, phone } = parsed.data;
 
-  if (!twilioConfigured()) {
-    console.error("[fenwright] demo-text: Twilio not configured");
+  if (!smsConfigured()) {
+    console.error("[fenwright] demo-text: SMS not configured");
     return NextResponse.json(
       { error: "Texting is not available right now. Please try the on-screen demo." },
       { status: 503 }
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 3) Optional Twilio Lookup (cost-gated).
+  // 3) Optional number lookup (cost-gated).
   const allowed = await lookupAllowsSms(phone);
   if (!allowed) {
     return NextResponse.json(

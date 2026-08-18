@@ -14,9 +14,9 @@ vi.mock("@/lib/voice/calcom", () => ({
   spokenTime: (iso: string) => `spoken(${iso})`,
 }));
 vi.mock("@/lib/airtable", () => ({ logLead: vi.fn().mockResolvedValue(undefined) }));
-vi.mock("@/lib/twilio", () => ({
+vi.mock("@/lib/sms", () => ({
   sendSms: vi.fn().mockResolvedValue(undefined),
-  twilioConfigured: () => true,
+  smsConfigured: () => true,
 }));
 vi.mock("@/lib/ratelimit", () => ({
   incrementDailyCounter: vi.fn().mockResolvedValue(1),
@@ -132,7 +132,7 @@ describe("runTool", () => {
   });
 
   it("confirms a booking without promising a text when the SMS send fails", async () => {
-    const { sendSms } = await import("@/lib/twilio");
+    const { sendSms } = await import("@/lib/sms");
     vi.mocked(sendSms).mockRejectedValueOnce(new Error("network blip"));
 
     const res = await runTool("book_appointment", uniqueCall(), {
@@ -191,7 +191,7 @@ describe("runTool", () => {
     });
 
     it("sends no text at all rather than spending past the budget", async () => {
-      const { sendSms } = await import("@/lib/twilio");
+      const { sendSms } = await import("@/lib/sms");
       vi.mocked(incrementDailyCounter).mockResolvedValueOnce(OVER_CAP);
 
       await runTool("book_appointment", uniqueCall(), {
@@ -205,7 +205,7 @@ describe("runTool", () => {
     });
 
     it("answers send_recap_sms with the no-text message and sends nothing", async () => {
-      const { sendSms } = await import("@/lib/twilio");
+      const { sendSms } = await import("@/lib/sms");
       vi.mocked(incrementDailyCounter).mockResolvedValueOnce(OVER_CAP);
 
       const res = await runTool("send_recap_sms", uniqueCall(), {
@@ -222,7 +222,7 @@ describe("runTool", () => {
   });
 
   it("counts a real send attempt against the daily budget, not a tool dispatch", async () => {
-    const { sendSms } = await import("@/lib/twilio");
+    const { sendSms } = await import("@/lib/sms");
     await runTool("send_recap_sms", uniqueCall(), {
       personaId: "electrician",
       phone: "+353833378541",
@@ -245,7 +245,7 @@ describe("runTool", () => {
   });
 
   it("fails open and still sends when the daily counter throws", async () => {
-    const { sendSms } = await import("@/lib/twilio");
+    const { sendSms } = await import("@/lib/sms");
     vi.mocked(incrementDailyCounter).mockRejectedValueOnce(new Error("upstash blip"));
 
     const res = await runTool("send_recap_sms", uniqueCall(), {
@@ -290,7 +290,7 @@ describe("runTool", () => {
   });
 
   it("sends a recap SMS and confirms it in words", async () => {
-    const { sendSms } = await import("@/lib/twilio");
+    const { sendSms } = await import("@/lib/sms");
     const res = await runTool("send_recap_sms", uniqueCall(), {
       personaId: "electrician",
       phone: "+353833378541",
@@ -302,7 +302,7 @@ describe("runTool", () => {
   });
 
   it("does not send a recap SMS twice for a repeated identical call", async () => {
-    const { sendSms } = await import("@/lib/twilio");
+    const { sendSms } = await import("@/lib/sms");
     const callId = uniqueCall();
     const args = {
       personaId: "electrician",
@@ -316,11 +316,11 @@ describe("runTool", () => {
   });
 
   // Plan Global Constraint: 8 seconds, because a live conversation is waiting.
-  // The Twilio SDK takes no AbortSignal and defaults to roughly 30 seconds, so
-  // a hung send must still resolve to trySms's `false` sentinel in time for the
-  // assistant to say something.
+  // lib/sms.ts carries its own abort deadline, but a send that hangs past it
+  // must still resolve to trySms's `false` sentinel in time for the assistant
+  // to say something.
   it("gives up on a hanging SMS send rather than holding the call open", async () => {
-    const { sendSms } = await import("@/lib/twilio");
+    const { sendSms } = await import("@/lib/sms");
     vi.mocked(sendSms).mockImplementationOnce(() => new Promise<void>(() => {}));
 
     vi.useFakeTimers();
@@ -345,7 +345,7 @@ describe("runTool", () => {
   });
 
   it("retries a recap SMS after a failed send instead of falsely reporting it as already sent", async () => {
-    const { sendSms } = await import("@/lib/twilio");
+    const { sendSms } = await import("@/lib/sms");
     const callId = uniqueCall();
     const args = {
       personaId: "electrician",

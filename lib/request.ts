@@ -12,9 +12,19 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export function clientIp(req: NextRequest): string {
   if (req.ip) return req.ip;
-  const real = req.headers.get("x-real-ip");
+  return clientIpFromHeaders(req.headers);
+}
+
+/**
+ * The header-only half of clientIp, for callers that have no NextRequest --
+ * server actions, which receive headers() and nothing else. Same precedence and
+ * the same caveat: without a host that overwrites them, these are
+ * attacker-controlled and per-IP limits degrade accordingly.
+ */
+export function clientIpFromHeaders(h: Headers): string {
+  const real = h.get("x-real-ip");
   if (real) return real.trim();
-  const xff = req.headers.get("x-forwarded-for");
+  const xff = h.get("x-forwarded-for");
   if (xff) return xff.split(",")[0].trim();
   return "0.0.0.0";
 }

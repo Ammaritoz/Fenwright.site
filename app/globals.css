@@ -197,3 +197,57 @@
     transition: none;
   }
 }
+
+/* --- Client portal documents in print ---
+   Every portal page doubles as the PDF a client files or forwards to their
+   accountant, so print is a first-class target rather than an afterthought.
+   Tailwind's `print:` variants handle per-component tweaks; this block covers
+   what has to be global. */
+@media print {
+  html {
+    scroll-padding-top: 0;
+  }
+
+  /* Backgrounds do not print by default in most browsers, and a warm paper
+     tint costs toner for no benefit. Force the page white and the text black
+     so the result is legible photocopied, faxed by an accountant, or read on
+     a phone. */
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* Anything interactive is meaningless on paper. */
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-onink,
+  .btn-ghost-onink,
+  button {
+    display: none !important;
+  }
+
+  /* Scroll-reveal must never leave a printed page blank: if the print is
+     triggered before an element has entered the viewport, it would otherwise
+     render at opacity 0. */
+  .js [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  /* Keep tables, signature blocks and metric tiles off page breaks. */
+  table,
+  thead,
+  tr {
+    break-inside: avoid;
+  }
+
+  a[href]::after {
+    content: "";
+  }
+
+  @page {
+    margin: 16mm 14mm;
+  }
+}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Script from "next/script";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { site } from "@/config/site";
 
 type Consent = "accepted" | "declined" | null;
@@ -15,11 +16,20 @@ const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
  * commitment in the privacy policy's Cookies section: no analytics cookies
  * until the visitor consents. GA scripts only render after "accepted" is
  * read from localStorage, never before.
+ *
+ * Disabled entirely on /portal/. A client portal URL contains an unguessable
+ * slug which IS the access credential, and gtag('config') reports the full page
+ * URL as a page_view -- so running GA there would hand a client's private
+ * document link to a third party, and record which client read their own
+ * contract and when. A visitor who accepted cookies on the marketing site
+ * would trigger that silently, with no second prompt.
  */
 export function CookieConsent() {
   const [consent, setConsent] = useState<Consent>(null);
   const [ready, setReady] = useState(false);
+  const pathname = usePathname();
   const c = site.cookieConsent;
+  const isPortal = pathname?.startsWith("/portal") ?? false;
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -34,7 +44,7 @@ export function CookieConsent() {
 
   return (
     <>
-      {consent === "accepted" && GA_ID && (
+      {!isPortal && consent === "accepted" && GA_ID && (
         <>
           <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
           <Script id="ga-init" strategy="afterInteractive">
@@ -46,7 +56,7 @@ export function CookieConsent() {
         </>
       )}
 
-      {ready && consent === null && (
+      {!isPortal && ready && consent === null && (
         <div
           role="dialog"
           aria-label="Cookie consent"

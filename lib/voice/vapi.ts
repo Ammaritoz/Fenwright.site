@@ -47,12 +47,25 @@ function constantTimeEqual(a: string, b: string): boolean {
   return timingSafeEqual(ha, hb);
 }
 
+/**
+ * name and arguments arrive nested under `function`, OpenAI-function-calling
+ * style, not flat as `name`/`parameters`. The original shape here was an
+ * untested assumption, and the fixture in vapi.test.ts encoded the same wrong
+ * shape rather than catching it, so every real tool call was silently
+ * rejected by parseToolCallsMessage in production from the day this shipped:
+ * confirmed 2026-08-19 by logging the real rejected envelope's structure
+ * (never its values) from a live call. transfer_call looked like it worked
+ * throughout because it is a native Vapi transfer, handled entirely on
+ * Vapi's own platform; it never once reached this route.
+ */
 const toolCallSchema = z.object({
   id: z.string().min(1),
-  name: z.string().min(1),
-  // Vapi's own JSON; our own tool schemas in lib/voice/schemas.ts validate it
-  // properly once it reaches runTool. Here it is only shaped, not trusted.
-  parameters: z.unknown(),
+  function: z.object({
+    name: z.string().min(1),
+    // Vapi's own JSON; our own tool schemas in lib/voice/schemas.ts validate
+    // it properly once it reaches runTool. Here it is only shaped, not trusted.
+    arguments: z.unknown(),
+  }),
 });
 
 const toolCallsMessageSchema = z.object({
@@ -79,8 +92,8 @@ export function parseToolCallsMessage(payload: unknown): ParsedToolCallsMessage 
     callId: parsed.data.message.call.id,
     calls: parsed.data.message.toolCallList.map((c) => ({
       toolCallId: c.id,
-      name: c.name,
-      parameters: c.parameters,
+      name: c.function.name,
+      parameters: c.function.arguments,
     })),
   };
 }

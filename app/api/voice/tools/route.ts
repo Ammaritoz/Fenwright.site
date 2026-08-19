@@ -23,6 +23,28 @@ export const dynamic = "force-dynamic";
  * text is read first purely for parity with the rest of this route's error
  * handling; the secret check itself only needs the header.
  */
+/**
+ * Structural fingerprint of a rejected envelope: key names and shapes only,
+ * never a value, so a caller's name/phone/summary can never end up in a log
+ * line just because the outer message didn't match the expected shape.
+ */
+function describeShape(payload: unknown): unknown {
+  if (payload === null || typeof payload !== "object") return typeof payload;
+  if (Array.isArray(payload)) return `array(${payload.length})`;
+  const obj = payload as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const key of Object.keys(obj)) {
+    const v = obj[key];
+    out[key] =
+      v === null || typeof v !== "object"
+        ? typeof v
+        : Array.isArray(v)
+        ? `array(${v.length})${v[0] ? `[0]=${JSON.stringify(describeShape(v[0]))}` : ""}`
+        : describeShape(v);
+  }
+  return out;
+}
+
 export async function POST(req: NextRequest) {
   let rawBody: string;
   try {
@@ -53,6 +75,11 @@ export async function POST(req: NextRequest) {
     // Authenticated but not a shape we recognise: there is no tool call to
     // apologise for, so this is a 4xx rather than a speakable 200, per the
     // ruling recorded in the plan's Global Constraints.
+    //
+    // TEMPORARY, until the live shape mismatch this is chasing is found:
+    // structure only, never values, so a caller's name/phone/summary can't
+    // land in a log line just because the envelope around them didn't parse.
+    console.error("[fenwright] voice tools envelope rejected:", describeShape(payload));
     return NextResponse.json({ error: "Unrecognised payload." }, { status: 400 });
   }
   const { callId, calls } = parsed;

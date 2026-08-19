@@ -30,7 +30,18 @@ function buildRequest(rawBody: string, headers: Record<string, string> = {}): Ne
 
 function toolCallsBody(callId: string, calls: { id: string; name: string; parameters: unknown }[]) {
   return JSON.stringify({
-    message: { type: "tool-calls", call: { id: callId }, toolCallList: calls },
+    message: {
+      type: "tool-calls",
+      call: { id: callId },
+      // Real Vapi shape nests name/arguments under `function`; kept as a flat
+      // {id, name, parameters} convenience at every call site below and wired
+      // up here, so the fix for lib/voice/vapi.ts's shape (2026-08-19) only
+      // needed changing in one place rather than at each of this file's calls.
+      toolCallList: calls.map((c) => ({
+        id: c.id,
+        function: { name: c.name, arguments: c.parameters },
+      })),
+    },
   });
 }
 

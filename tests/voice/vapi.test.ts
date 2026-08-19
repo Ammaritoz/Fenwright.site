@@ -49,7 +49,10 @@ describe("parseToolCallsMessage", () => {
       type: "tool-calls",
       call: { id: "call_123" },
       toolCallList: [
-        { id: "tc_1", name: "check_availability", parameters: { personaId: "electrician" } },
+        {
+          id: "tc_1",
+          function: { name: "check_availability", arguments: { personaId: "electrician" } },
+        },
       ],
     },
   };
@@ -70,8 +73,8 @@ describe("parseToolCallsMessage", () => {
         type: "tool-calls",
         call: { id: "call_123" },
         toolCallList: [
-          { id: "tc_1", name: "check_availability", parameters: {} },
-          { id: "tc_2", name: "capture_lead", parameters: {} },
+          { id: "tc_1", function: { name: "check_availability", arguments: {} } },
+          { id: "tc_2", function: { name: "capture_lead", arguments: {} } },
         ],
       },
     };
@@ -92,6 +95,21 @@ describe("parseToolCallsMessage", () => {
   it("returns null for an empty toolCallList", () => {
     const bad = { message: { type: "tool-calls", call: { id: "x" }, toolCallList: [] } };
     expect(parseToolCallsMessage(bad)).toBeNull();
+  });
+
+  // Regression: this was the flat shape the code (and this fixture) wrongly
+  // assumed until 2026-08-19, which meant every real Vapi tool call was
+  // rejected here in production. If a future edit reintroduces name/parameters
+  // at the top level instead of nested under function, this must fail again.
+  it("rejects the flat name/parameters shape Vapi does not actually send", () => {
+    const flat = {
+      message: {
+        type: "tool-calls",
+        call: { id: "call_123" },
+        toolCallList: [{ id: "tc_1", name: "check_availability", parameters: {} }],
+      },
+    };
+    expect(parseToolCallsMessage(flat)).toBeNull();
   });
 
   it("returns null for a completely malformed payload", () => {

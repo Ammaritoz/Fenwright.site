@@ -2,9 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * lib/airtable.ts builds its field map inline, so the only way to assert what
- * actually reaches the Leads table is to stand in for the SDK. base(baseId)
+ * actually reaches the Site Leads table is to stand in for the SDK. base(baseId)
  * returns a callable that takes a table name, which is the shape the module
- * uses: b("Leads").create([...]).
+ * uses: b("Site Leads").create([...]).
+ *
+ * NOTE the limit of this approach: mocking the SDK asserts what the CODE
+ * writes, never what Airtable will ACCEPT. That gap is how logLead spent
+ * months writing Name/Phone/Message to a table whose fields were Lead
+ * Phone/Business Name/Conversation, failing every call with a swallowed 422.
+ * `npm run airtable:check` closes it by diffing against the live schema.
  */
 const create = vi.fn().mockResolvedValue([]);
 const tableFn = vi.fn(() => ({ create }));
@@ -29,7 +35,7 @@ function writtenFields(): Record<string, unknown> {
 }
 
 describe("logLead", () => {
-  // Spec section 7: Leads gains the voice source values plus a CallId link.
+  // Spec section 7: Site Leads gains the voice source values plus a CallId link.
   // Without it a voice lead can only be matched to its call by phone number
   // and timestamp.
   it("writes CallId when the lead came from a voice call", async () => {
@@ -41,7 +47,7 @@ describe("logLead", () => {
       source: "voice-inbound",
     });
 
-    expect(tableFn).toHaveBeenCalledWith("Leads");
+    expect(tableFn).toHaveBeenCalledWith("Site Leads");
     expect(writtenFields().CallId).toBe("call_abc123");
     expect(writtenFields().Source).toBe("voice-inbound");
   });

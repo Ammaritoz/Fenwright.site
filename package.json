@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "voice:sync": "tsx --env-file=.env.local scripts/sync-assistant.ts"
+    "voice:sync": "tsx --env-file=.env.local scripts/sync-assistant.ts",
+    "portal:passcode": "tsx scripts/portal-passcode.ts",
+    "airtable:check": "tsx --env-file=.env.local scripts/airtable-check.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",

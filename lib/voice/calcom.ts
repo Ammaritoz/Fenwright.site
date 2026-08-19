@@ -84,6 +84,85 @@ function matchesPartOfDay(iso: string, part: PartOfDay, timeZone: string): boole
   return hour >= 17;
 }
 
+type Ymd = { year: number; month: number; day: number };
+
+function ymdInZone(date: Date, timeZone: string): Ymd {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+  return { year: get("year"), month: get("month"), day: get("day") };
+}
+
+function addDays({ year, month, day }: Ymd, delta: number): Ymd {
+  const d = new Date(Date.UTC(year, month - 1, day + delta));
+  return { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate() };
+}
+
+/** Offset of `timeZone` from UTC, in minutes, at the given instant (DST-aware). */
+function offsetMinutes(timeZone: string, instant: Date): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(instant);
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+  const asUtc = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
+  return (asUtc - instant.getTime()) / 60_000;
+}
+
+/** The UTC instant of local midnight for {year, month, day} in timeZone. */
+function localMidnightIso({ year, month, day }: Ymd, timeZone: string): string {
+  const guess = Date.UTC(year, month - 1, day, 0, 0, 0);
+  const offset = offsetMinutes(timeZone, new Date(guess));
+  return new Date(guess - offset * 60_000).toISOString();
+}
+
+const WEEKDAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
+/**
+ * Resolve the caller's own word for a day ("today", "tomorrow", a weekday
+ * name) to a real calendar date, against the live server clock.
+ *
+ * The model is never asked to compute this itself: an LLM has no reliable
+ * sense of what day it actually is beyond its training data, and in
+ * production a caller who said "tomorrow" had it matched against a date over
+ * a year in the past. The model's only job is to transcribe the caller's own
+ * word; this function does the arithmetic, every time, against the real
+ * clock, so it can never go stale between deploys.
+ *
+ * Returns null for anything that is not one of these recognised words, so the
+ * caller can fall back to treating the value as an explicit date instead.
+ */
+export function resolveRelativeDay(
+  word: string,
+  timeZone: string = DEFAULT_TZ,
+  now: Date = new Date()
+): string | null {
+  const lower = word.trim().toLowerCase();
+  const today = ymdInZone(now, timeZone);
+
+  if (lower === "today") return localMidnightIso(today, timeZone);
+  if (lower === "tomorrow") return localMidnightIso(addDays(today, 1), timeZone);
+
+  const targetWeekday = WEEKDAYS.indexOf(lower);
+  if (targetWeekday === -1) return null;
+
+  const todayWeekday = new Date(Date.UTC(today.year, today.month - 1, today.day)).getUTCDay();
+  // 0 when the caller names today's own weekday, matching how someone would
+  // naturally mean "yes, today" rather than "in exactly seven days".
+  const daysAhead = (targetWeekday - todayWeekday + 7) % 7;
+  return localMidnightIso(addDays(today, daysAhead), timeZone);
+}
+
 /**
  * Real availability from Cal.com. Returns at most `limit` options because a
  * caller cannot hold more than three times in their head.

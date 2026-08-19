@@ -6,13 +6,23 @@ import { limits } from "@/config/limits";
 const TIMEOUT_MS = limits.voice.externalTimeoutMs;
 const OVER_CAP = limits.voice.smsDailyCapDefault + 1;
 
-vi.mock("@/lib/voice/calcom", () => ({
-  getAvailability: vi.fn().mockResolvedValue([
-    { startIso: "2026-09-01T09:00:00.000Z", spoken: "Tuesday the 1st of September at 10am" },
-  ]),
-  createBooking: vi.fn().mockResolvedValue({ ok: true, ref: "abc123" }),
-  spokenTime: (iso: string) => `spoken(${iso})`,
-}));
+vi.mock("@/lib/voice/calcom", async () => {
+  // resolveRelativeDay is kept real rather than stubbed: it is pure date
+  // arithmetic with its own dedicated tests in calcom.test.ts, and
+  // checkAvailability's behaviour around it is exactly what these tests need
+  // to exercise for real, not against a fake that could drift from it.
+  const actual = await vi.importActual<typeof import("@/lib/voice/calcom")>(
+    "@/lib/voice/calcom"
+  );
+  return {
+    ...actual,
+    getAvailability: vi.fn().mockResolvedValue([
+      { startIso: "2026-09-01T09:00:00.000Z", spoken: "Tuesday the 1st of September at 10am" },
+    ]),
+    createBooking: vi.fn().mockResolvedValue({ ok: true, ref: "abc123" }),
+    spokenTime: (iso: string) => `spoken(${iso})`,
+  };
+});
 vi.mock("@/lib/airtable", () => ({ logLead: vi.fn().mockResolvedValue(undefined) }));
 vi.mock("@/lib/sms", () => ({
   sendSms: vi.fn().mockResolvedValue(undefined),
@@ -64,6 +74,25 @@ describe("runTool", () => {
     expect(vi.mocked(getAvailability)).toHaveBeenCalledWith(
       expect.objectContaining({ fromIso: undefined })
     );
+  });
+
+  // Regression: the model used to be asked to compute preferredDate itself
+  // and, live, turned "tomorrow" into a date over a year in the past. The
+  // model's tool schema now only ever asks for the caller's own word; this
+  // proves that word reaches Cal.com as a real resolved date, not literally
+  // as the string "tomorrow" (which Date.parse cannot read either, so it
+  // would previously have been silently dropped, same as no date at all).
+  it("resolves a relative day word to a real date before it reaches Cal.com", async () => {
+    const { getAvailability } = await import("@/lib/voice/calcom");
+    await runTool("check_availability", uniqueCall(), {
+      personaId: "electrician",
+      preferredDate: "tomorrow",
+      partOfDay: "any",
+    });
+    const call = vi.mocked(getAvailability).mock.calls.at(-1)?.[0];
+    expect(call?.fromIso).toBeDefined();
+    expect(call?.fromIso).not.toBe("tomorrow");
+    expect(Number.isNaN(Date.parse(call!.fromIso!))).toBe(false);
   });
 
   it("rejects an unknown tool without throwing", async () => {

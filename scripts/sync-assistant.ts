@@ -248,10 +248,18 @@ function buildToolDefinitions(persona: Persona): ToolDefinition[] {
         parameters: {
           type: "object",
           properties: {
-            personaId: { type: "string" },
+            personaId: {
+              type: "string",
+              enum: [persona.id],
+              description: `Always exactly "${persona.id}". Never any other value.`,
+            },
             preferredDate: {
               type: "string",
-              description: "ISO 8601 date-time, if the caller named a day",
+              description:
+                "The caller's own word for the day, exactly as they said it: " +
+                "for example today, tomorrow, or a weekday name like thursday. " +
+                "If the caller named a specific calendar date instead, pass that. " +
+                "Never calculate or guess a date yourself.",
             },
             partOfDay: { type: "string", enum: ["morning", "afternoon", "evening", "any"] },
           },
@@ -267,7 +275,11 @@ function buildToolDefinitions(persona: Persona): ToolDefinition[] {
         parameters: {
           type: "object",
           properties: {
-            personaId: { type: "string" },
+            personaId: {
+              type: "string",
+              enum: [persona.id],
+              description: `Always exactly "${persona.id}". Never any other value.`,
+            },
             slotStart: { type: "string", description: "ISO 8601 date-time of the agreed slot" },
             name: { type: "string" },
             phone: { type: "string", description: "E.164 format" },
@@ -285,7 +297,11 @@ function buildToolDefinitions(persona: Persona): ToolDefinition[] {
         parameters: {
           type: "object",
           properties: {
-            personaId: { type: "string" },
+            personaId: {
+              type: "string",
+              enum: [persona.id],
+              description: `Always exactly "${persona.id}". Never any other value.`,
+            },
             name: { type: "string" },
             phone: { type: "string", description: "E.164 format" },
             intent: { type: "string" },
@@ -304,7 +320,11 @@ function buildToolDefinitions(persona: Persona): ToolDefinition[] {
         parameters: {
           type: "object",
           properties: {
-            personaId: { type: "string" },
+            personaId: {
+              type: "string",
+              enum: [persona.id],
+              description: `Always exactly "${persona.id}". Never any other value.`,
+            },
             phone: { type: "string", description: "E.164 format" },
             kind: { type: "string", enum: ["booking", "callback"] },
             name: { type: "string" },

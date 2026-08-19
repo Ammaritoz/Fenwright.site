@@ -24,11 +24,14 @@ const longText = z.string().trim().min(1).max(500);
 
 export const checkAvailabilitySchema = z.object({
   personaId: personaField,
-  // Same refinement as slotStart, not a looser free-text field: this value is
-  // handed straight to Cal.com as the search start, so anything the module
-  // cannot parse would silently become "from today" and the caller who asked
-  // for Thursday would be read three slots from this morning instead.
-  preferredDate: isoDateTime.optional(),
+  // The caller's own word for the day, exactly as heard: "today", "tomorrow",
+  // a weekday name, or an explicit date if the caller named one. Deliberately
+  // not required to be ISO here: the model is only ever asked to transcribe
+  // what the caller said, never to compute a calendar date itself (that used
+  // to be asked of it, and in production it matched a caller's "tomorrow" to
+  // a date over a year in the past). checkAvailability resolves this against
+  // the live clock via resolveRelativeDay before it ever reaches Cal.com.
+  preferredDate: z.string().trim().min(1).max(24).optional(),
   partOfDay: z.enum(["morning", "afternoon", "evening", "any"]).default("any"),
 });
 

@@ -45,13 +45,24 @@ describe("checkAvailabilitySchema", () => {
     expect(res.success).toBe(true);
   });
 
-  // preferredDate is handed to Cal.com as the search start. A value the module
-  // cannot parse would silently fall back to "from today", so it is rejected
-  // here rather than quietly changing what the caller asked for.
-  it("rejects a non-ISO preferredDate", () => {
+  // preferredDate is deliberately not restricted to ISO here: the model is
+  // only ever asked to pass through the caller's own word for the day
+  // ("tomorrow", "thursday"), and checkAvailability resolves that against the
+  // live clock via resolveRelativeDay. Real rejection only happens for
+  // something absurdly long, which could not be either a day word or a date.
+  it("accepts the caller's own word for the day", () => {
     const res = checkAvailabilitySchema.safeParse({
       personaId: "electrician",
-      preferredDate: "next Thursday",
+      preferredDate: "thursday",
+      partOfDay: "morning",
+    });
+    expect(res.success).toBe(true);
+  });
+
+  it("rejects an unreasonably long preferredDate", () => {
+    const res = checkAvailabilitySchema.safeParse({
+      personaId: "electrician",
+      preferredDate: "x".repeat(50),
       partOfDay: "morning",
     });
     expect(res.success).toBe(false);

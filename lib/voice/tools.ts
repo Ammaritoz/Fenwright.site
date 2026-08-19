@@ -7,7 +7,7 @@ import {
   checkAvailabilitySchema,
   sendRecapSchema,
 } from "@/lib/voice/schemas";
-import { createBooking, getAvailability, spokenTime } from "@/lib/voice/calcom";
+import { createBooking, getAvailability, resolveRelativeDay, spokenTime } from "@/lib/voice/calcom";
 import { bookingRecap, callbackRecap } from "@/lib/voice/recap";
 import { claimOnce, idempotencyKey, releaseClaim } from "@/lib/voice/idempotency";
 import { logLead } from "@/lib/airtable";
@@ -66,6 +66,21 @@ function parse<T extends z.ZodTypeAny>(schema: T, args: unknown): z.infer<T> | n
   return parsed.success ? parsed.data : null;
 }
 
+/**
+ * The model only ever hands us the caller's own word for the day
+ * (checkAvailabilitySchema); this resolves it against the live clock. A
+ * recognised relative word wins even if it happens to also parse as a date.
+ * Anything unrecognised falls back to being parsed as an explicit date, and
+ * anything that is not that either is dropped rather than sent to Cal.com,
+ * matching getAvailability's own "no fromIso" default of starting from now.
+ */
+function resolvePreferredDate(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const relative = resolveRelativeDay(raw);
+  if (relative) return relative;
+  return Number.isNaN(Date.parse(raw)) ? undefined : raw;
+}
+
 async function checkAvailability(args: unknown): Promise<ToolResult> {
   const input = parse(checkAvailabilitySchema, args);
   if (!input) return invalid();
@@ -74,7 +89,7 @@ async function checkAvailability(args: unknown): Promise<ToolResult> {
   // it here would still return three slots, read out just as confidently, from
   // today instead of the day they asked for.
   const slots = await getAvailability({
-    fromIso: input.preferredDate,
+    fromIso: resolvePreferredDate(input.preferredDate),
     partOfDay: input.partOfDay,
     limit: 3,
   });

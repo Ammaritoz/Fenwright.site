@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createBooking, getAvailability, spokenTime } from "@/lib/voice/calcom";
+import { createBooking, getAvailability, resolveRelativeDay, spokenTime } from "@/lib/voice/calcom";
 import { limits } from "@/config/limits";
 
 /** Read from config rather than hard-coded, so retuning the budget cannot
@@ -350,5 +350,61 @@ describe("createBooking", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe("resolveRelativeDay", () => {
+  // A Wednesday in Irish Summer Time (UTC+1), so local midnight is 23:00 the
+  // previous day in UTC: exercises the DST-aware offset, not just calendar math.
+  const wednesday = new Date("2026-08-19T10:00:00.000Z");
+
+  it("resolves today to local midnight, in UTC", () => {
+    expect(resolveRelativeDay("today", "Europe/Dublin", wednesday)).toBe(
+      "2026-08-18T23:00:00.000Z"
+    );
+  });
+
+  it("resolves tomorrow to the following local midnight", () => {
+    expect(resolveRelativeDay("tomorrow", "Europe/Dublin", wednesday)).toBe(
+      "2026-08-19T23:00:00.000Z"
+    );
+  });
+
+  it("is case-insensitive and trims whitespace", () => {
+    expect(resolveRelativeDay("  Tomorrow  ", "Europe/Dublin", wednesday)).toBe(
+      "2026-08-19T23:00:00.000Z"
+    );
+  });
+
+  it("resolves today's own weekday name to today, not seven days out", () => {
+    expect(resolveRelativeDay("wednesday", "Europe/Dublin", wednesday)).toBe(
+      resolveRelativeDay("today", "Europe/Dublin", wednesday)
+    );
+  });
+
+  it("resolves an upcoming weekday to this week's occurrence", () => {
+    expect(resolveRelativeDay("thursday", "Europe/Dublin", wednesday)).toBe(
+      resolveRelativeDay("tomorrow", "Europe/Dublin", wednesday)
+    );
+  });
+
+  it("resolves a weekday already passed this week to next week's occurrence", () => {
+    // Monday just passed (it is Wednesday); the caller means the Monday
+    // ahead, five days out, never a date in the past.
+    expect(resolveRelativeDay("monday", "Europe/Dublin", wednesday)).toBe(
+      "2026-08-23T23:00:00.000Z"
+    );
+  });
+
+  it("returns null for anything it does not recognise", () => {
+    expect(resolveRelativeDay("next Thursday", "Europe/Dublin", wednesday)).toBeNull();
+    expect(resolveRelativeDay("2026-09-01", "Europe/Dublin", wednesday)).toBeNull();
+  });
+
+  it("accounts for standard time (UTC+0) outside daylight saving too", () => {
+    const january = new Date("2026-01-19T10:00:00.000Z");
+    expect(resolveRelativeDay("today", "Europe/Dublin", january)).toBe(
+      "2026-01-19T00:00:00.000Z"
+    );
   });
 });

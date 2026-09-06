@@ -28,6 +28,12 @@ import type { Client } from "./types";
 export const templateClient: Client = {
   // From `npm run portal:passcode`. Keep the random suffix: it is what stops
   // portal URLs being guessed.
+  //
+  // Only the salt and hash belong in this repo. Never paste the passcode
+  // itself into a client file, in a field or a comment: these files are
+  // committed, so a passcode written here is readable by anyone with repo
+  // access and survives deletion in the git history. The passcode goes to the
+  // client and nowhere else. tests/portal-passcode-leak.test.ts enforces this.
   slug: "REPLACE-ME-00000000",
   passcodeSalt: "REPLACE-ME",
   passcodeHash: "REPLACE-ME",

@@ -101,10 +101,13 @@ async function main() {
 
   console.log("Syncing tools...");
   const toolIds: string[] = [];
+  // Everything except the native transfer: the web variant cannot use it.
+  const webToolIds: string[] = [];
   for (const def of buildToolDefinitions(persona)) {
     const id = await upsertTool(headers, def, toolServer);
     console.log(`  ${def.function.name} -> ${id}`);
     toolIds.push(id);
+    if (def.type !== "transferCall") webToolIds.push(id);
   }
 
   const { turnTaking } = persona;
@@ -132,24 +135,31 @@ async function main() {
       backoffSeconds: turnTaking.responseDelayMs / 1000,
     },
     metadata: { personaId: persona.id },
+    // The site's "Talk to our receptionist" button starts web calls with the
+    // public key, so the cap lives here, server-side, where a visitor cannot
+    // override it. The longest real test call ran just over three minutes.
+    maxDurationSeconds: 300,
   };
 
   console.log("Syncing assistant...");
-  const existing = await findByName(headers, `${API_BASE}/assistant`, name);
-  const res = await fetch(
-    existing ? `${API_BASE}/assistant/${existing.id}` : `${API_BASE}/assistant`,
-    { method: existing ? "PATCH" : "POST", headers, body: JSON.stringify(body) }
-  );
-
-  if (!res.ok) {
-    throw new Error(`Vapi assistant sync failed: ${res.status} ${await res.text()}`);
-  }
-
-  const created = (await res.json()) as { id?: string };
-  if (!created.id) {
-    throw new Error("Vapi did not return an assistant id.");
-  }
+  const created = await upsertAssistant(headers, name, body);
   console.log(`Synced ${persona.id} -> assistant ${created.id}`);
+
+  // The website's browser demo (app/api/voice/web-call). A browser call has no
+  // phone leg, so Vapi ends it if a transfer is attempted: this variant has no
+  // transfer tool and a prompt that shows the escalation instead. Never
+  // attached to a phone number.
+  const webName = `${persona.identity.businessName} (${persona.id}, web)`;
+  const web = await upsertAssistant(headers, webName, {
+    ...body,
+    name: webName,
+    model: {
+      ...body.model,
+      messages: [{ role: "system", content: composeSystemPrompt(persona, { channel: "web" }) }],
+      toolIds: webToolIds,
+    },
+  });
+  console.log(`Synced ${persona.id} web demo -> assistant ${web.id} (set VAPI_WEB_ASSISTANT_ID to this)`);
 
   if (phoneNumberId) {
     // A phone number is inert without this: it is a separate resource, and
@@ -169,6 +179,29 @@ async function main() {
   } else {
     console.log("VAPI_PHONE_NUMBER_ID not set; assistant created but not attached to a number.");
   }
+}
+
+/** Create or update an assistant by exact name, so re-runs converge on one. */
+async function upsertAssistant(
+  headers: Record<string, string>,
+  name: string,
+  body: unknown
+): Promise<{ id: string }> {
+  const existing = await findByName(headers, `${API_BASE}/assistant`, name);
+  const res = await fetch(
+    existing ? `${API_BASE}/assistant/${existing.id}` : `${API_BASE}/assistant`,
+    { method: existing ? "PATCH" : "POST", headers, body: JSON.stringify(body) }
+  );
+
+  if (!res.ok) {
+    throw new Error(`Vapi assistant sync failed for ${name}: ${res.status} ${await res.text()}`);
+  }
+
+  const created = (await res.json()) as { id?: string };
+  if (!created.id) {
+    throw new Error(`Vapi did not return an assistant id for ${name}.`);
+  }
+  return { id: created.id };
 }
 
 /** Find an existing resource on a Vapi list endpoint by exact name match. */

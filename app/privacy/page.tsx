@@ -86,6 +86,15 @@ export default function PrivacyPage() {
                   <em>legitimate interest</em> in responding to a business
                   enquiry you initiated.
                 </li>
+                <li>
+                  <strong className="text-ink">Voice demo (&ldquo;talk to the receptionist&rdquo;, or ringing our demo line):</strong>{" "}
+                  your voice, a recording and transcript of the call, and
+                  anything you say during it, such as a name or number. We use
+                  these to run the call and to review how the system performed.
+                  Calls last up to five minutes. Lawful basis:{" "}
+                  <em>consent</em> (you start the call after being told it is
+                  recorded).
+                </li>
               </ul>
               <P>
                 We do not use your data for unrelated marketing, and we do not
@@ -122,6 +131,11 @@ export default function PrivacyPage() {
                       <td className="py-3 pr-4 font-medium text-ink">Airtable</td>
                       <td className="py-3 pr-4">Stores your enquiry as a lead</td>
                       <td className="py-3">United States by default. Data Processing Agreement with Standard Contractual Clauses.</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 pr-4 font-medium text-ink">Vapi</td>
+                      <td className="py-3 pr-4">Runs the voice demo call, its recording and transcript</td>
+                      <td className="py-3">United States. Data Processing Agreement with Standard Contractual Clauses.</td>
                     </tr>
                     <tr>
                       <td className="py-3 pr-4 font-medium text-ink">Cal.com (EU)</td>

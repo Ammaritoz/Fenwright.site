@@ -33,9 +33,24 @@ const CAL = "https://app.cal.eu";
 const GTAG = "https://www.googletagmanager.com";
 const GA = "https://www.google-analytics.com";
 
-const scriptSrc = ["'self'", "'unsafe-inline'", CAL, GTAG, ...(isDev ? ["'unsafe-eval'"] : [])];
+// Voice demo (components/VoiceCall.tsx): our server creates the call, then the
+// browser joins it over Daily (WebRTC). Daily loads its call engine script from
+// c.daily.co and signals over its own https/wss hosts. The browser never talks
+// to api.vapi.ai, so it is deliberately not listed.
+const DAILY_SCRIPT = "https://c.daily.co";
+const DAILY = ["https://*.daily.co", "wss://*.daily.co"];
+
+const scriptSrc = [
+  "'self'",
+  "'unsafe-inline'",
+  CAL,
+  GTAG,
+  DAILY_SCRIPT,
+  ...(isDev ? ["'unsafe-eval'"] : []),
+];
 const connectSrc = [
   "'self'",
+  ...DAILY,
   CAL,
   "https://*.cal.eu",
   GTAG,
@@ -45,6 +60,9 @@ const connectSrc = [
   // analytics.google.com is GA4's newer collect domain, www.google.com is
   // used when the property is linked to a Google Ads account (ours is).
   "https://analytics.google.com",
+  // GA4 also beacons to regional hosts (region1.analytics.google.com), which
+  // were being blocked, so page views never reached Analytics.
+  "https://*.analytics.google.com",
   "https://www.google.com",
   ...(isDev ? ["ws:"] : []),
 ];
@@ -72,7 +90,8 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+    // Microphone is allowed for this origin only, for the voice demo call.
+    value: "camera=(), microphone=(self), geolocation=(), browsing-topics=()",
   },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "Content-Security-Policy", value: csp },

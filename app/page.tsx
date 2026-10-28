@@ -17,7 +17,8 @@ export default function Home() {
         <Hero />
         <Problem />
         <Services />
-        <Demo />
+        {/* Server-side check, so the button only shows when /api/voice/web-call can work. */}
+        <Demo voiceEnabled={Boolean(process.env.VAPI_PUBLIC_KEY && process.env.VAPI_WEB_ASSISTANT_ID)} />
         <HowItWorks />
         <AboutUs />
         <BookCall />

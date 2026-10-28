@@ -6,13 +6,26 @@ import type { Persona } from "@/config/personas";
  * Pure and synchronous so it can be tested directly and diffed in review. The
  * hardening at the end mirrors lib/receptionist.ts: caller speech arrives as
  * transcribed audio from a member of the public and is data, never instructions.
+ *
+ * `channel: "web"` is the browser demo on fenwright.ie. A browser call has no
+ * phone leg to hand over, so Vapi ends it if a transfer is attempted; the web
+ * prompt shows the escalation instead of attempting it.
  */
-export function composeSystemPrompt(persona: Persona): string {
+export type PromptChannel = "phone" | "web";
+
+export function composeSystemPrompt(
+  persona: Persona,
+  { channel = "phone" }: { channel?: PromptChannel } = {}
+): string {
   const { identity, facts } = persona;
+  const web = channel === "web";
 
   const lines: string[] = [
     `You are ${identity.receptionistName}, the receptionist answering the phone for ${identity.businessName}.`,
     `You are speaking on a live phone call. Everything you write is read aloud.`,
+    ...(web
+      ? [`This call comes through a website demo, but treat the caller exactly as a real customer.`]
+      : []),
     ``,
     `## How to speak`,
     `- One question per turn. Never stack two questions together.`,
@@ -49,7 +62,7 @@ export function composeSystemPrompt(persona: Persona): string {
       (d) =>
         `- ${d.id}: when ${d.detectWhen}. Collect ${
           d.collect.length ? d.collect.join(", ") : "nothing"
-        }, then ${actionSentence(d.then)}`
+        }, then ${actionSentence(d.then, web)}`
     ),
     ``,
     `## Confirming details`,
@@ -57,12 +70,20 @@ export function composeSystemPrompt(persona: Persona): string {
     `A booking attached to a wrong number is worse than no booking, so never skip this.`,
     ``,
     `## When to hand over`,
-    `Transfer the call only when: ${persona.escalation.triggers.join("; ")}.`,
-    `Otherwise finish the job yourself. Do not offer a transfer as an easy way out.`,
+    ...(web
+      ? [
+          `You cannot transfer calls on this line. When ${persona.escalation.triggers.join("; ")}:`,
+          `take their name, their number and what it is about, then say that on ${identity.businessName}'s real line you would put them straight through to the team now, and that someone will ring them back.`,
+          `Otherwise finish the job yourself.`,
+        ]
+      : [
+          `Transfer the call only when: ${persona.escalation.triggers.join("; ")}.`,
+          `Otherwise finish the job yourself. Do not offer a transfer as an easy way out.`,
+        ]),
     // Spec section 4: outside business hours the assistant takes a message
     // rather than dumping the caller into a void. Composed from persona data
     // so a new industry that sets hoursOnly needs no change in lib/voice/.
-    ...(persona.escalation.hoursOnly
+    ...(persona.escalation.hoursOnly && !web
       ? [
           `Transfers are only possible during business hours, which are: ${facts.hours}`,
           `Outside those hours do not attempt a transfer, and do not tell the caller you are putting them through.`,
@@ -85,14 +106,16 @@ export function composeSystemPrompt(persona: Persona): string {
   return lines.join("\n");
 }
 
-function actionSentence(action: Persona["decisionPoints"][number]["then"]): string {
+function actionSentence(action: Persona["decisionPoints"][number]["then"], web: boolean): string {
   switch (action) {
     case "book":
       return "check availability and book them in.";
     case "capture_lead":
       return "capture the lead and promise a callback.";
     case "transfer":
-      return "transfer the call.";
+      return web
+        ? "capture the lead and explain you would put them straight through on the real line."
+        : "transfer the call.";
     case "answer_and_close":
       return "answer from what you know and close warmly.";
   }

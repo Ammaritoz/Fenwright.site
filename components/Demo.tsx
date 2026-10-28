@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { site } from "@/config/site";
 import { SectionHead } from "@/components/SectionHead";
+import { VoiceCall } from "@/components/VoiceCall";
 
 const PhoneField = dynamic(
   () => import("@/components/PhoneField").then((m) => m.PhoneField),
@@ -25,7 +26,7 @@ const REDUCED =
 // How long the reply types in and the counter ticks up, in ms.
 const REVEAL_MS = 1700;
 
-export function Demo() {
+export function Demo({ voiceEnabled = false }: { voiceEnabled?: boolean }) {
   const d = site.demo;
   const industries = site.industries;
 
@@ -376,6 +377,8 @@ export function Demo() {
             </div>
           </div>
         )}
+
+        <VoiceCall enabled={voiceEnabled} />
       </div>
     </section>
   );

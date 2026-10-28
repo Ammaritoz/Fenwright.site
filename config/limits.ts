@@ -49,6 +49,15 @@ export const limits = {
     // every id it invents; this is the only limit it cannot restart. Enforced
     // in trySms so it caps the text and never the booking.
     smsDailyCapDefault: 100,
+    // POST /api/voice/web-call : the site's "Talk to the receptionist" button.
+    // Each call is a few minutes of paid voice time, and the endpoint is
+    // public, so it is gated per visitor and globally. The assistant itself
+    // caps each call at five minutes. Daily cap overridable via env
+    // VOICE_WEB_CALL_DAILY_CAP.
+    webCall: {
+      perIpPerHour: { tokens: 3, window: "1 h" as const },
+      dailyCapDefault: 40,
+    },
   },
 } as const;
 
@@ -68,6 +77,12 @@ export function contactDailyCap(): number {
   const raw = process.env.CONTACT_DAILY_CAP;
   const n = raw ? Number.parseInt(raw, 10) : NaN;
   return Number.isFinite(n) && n > 0 ? n : limits.contact.dailyCapDefault;
+}
+
+export function voiceWebCallDailyCap(): number {
+  const raw = process.env.VOICE_WEB_CALL_DAILY_CAP;
+  const n = raw ? Number.parseInt(raw, 10) : NaN;
+  return Number.isFinite(n) && n > 0 ? n : limits.voice.webCall.dailyCapDefault;
 }
 
 export function voiceSmsDailyCap(): number {

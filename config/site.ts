@@ -127,6 +127,21 @@ export const site = {
       metaSell:
         "That text is exactly what your customers would get, in about the time it just took.",
     },
+    // In-browser call to the voice receptionist (components/VoiceCall.tsx).
+    // Hidden unless NEXT_PUBLIC_VAPI_PUBLIC_KEY and _ASSISTANT_ID are set.
+    voice: {
+      heading: "Rather hear it than read it?",
+      body: "Talk to Erin, the phone receptionist we built for a sample electrician. Ring her the way a customer would: a fuse board that keeps tripping, a quote, a callout tonight.",
+      note: "Uses your microphone. Calls last up to five minutes and are recorded so we can improve the system.",
+      startLabel: "Talk to the receptionist",
+      connectingLabel: "Connecting...",
+      liveLabel: "Live with Erin",
+      endLabel: "End call",
+      endedLabel: "Call ended. That is what your callers would get.",
+      endedCta: { label: "Book a call", href: "#book" },
+      micError: "We could not use a microphone. Check one is connected and allowed for this site, then try again.",
+      genericError: "The call could not connect. Please try again in a moment.",
+    },
   },
 
   industries: [
@@ -323,7 +338,7 @@ export const site = {
     contactEmail: "contact@fenwright.ie",
     // How long leads are kept in Airtable before deletion.
     dataRetention: "12 months",
-    privacyLastUpdated: "24 July 2026",
+    privacyLastUpdated: "28 October 2026",
   },
 } as const;
 

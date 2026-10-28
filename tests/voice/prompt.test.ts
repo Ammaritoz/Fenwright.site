@@ -92,3 +92,37 @@ describe("composeSystemPrompt when escalation is hoursOnly", () => {
     expect(prompt).not.toMatch(/take a message/i);
   });
 });
+
+/**
+ * The website's "Talk to the receptionist" button runs a browser call, which
+ * cannot be transferred to a phone (Vapi ends it with error-transfer-failed).
+ * The web prompt must never send the model down the transfer path; it shows the
+ * escalation instead of attempting it.
+ */
+describe("composeSystemPrompt for the web demo", () => {
+  const webPrompt = composeSystemPrompt(persona, { channel: "web" });
+
+  it("never instructs a transfer", () => {
+    expect(webPrompt).not.toMatch(/transfer the call/i);
+    expect(webPrompt).toMatch(/cannot transfer/i);
+  });
+
+  it("says it would put an emergency straight through on the real line", () => {
+    expect(webPrompt).toMatch(/put them straight through/i);
+  });
+
+  it("still takes the caller's details at an escalation", () => {
+    for (const t of persona.escalation.triggers) expect(webPrompt).toContain(t);
+    expect(webPrompt).toMatch(/name, their number/i);
+  });
+
+  it("keeps every guardrail and decision cue", () => {
+    for (const g of persona.guardrails) expect(webPrompt).toContain(g);
+    for (const d of persona.decisionPoints) expect(webPrompt).toContain(d.detectWhen);
+  });
+
+  it("leaves the phone prompt unchanged", () => {
+    expect(composeSystemPrompt(persona, { channel: "phone" })).toBe(prompt);
+    expect(prompt).toMatch(/transfer the call/i);
+  });
+});

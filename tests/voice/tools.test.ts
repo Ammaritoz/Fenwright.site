@@ -20,6 +20,10 @@ vi.mock("@/lib/voice/calcom", async () => {
       { startIso: "2026-09-01T09:00:00.000Z", spoken: "Tuesday the 1st of September at 10am" },
     ]),
     createBooking: vi.fn().mockResolvedValue({ ok: true, ref: "abc123" }),
+    findFreeSlot: vi.fn().mockResolvedValue({
+      startIso: "2026-09-01T09:00:00.000Z",
+      spoken: "Tuesday the 1st of September at 10am",
+    }),
     spokenTime: (iso: string) => `spoken(${iso})`,
   };
 });
@@ -118,6 +122,32 @@ describe("runTool", () => {
       phone: "+353833378541",
     });
     expect(res.result).toMatch(/booked/i);
+  });
+
+  it("books Cal.com's real slot, not the model's reconstructed timestamp", async () => {
+    const { createBooking, findFreeSlot } = await import("@/lib/voice/calcom");
+    const res = await runTool("book_appointment", uniqueCall(), {
+      personaId: "electrician",
+      slotStart: "2025-09-01T10:00:00",
+      name: "Bob",
+      phone: "+353833378541",
+    });
+    expect(vi.mocked(findFreeSlot)).toHaveBeenCalledWith("2025-09-01T10:00:00");
+    expect(vi.mocked(createBooking).mock.calls[0][0].slotStart).toBe("2026-09-01T09:00:00.000Z");
+    expect(res.result).toContain("spoken(2026-09-01T09:00:00.000Z)");
+  });
+
+  it("says plainly when the agreed time is not free, without trying to book", async () => {
+    const { createBooking, findFreeSlot } = await import("@/lib/voice/calcom");
+    vi.mocked(findFreeSlot).mockResolvedValueOnce(null);
+    const res = await runTool("book_appointment", uniqueCall(), {
+      personaId: "electrician",
+      slotStart: "2026-09-01T11:00:00",
+      name: "Bob",
+      phone: "+353833378541",
+    });
+    expect(vi.mocked(createBooking)).not.toHaveBeenCalled();
+    expect(res.result).toMatch(/not showing as free/i);
   });
 
   it("does not book twice for a repeated identical call", async () => {

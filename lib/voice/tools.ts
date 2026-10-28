@@ -7,7 +7,13 @@ import {
   checkAvailabilitySchema,
   sendRecapSchema,
 } from "@/lib/voice/schemas";
-import { createBooking, getAvailability, resolveRelativeDay, spokenTime } from "@/lib/voice/calcom";
+import {
+  createBooking,
+  findFreeSlot,
+  getAvailability,
+  resolveRelativeDay,
+  spokenTime,
+} from "@/lib/voice/calcom";
 import { bookingRecap, callbackRecap } from "@/lib/voice/recap";
 import { claimOnce, idempotencyKey, releaseClaim } from "@/lib/voice/idempotency";
 import { logLead } from "@/lib/airtable";
@@ -118,8 +124,19 @@ async function bookAppointment(callId: string, args: unknown): Promise<ToolResul
     return { result: `That is already booked in for you, ${input.name.split(" ")[0]}.` };
   }
 
+  // input.slotStart is the model's reconstruction of a time it only ever heard
+  // as words (see findFreeSlot); book Cal.com's own slot for it instead.
+  const slot = await findFreeSlot(input.slotStart);
+  if (!slot) {
+    await releaseClaim(key);
+    return {
+      result:
+        "That time is not showing as free. Would one of the other times suit, or shall I have someone ring you back?",
+    };
+  }
+
   const booking = await createBooking({
-    slotStart: input.slotStart,
+    slotStart: slot.startIso,
     name: input.name,
     phone: input.phone,
     notes: input.notes,
@@ -135,7 +152,7 @@ async function bookAppointment(callId: string, args: unknown): Promise<ToolResul
     };
   }
 
-  const when = spokenTime(input.slotStart);
+  const when = spokenTime(slot.startIso);
   const texted = await trySms(
     input.phone,
     bookingRecap(persona, { name: input.name, spokenTime: when })

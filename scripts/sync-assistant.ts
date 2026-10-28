@@ -313,7 +313,12 @@ function buildToolDefinitions(persona: Persona): ToolDefinition[] {
               enum: [persona.id],
               description: `Always exactly "${persona.id}". Never any other value.`,
             },
-            slotStart: { type: "string", description: "ISO 8601 date-time of the agreed slot" },
+            slotStart: {
+              type: "string",
+              description:
+                "The agreed day and local time as YYYY-MM-DDTHH:MM, for example 2026-10-30T07:30. " +
+                "The server matches it to the real free slot, so a wrong year does no harm.",
+            },
             name: { type: "string" },
             phone: { type: "string", description: "E.164 format" },
             notes: { type: "string" },

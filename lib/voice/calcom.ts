@@ -51,9 +51,32 @@ export function spokenTime(iso: string, timeZone: string = DEFAULT_TZ): string {
   const hour = get("hour");
   const minute = get("minute");
   const meridiem = get("dayPeriod").toLowerCase().replace(/\./g, "").replace(/\s/g, "");
-  const clock = minute === "00" ? `${hour}${meridiem}` : `${hour}.${minute}${meridiem}`;
+  // On the hour, "10am" reads correctly. Anything else goes out in words:
+  // "7.30am" was read on a live call as "seven dot three zero", and a colon is
+  // no safer a bet with text-to-speech.
+  const clock =
+    minute === "00"
+      ? `${hour}${meridiem}`
+      : `${hour} ${minuteWords(Number(minute))} ${partOfDayPhrase(hourInZone(iso, timeZone))}`;
 
   return `${get("weekday")} the ${ordinal(day)} of ${get("month")} at ${clock}`;
+}
+
+const UNITS = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+const TEENS = ["ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+const TENS = ["", "", "twenty", "thirty", "forty", "fifty"];
+
+/** 1 to 59 as a clock reads it aloud: "oh five", "fifteen", "forty five". */
+function minuteWords(m: number): string {
+  if (m < 10) return `oh ${UNITS[m]}`;
+  if (m < 20) return TEENS[m - 10];
+  return [TENS[Math.floor(m / 10)], UNITS[m % 10]].filter(Boolean).join(" ");
+}
+
+function partOfDayPhrase(hour24: number): string {
+  if (hour24 < 12) return "in the morning";
+  if (hour24 < 17) return "in the afternoon";
+  return "in the evening";
 }
 
 function ordinal(n: number): string {
@@ -266,6 +289,51 @@ export async function getAvailability({
   } finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * Find Cal.com's own free slot for the day and time the caller agreed.
+ *
+ * The model only ever hears slots as spoken words, so the timestamp it hands
+ * to book_appointment is its own reconstruction, and on a live call it sent
+ * "2025-10-30T07:00:00" in 2026: the right day and time, the wrong year, no
+ * zone, rejected by Cal.com every time. Same rule as resolveRelativeDay: the
+ * model supplies what the caller agreed, the server does the date arithmetic.
+ * The year and any zone suffix are ignored; month, day and local wall time are
+ * kept, the next such date on or after today is searched, and only a slot
+ * Cal.com itself reports free there is returned. Never throws.
+ */
+export async function findFreeSlot(
+  slotStart: string,
+  timeZone: string = DEFAULT_TZ,
+  now: Date = new Date()
+): Promise<Slot | null> {
+  const m = /^\d{4}-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/.exec(slotStart.trim());
+  if (!m) return null;
+  const [month, day, hour, minute] = m.slice(1).map(Number);
+
+  const today = ymdInZone(now, timeZone);
+  const passed = month < today.month || (month === today.month && day < today.day);
+  const target = { year: today.year + (passed ? 1 : 0), month, day };
+
+  // Every slot that day, not the usual three: the agreed time may not be
+  // among the first few.
+  const slots = await getAvailability({
+    fromIso: localMidnightIso(target, timeZone),
+    limit: 200,
+    timeZone,
+  });
+  return (
+    slots.find((s) => {
+      const local = ymdInZone(new Date(s.startIso), timeZone);
+      return (
+        local.month === month &&
+        local.day === day &&
+        hourInZone(s.startIso, timeZone) === hour &&
+        new Date(s.startIso).getUTCMinutes() === minute
+      );
+    }) ?? null
+  );
 }
 
 /** Create a booking. Never throws; the caller turns the result into speech. */

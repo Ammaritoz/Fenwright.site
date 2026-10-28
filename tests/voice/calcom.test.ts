@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createBooking, getAvailability, resolveRelativeDay, spokenTime } from "@/lib/voice/calcom";
+import {
+  createBooking,
+  findFreeSlot,
+  getAvailability,
+  resolveRelativeDay,
+  spokenTime,
+} from "@/lib/voice/calcom";
 import { limits } from "@/config/limits";
 
 /** Read from config rather than hard-coded, so retuning the budget cannot
@@ -45,10 +51,81 @@ describe("spokenTime", () => {
     );
   });
 
-  it("says half past for a 30 minute slot", () => {
+  // "7.30am" was read aloud on a live call as "seven dot three zero": minutes
+  // go out as words, with no dot or colon for text-to-speech to pronounce.
+  it("says a half hour in words, not with a dot", () => {
     expect(spokenTime("2026-09-01T13:30:00.000Z", "Europe/Dublin")).toBe(
-      "Tuesday the 1st of September at 2.30pm"
+      "Tuesday the 1st of September at 2 thirty in the afternoon"
     );
+    expect(spokenTime("2026-10-30T07:30:00.000Z", "Europe/Dublin")).toBe(
+      "Friday the 30th of October at 7 thirty in the morning"
+    );
+  });
+
+  it("says other minutes in words too", () => {
+    expect(spokenTime("2026-10-30T18:15:00.000Z", "Europe/Dublin")).toBe(
+      "Friday the 30th of October at 6 fifteen in the evening"
+    );
+    expect(spokenTime("2026-10-30T09:05:00.000Z", "Europe/Dublin")).toBe(
+      "Friday the 30th of October at 9 oh five in the morning"
+    );
+  });
+});
+
+/**
+ * The model only ever hears slots as spoken words, so the timestamp it passes
+ * to book_appointment is its own reconstruction. On a live call it sent
+ * "2025-10-30T07:00:00": the right day and time, the wrong year, no zone, and
+ * Cal.com rejected every booking. The server keeps the agreed day and wall
+ * time and books Cal.com's own slot for it.
+ */
+describe("findFreeSlot", () => {
+  const NOW = new Date("2026-10-28T23:00:00.000Z");
+  const FRIDAY = {
+    data: {
+      "2026-10-30": [
+        { start: "2026-10-30T07:00:00.000Z" },
+        { start: "2026-10-30T07:30:00.000Z" },
+        { start: "2026-10-30T08:00:00.000Z" },
+      ],
+    },
+  };
+
+  it("books Cal.com's own slot whatever year the model guessed", async () => {
+    stubFetch(FRIDAY);
+    const slot = await findFreeSlot("2025-10-30T07:00:00", "Europe/Dublin", NOW);
+    expect(slot?.startIso).toBe("2026-10-30T07:00:00.000Z");
+  });
+
+  it("matches on the local wall time, ignoring any zone the model added", async () => {
+    stubFetch(FRIDAY);
+    const slot = await findFreeSlot("2026-10-30T07:30:00.000Z", "Europe/Dublin", NOW);
+    expect(slot?.startIso).toBe("2026-10-30T07:30:00.000Z");
+  });
+
+  it("searches from local midnight of the agreed day", async () => {
+    const fn = stubFetch(FRIDAY);
+    await findFreeSlot("2025-10-30T08:00:00", "Europe/Dublin", NOW);
+    const url = new URL(fn.mock.calls[0][0]);
+    expect(url.searchParams.get("start")).toBe("2026-10-30T00:00:00.000Z");
+  });
+
+  it("returns null when that time is not actually free", async () => {
+    stubFetch(FRIDAY);
+    expect(await findFreeSlot("2026-10-30T09:00:00", "Europe/Dublin", NOW)).toBeNull();
+  });
+
+  it("rolls a date already passed this year into next year", async () => {
+    const fn = stubFetch({ data: { "2027-01-04": [{ start: "2027-01-04T10:00:00.000Z" }] } });
+    const slot = await findFreeSlot("2026-01-04T10:00", "Europe/Dublin", new Date("2026-12-30T12:00:00Z"));
+    expect(new URL(fn.mock.calls[0][0]).searchParams.get("start")).toBe("2027-01-04T00:00:00.000Z");
+    expect(slot?.startIso).toBe("2027-01-04T10:00:00.000Z");
+  });
+
+  it("returns null without calling Cal.com for something that is not a date-time", async () => {
+    const fn = stubFetch(FRIDAY);
+    expect(await findFreeSlot("next Friday", "Europe/Dublin", NOW)).toBeNull();
+    expect(fn).not.toHaveBeenCalled();
   });
 });
 

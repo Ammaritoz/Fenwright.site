@@ -13,7 +13,8 @@ export function BookCall() {
 
   useEffect(() => {
     (async () => {
-      // Load the embed from the EU instance so it resolves the cal.eu account.
+      // Load the embed from the configured instance (site.calcom.origin), which
+      // must be the one the account lives on.
       const cal = await getCalApi({ embedJsUrl });
       cal("ui", {
         theme: "light",

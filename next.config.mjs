@@ -19,9 +19,10 @@
  *     XSS surface is minimal.
  *   - 'unsafe-eval' and the HMR websocket (ws:) are only added in development,
  *     where the webpack dev runtime needs them. Production stays stricter.
- *   - app.cal.eu is allowed for script-src/frame-src/connect-src so the inline
- *     booking embed (embed.js + iframe) works. Its cal.eu subdomains are allowed
- *     for connect-src in case embed.js talks to a sibling host.
+ *   - app.cal.com is allowed for script-src/frame-src/connect-src so the inline
+ *     booking embed (embed.js + iframe) works. Its cal.com subdomains are allowed
+ *     for connect-src in case embed.js talks to a sibling host. (The account was
+ *     on Cal's EU cloud, cal.eu, until 2026-10-28.)
  *   - Google Analytics origins are allowed for script-src/connect-src. gtag.js
  *     itself is only ever injected client-side after the visitor accepts the
  *     cookie consent banner (see components/CookieConsent.tsx) -- allowing the
@@ -29,7 +30,7 @@
  */
 const isDev = process.env.NODE_ENV !== "production";
 
-const CAL = "https://app.cal.eu";
+const CAL = "https://app.cal.com";
 const GTAG = "https://www.googletagmanager.com";
 const GA = "https://www.google-analytics.com";
 
@@ -52,7 +53,7 @@ const connectSrc = [
   "'self'",
   ...DAILY,
   CAL,
-  "https://*.cal.eu",
+  "https://*.cal.com",
   GTAG,
   GA,
   "https://*.google-analytics.com",

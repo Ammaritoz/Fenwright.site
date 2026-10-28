@@ -307,13 +307,14 @@ export const site = {
   },
 
   // Cal.com: public link + instance used by the inline embed.
-  // This account is on Cal's EU cloud (cal.eu), so the embed origin points there.
+  // The account moved from Cal's EU cloud (cal.eu) to the default cal.com cloud
+  // on 2026-10-28; these defaults follow it.
   calcom: {
     link: process.env.NEXT_PUBLIC_CALCOM_LINK || "fenwright/30min",
     // Origin the embed iframe + embed.js load from (app.cal.eu for EU, app.cal.com for the default cloud).
-    origin: process.env.NEXT_PUBLIC_CALCOM_ORIGIN || "https://app.cal.eu",
+    origin: process.env.NEXT_PUBLIC_CALCOM_ORIGIN || "https://app.cal.com",
     // Public booking URL base used in the SMS text-back link.
-    bookingBase: process.env.NEXT_PUBLIC_CALCOM_BOOKING_BASE || "https://cal.eu",
+    bookingBase: process.env.NEXT_PUBLIC_CALCOM_BOOKING_BASE || "https://cal.com",
   },
 
   // Legal / imprint details, surfaced in the footer and on /privacy. Blank

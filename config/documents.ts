@@ -23,7 +23,7 @@ export const documents = {
     { name: "Airtable", purpose: "Storing enquiry and booking records", location: "United States" },
     { name: "Vapi", purpose: "Handling inbound voice calls", location: "United States" },
     { name: "Upstash", purpose: "Rate limiting and short-lived caching", location: "European Union" },
-    { name: "Cal.com", purpose: "Booking and calendar scheduling", location: "European Union" },
+    { name: "Cal.com", purpose: "Booking and calendar scheduling", location: "United States" },
     { name: "Vercel", purpose: "Hosting the systems we build", location: "European Union" },
   ],
 

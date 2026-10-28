@@ -138,9 +138,9 @@ export default function PrivacyPage() {
                       <td className="py-3">United States. Data Processing Agreement with Standard Contractual Clauses.</td>
                     </tr>
                     <tr>
-                      <td className="py-3 pr-4 font-medium text-ink">Cal.com (EU)</td>
+                      <td className="py-3 pr-4 font-medium text-ink">Cal.com</td>
                       <td className="py-3 pr-4">Powers the booking calendar</td>
-                      <td className="py-3">European Union (EU-hosted infrastructure).</td>
+                      <td className="py-3">United States. Data Processing Agreement with Standard Contractual Clauses.</td>
                     </tr>
                   </tbody>
                 </table>

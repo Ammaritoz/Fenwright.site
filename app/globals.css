@@ -98,6 +98,38 @@
   }
 }
 
+/* Hero ledger strike-through. A background line rather than text-decoration so
+   it can be drawn, and an inline box so it carries across wrapped lines. */
+.ledger-strike {
+  background-image: linear-gradient(#1F6B4E, #1F6B4E);
+  background-repeat: no-repeat;
+  background-position: 0 58%;
+  background-size: 100% 1.5px;
+  color: #6E665A;
+  animation: ledger-strike 0.55s cubic-bezier(0.65, 0, 0.35, 1) both;
+  animation-delay: var(--strike-delay, 0ms);
+}
+/* Hold the ledger's strikes and fixes until its Reveal wrapper is on screen;
+   delays then count from that moment. Without JS there is no hold. */
+.js [data-reveal] .ledger-strike,
+.js [data-reveal] .animate-ink-in {
+  animation-play-state: paused;
+}
+.js [data-reveal].is-visible .ledger-strike,
+.js [data-reveal].is-visible .animate-ink-in {
+  animation-play-state: running;
+}
+@keyframes ledger-strike {
+  from {
+    background-size: 0% 1.5px;
+    color: #1A1713;
+  }
+  to {
+    background-size: 100% 1.5px;
+    color: #6E665A;
+  }
+}
+
 /* Blinking caret for the typing demo */
 .caret::after {
   content: "";

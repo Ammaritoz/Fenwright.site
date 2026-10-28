@@ -38,21 +38,52 @@ export const site = {
   },
 
   hero: {
-    kicker: "For busy service businesses in Ireland and the UK",
-    headline: "You did not start your business to chase paperwork and missed calls.",
+    // The headline renders `headline` then `headlineEmphasis` in italic.
+    headline: "Get your week",
+    headlineEmphasis: "back.",
     subhead:
-      "Fenwright works with clinics, salons and trades to find where the week leaks time and money, then builds the quiet systems that plug it. Enquiries answered, bookings kept, admin handled.",
+      "Missed calls, quotes that never went out, invoices at the kitchen table. Fenwright works with clinics, salons and trades in Ireland and the UK to find where the week leaks time and money, then builds the quiet systems that plug it.",
     primaryCta: { label: "Book a call", href: "#book" },
     secondaryCta: { label: "See a live example", href: "#demo" },
-    note: "No jargon, no big-agency retainers. Two people who fix how your week runs.",
-    // The mock phone badge
-    phone: {
-      badge: "8s",
-      caption: "A system we built for them",
-      businessName: "Bright Smile Dental",
-      incoming: "Hi, do you have any appointments this week for a check up and clean?",
-      reply:
-        "Hi! Thanks for reaching out to Bright Smile Dental. Yes, we have space this week. What day suits you best and I will get you booked in.",
+    note: "Ammar and Billal. Two people, no agency retainers, no jargon.",
+    // The "example week" sheet beside the headline. Illustrative, not a client:
+    // keep the label saying so.
+    ledger: {
+      label: "An example week",
+      range: "Mon to Fri",
+      entries: [
+        {
+          day: "Mon",
+          time: "10:40",
+          leak: "New customer rang while you were on a job",
+          fix: "Answered and booked in",
+        },
+        {
+          day: "Tue",
+          time: "13:15",
+          leak: "Website enquiry left unread until Thursday",
+          fix: "Replied to straight away",
+        },
+        {
+          day: "Wed",
+          time: "18:30",
+          leak: "The quote you meant to send on Friday",
+          fix: "Out the door the same day",
+        },
+        {
+          day: "Thu",
+          time: "21:45",
+          leak: "Two hours of invoices after the kids went to bed",
+          fix: "Raised and sent automatically",
+        },
+        {
+          day: "Fri",
+          time: "09:00",
+          leak: "A no-show. Nobody sent a reminder",
+          fix: "Reminder went out the day before",
+        },
+      ],
+      footnote: "Five small leaks, none of them a crisis. Each one is a system we build.",
     },
   },
 

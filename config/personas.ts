@@ -81,7 +81,9 @@ export const personas: Persona[] = [
   {
     id: "electrician",
     identity: {
-      businessName: "Holcroft Electrical",
+      // Fictional on purpose: this persona answers the public demo line, so it
+      // must never carry a real business's name or invented facts about one.
+      businessName: "Larchfield Electrical",
       receptionistName: "Erin",
       // "vapi" provider, confirmed valid on this account (used by an
       // existing demo assistant already there). Not chosen for accent or
@@ -91,7 +93,7 @@ export const personas: Persona[] = [
       accent: "ie",
     },
     greeting:
-      "Hello, Holcroft Electrical, this is Erin. Calls are recorded for quality. How can I help?",
+      "Hello, Larchfield Electrical, this is Erin. Calls are recorded for quality. How can I help?",
     goals: [
       "Find out whether this is an emergency, a new job or an existing one.",
       "Capture a working callback number and the caller's name.",

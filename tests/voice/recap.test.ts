@@ -16,7 +16,7 @@ describe("bookingRecap", () => {
   });
 
   it("names the business and the time", () => {
-    expect(body).toContain("Holcroft Electrical");
+    expect(body).toContain("Larchfield Electrical");
     expect(body).toContain("Tuesday the 1st of September at 10am");
   });
 
@@ -32,7 +32,7 @@ describe("bookingRecap", () => {
 describe("callbackRecap", () => {
   it("promises a callback without inventing a time", () => {
     const body = callbackRecap(persona, { name: "Bob" });
-    expect(body).toContain("Holcroft Electrical");
+    expect(body).toContain("Larchfield Electrical");
     expect(body.length).toBeLessThanOrEqual(160);
   });
 });

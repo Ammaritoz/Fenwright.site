@@ -3,9 +3,8 @@ import type { Client } from "./types";
 /**
  * Worked example so every document renders on day one.
  *
- * Bright Smile Dental is the fictional clinic already used in the marketing
- * demo (config/site.ts hero.phone). Keeping the same fictional client here
- * means nothing in this file is real business data.
+ * Bright Smile Dental is a fictional clinic, so nothing in this file is real
+ * business data.
  *
  * Staged as a client who has just signed: agreement, welcome pack, brief,
  * payment details and the deposit invoice are live, and the documents that

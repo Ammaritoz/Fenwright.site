@@ -33,8 +33,7 @@ const PASSCODE_PATTERN = String.raw`\b[A-HJ-NP-Z2-9]{5}-[A-HJ-NP-Z2-9]{5}\b`;
 
 /**
  * The one deliberate exception. example-clinic.ts documents the passcode for
- * Bright Smile Dental, the fictional clinic already used in the marketing demo
- * (config/site.ts hero.phone). Its own header says nothing in that file is real
+ * Bright Smile Dental, a fictional clinic. Its own header says nothing in that file is real
  * business data, and the recorded passcode is what keeps the worked example
  * openable. A real client file must never be added here.
  */

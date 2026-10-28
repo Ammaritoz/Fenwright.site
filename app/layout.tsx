@@ -11,6 +11,8 @@ const display = Fraunces({
   variable: "--font-display",
   display: "swap",
   weight: ["500", "600", "700"],
+  // Italic carries the hero's emphasis and the ledger's written-in fixes.
+  style: ["normal", "italic"],
 });
 
 // Body/UI: clean, friendly humanist grotesk. Highly legible at text sizes.

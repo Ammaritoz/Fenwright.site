@@ -5,7 +5,7 @@ import { industryIds } from "@/lib/industry";
 
 describe("personas", () => {
   it("ships the electrician persona", () => {
-    expect(getPersona("electrician")?.identity.businessName).toBe("Holcroft Electrical");
+    expect(getPersona("electrician")?.identity.businessName).toBe("Larchfield Electrical");
   });
 
   it("returns null for an unknown id", () => {

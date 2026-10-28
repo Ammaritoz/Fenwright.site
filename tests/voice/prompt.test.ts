@@ -7,7 +7,7 @@ const prompt = composeSystemPrompt(persona);
 
 describe("composeSystemPrompt", () => {
   it("names the business and the receptionist", () => {
-    expect(prompt).toContain("Holcroft Electrical");
+    expect(prompt).toContain("Larchfield Electrical");
     expect(prompt).toContain("Erin");
   });
 

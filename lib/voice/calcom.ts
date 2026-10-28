@@ -1,6 +1,7 @@
 import "server-only";
 import { errMeta } from "@/lib/log";
 import { limits } from "@/config/limits";
+import { site } from "@/config/site";
 
 const DEFAULT_TZ = "Europe/Dublin";
 
@@ -336,6 +337,15 @@ export async function findFreeSlot(
   );
 }
 
+/**
+ * The attendee email for voice bookings: CALCOM_ATTENDEE_EMAIL per client, or
+ * Fenwright's own contact inbox for the demo. Must be on a domain that can
+ * receive mail (see createBooking).
+ */
+function attendeeEmail(): string {
+  return process.env.CALCOM_ATTENDEE_EMAIL || site.legal.contactEmail;
+}
+
 /** Create a booking. Never throws; the caller turns the result into speech. */
 export async function createBooking({
   slotStart,
@@ -376,18 +386,15 @@ export async function createBooking({
         // even when it collects nothing else, confirmed against a live
         // booking that otherwise rejected with "responses - {email}
         // error_required_field". The voice flow never asks a caller to
-        // spell out an email on the phone, so this is a synthetic
-        // placeholder, not a real address. example.com, not .invalid: Cal.com
-        // validates that the domain can receive mail (rejecting .invalid,
-        // which is reserved specifically to never resolve, with
-        // "email_domain_cannot_receive_mail"), confirmed against a second
-        // live booking. example.com is IANA-reserved for documentation
-        // (RFC 2606) and genuinely resolves, so it passes that check while
-        // staying universally recognised as a placeholder, never a real
-        // client's own domain.
+        // spell out an email on the phone. cal.com also rejects any domain
+        // that cannot receive mail with "email_domain_cannot_receive_mail":
+        // .invalid failed that on cal.eu, and after the move to cal.com on
+        // 2026-10-28 example.com (a null-MX domain) failed it on every
+        // booking. So this is a real inbox the business owns, which also
+        // receives Cal.com's confirmation copy of each voice booking.
         attendee: {
           name,
-          email: `${phone.replace(/[^\d]/g, "")}@example.com`,
+          email: attendeeEmail(),
           phoneNumber: phone,
           timeZone,
           language: "en",
@@ -399,7 +406,14 @@ export async function createBooking({
     });
 
     const body = (await res.json().catch(() => ({}))) as { data?: { uid?: string } };
-    if (!res.ok) return { ok: false, reason: `http_${res.status}` };
+    if (!res.ok) {
+      // Without this, every rejection reads on the call as "that slot may have
+      // just gone", whatever Cal.com actually objected to.
+      console.error(
+        `[fenwright] Cal.com booking rejected: ${res.status} ${JSON.stringify(body).slice(0, 300)}`
+      );
+      return { ok: false, reason: `http_${res.status}` };
+    }
     return { ok: true, ref: body.data?.uid };
   } catch (err) {
     if (timedOut) {

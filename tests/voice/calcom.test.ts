@@ -336,6 +336,20 @@ describe("createBooking", () => {
     expect(res.ok).toBe(false);
   });
 
+  // A rejected booking used to log nothing, so "email_domain_cannot_receive_mail"
+  // looked exactly like "that slot has gone" on every call.
+  it("logs Cal.com's own reason when it rejects a booking", async () => {
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    stubFetch({ message: "email_domain_cannot_receive_mail" }, false);
+    await createBooking({
+      slotStart: "2026-09-01T09:00:00.000Z",
+      name: "Bob",
+      phone: "+353833378541",
+    });
+    expect(errSpy.mock.calls.flat().join(" ")).toContain("email_domain_cannot_receive_mail");
+    errSpy.mockRestore();
+  });
+
   // Same reasoning as the availability request tests: createBooking reports
   // ok: false for any non-ok response, so a wrong endpoint, a wrong version
   // header or a malformed body all look identical to "that slot is taken".
@@ -372,11 +386,11 @@ describe("createBooking", () => {
         eventTypeId: Number(process.env.CALCOM_EVENT_TYPE_ID),
         attendee: {
           name: "Bob",
-          // Cal.com requires an attendee email even when nothing else asks
-          // for one; the voice flow never collects one over the phone, so
-          // this is a synthetic example.com placeholder, never a real
-          // address (see lib/voice/calcom.ts for why not .invalid).
-          email: "353833378541@example.com",
+          // Cal.com requires an attendee email, and cal.com rejects any
+          // domain that cannot receive mail (example.com included) with
+          // email_domain_cannot_receive_mail. The voice flow never collects
+          // one, so it is the business's own inbox (see lib/voice/calcom.ts).
+          email: "contact@fenwright.ie",
           phoneNumber: "+353833378541",
           timeZone: "Europe/Dublin",
           language: "en",
@@ -384,13 +398,14 @@ describe("createBooking", () => {
       });
     });
 
-    it("derives the placeholder email from digits only, whatever punctuation the phone uses", async () => {
+    it("uses CALCOM_ATTENDEE_EMAIL when set, so each client books under their own inbox", async () => {
+      vi.stubEnv("CALCOM_ATTENDEE_EMAIL", "bookings@client.ie");
       const fn = stubFetch({ data: { uid: "abc123" } });
-      await createBooking({ ...args, phone: "+353 (83) 337-8541" });
+      await createBooking(args);
 
       const init = fn.mock.calls[0][1] as RequestInit;
       const body = JSON.parse(init.body as string) as { attendee: { email: string } };
-      expect(body.attendee.email).toBe("353833378541@example.com");
+      expect(body.attendee.email).toBe("bookings@client.ie");
     });
 
     it("carries the notes through when the caller gave any", async () => {

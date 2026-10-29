@@ -126,3 +126,28 @@ describe("composeSystemPrompt for the web demo", () => {
     expect(prompt).toMatch(/transfer the call/i);
   });
 });
+
+/**
+ * A live call booked 9:00 for a caller who said "half 9": speech-to-text heard
+ * "Uh, 9", the model booked that, and only read the time back afterwards. The
+ * prompt now makes the time confirmed before booking, keeps times in the words
+ * the tool used, and says what "half nine" means.
+ */
+describe("composeSystemPrompt booking safeguards", () => {
+  for (const channel of ["phone", "web"] as const) {
+    const p = composeSystemPrompt(persona, { channel });
+
+    it(`confirms the day and time before booking (${channel})`, () => {
+      expect(p).toMatch(/before (you )?(call|use) book_appointment/i);
+      expect(p).toMatch(/read the day and time back/i);
+    });
+
+    it(`says times the way the availability tool words them (${channel})`, () => {
+      expect(p).toMatch(/exactly as check_availability/i);
+    });
+
+    it(`knows "half nine" means 9:30 (${channel})`, () => {
+      expect(p).toMatch(/half nine.{0,40}(9|nine) thirty/i);
+    });
+  }
+});

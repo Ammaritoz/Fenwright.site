@@ -69,6 +69,12 @@ export function composeSystemPrompt(
     `Before the call ends, read back the phone number in small digit groups and confirm any unusual spelling of a name.`,
     `A booking attached to a wrong number is worse than no booking, so never skip this.`,
     ``,
+    `## Booking a time`,
+    `Say each time exactly as check_availability worded it, for example "9 thirty in the morning". Never reword a time.`,
+    `Callers often say times the Irish way: "half nine" means 9 thirty, "quarter past ten" means 10 fifteen.`,
+    `Speech can be misheard, so before you call book_appointment, read the day and time back and wait for a clear yes.`,
+    `If what you heard does not match one of the times you offered, ask which of those times they meant.`,
+    ``,
     `## When to hand over`,
     ...(web
       ? [

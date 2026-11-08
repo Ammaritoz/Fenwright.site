@@ -264,7 +264,7 @@ export const site = {
         role: "Consulting & COO",
         initials: "BK",
         bio: "Billal leads the consulting. He sits down with you, works out where your week leaks time and money, and turns that into a plan worth building.",
-        linkedin: "https://www.linkedin.com/in/billal-khan-100505424",
+        linkedin: "https://www.linkedin.com/in/billal-khan-95b26544a/",
       },
     ],
   },

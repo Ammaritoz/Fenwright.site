@@ -7,10 +7,11 @@
  * instead of rendering "€NaN".
  *
  * Unlike lib/portal/format.ts these are estimates, not invoices: plain floats
- * are fine here, and money is shown in whole euros.
+ * are fine here, and money is shown in whole euros or dollars. The maths is
+ * the same in both; only the formatting changes (no exchange rates).
  */
 
-import { PACK_SIZES, roi, type Limit, type PackSize } from "@/config/roi";
+import { CURRENCIES, PACK_SIZES, roi, type Currency, type Limit, type PackSize } from "@/config/roi";
 
 export const WEEKS_PER_MONTH = 52 / 12;
 
@@ -85,8 +86,8 @@ export type LeadPackScenario = {
   revenue: number;
   grossProfit: number;
   profitAfterPack: number;
-  /** Gross profit per euro spent on the pack. Revenue per euro would flatter it. */
-  returnPerEuro: number;
+  /** Gross profit per euro (or dollar) spent on the pack. Revenue per euro would flatter it. */
+  returnPerUnit: number;
 };
 
 export type LeadPackResult = {
@@ -108,7 +109,7 @@ function scenario(packSize: number, pricePerLead: number, closePct: number, jobV
     revenue,
     grossProfit,
     profitAfterPack: grossProfit - packPrice,
-    returnPerEuro: grossProfit / packPrice,
+    returnPerUnit: grossProfit / packPrice,
   };
 }
 
@@ -140,6 +141,7 @@ export type RoiMode = "calls" | "leads";
 
 export type RoiState = {
   mode: RoiMode;
+  currency: Currency;
   callsPerWeek: Num;
   jobPct: Num;
   callsJobValue: Num;
@@ -158,6 +160,7 @@ export function defaultState(): RoiState {
   const l = roi.leads.defaults;
   return {
     mode: "calls",
+    currency: "eur",
     callsPerWeek: c.callsPerWeek,
     jobPct: c.jobPct,
     callsJobValue: c.jobValue,
@@ -172,7 +175,7 @@ export function defaultState(): RoiState {
   };
 }
 
-type NumKey = Exclude<keyof RoiState, "mode" | "packSize">;
+type NumKey = Exclude<keyof RoiState, "mode" | "currency" | "packSize">;
 const lim = roi.limits;
 
 /** URL key, state key and bounds for each number, per mode, in link order. */
@@ -218,6 +221,8 @@ export function parseRoiParams(params: Params): RoiState {
   const state = defaultState();
   const mode = get("mode") === "leads" ? "leads" : "calls";
   state.mode = mode;
+  const cur = get("cur");
+  if ((CURRENCIES as readonly string[]).includes(cur ?? "")) state.currency = cur as Currency;
 
   for (const [key, field, limit] of PARAMS[mode]) {
     const raw = get(key);
@@ -237,6 +242,8 @@ export function parseRoiParams(params: Params): RoiState {
 /** Only the active mode's numbers; a blank is written as an empty value so it reopens blank. */
 export function serialiseRoiState(s: RoiState): URLSearchParams {
   const out = new URLSearchParams({ mode: s.mode });
+  // Euros are the default, so links shared before dollars existed still match.
+  if (s.currency !== "eur") out.set("cur", s.currency);
   if (s.mode === "leads") out.set("pack", String(s.packSize));
   for (const [key, field] of PARAMS[s.mode]) {
     const v = s[field];
@@ -247,18 +254,32 @@ export function serialiseRoiState(s: RoiState): URLSearchParams {
 
 // --- Formatting ---------------------------------------------------------------
 
-const euro = new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
-const euroCents = new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const LOCALE: Record<Currency, string> = { eur: "en-IE", usd: "en-US" };
+
+const whole = Object.fromEntries(
+  CURRENCIES.map((c) => [c, new Intl.NumberFormat(LOCALE[c], { style: "currency", currency: c.toUpperCase(), maximumFractionDigits: 0 })]),
+) as Record<Currency, Intl.NumberFormat>;
+const cents = Object.fromEntries(
+  CURRENCIES.map((c) => [
+    c,
+    new Intl.NumberFormat(LOCALE[c], { style: "currency", currency: c.toUpperCase(), minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+  ]),
+) as Record<Currency, Intl.NumberFormat>;
 const oneDecimal = new Intl.NumberFormat("en-IE", { maximumFractionDigits: 1 });
 
-/** "€2,600". Estimates in whole euros: cents would suggest precision we do not have. */
-export function formatEuro(n: number): string {
-  return euro.format(n);
+/** "€2,600" or "$2,600". Estimates in whole units: cents would suggest precision we do not have. */
+export function formatMoney(n: number, currency: Currency): string {
+  return whole[currency].format(n);
 }
 
-/** "€3.75", for return per euro, where the cents are the point. */
-export function formatEuroCents(n: number): string {
-  return euroCents.format(n);
+/** "€3.75", for return per euro (or dollar), where the cents are the point. */
+export function formatMoneyCents(n: number, currency: Currency): string {
+  return cents[currency].format(n);
+}
+
+/** The words the copy needs: "€1" and "euro", or "$1" and "dollar". */
+export function moneyUnit(currency: Currency): { one: string; name: string } {
+  return { one: formatMoney(1, currency), name: roi.currency.names[currency] };
 }
 
 export function formatPct(n: number): string {

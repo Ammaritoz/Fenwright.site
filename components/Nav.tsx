@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
 import { site } from "@/config/site";
 
-export function Nav() {
+/** `cta` overrides the "Book a call" button, e.g. to a page's own booking section. */
+export function Nav({ cta = site.nav.cta }: { cta?: { label: string; href: string } } = {}) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -43,8 +44,8 @@ export function Nav() {
               </li>
             ))}
           </ul>
-          <a href={site.nav.cta.href} className="btn-primary">
-            {site.nav.cta.label}
+          <a href={cta.href} className="btn-primary">
+            {cta.label}
           </a>
         </div>
 
@@ -82,11 +83,11 @@ export function Nav() {
             ))}
             <li className="px-2 py-2">
               <a
-                href={site.nav.cta.href}
+                href={cta.href}
                 className="btn-primary w-full"
                 onClick={() => setOpen(false)}
               >
-                {site.nav.cta.label}
+                {cta.label}
               </a>
             </li>
           </ul>

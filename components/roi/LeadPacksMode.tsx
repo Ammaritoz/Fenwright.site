@@ -1,7 +1,7 @@
 "use client";
 
 import { PACK_SIZES, roi } from "@/config/roi";
-import { formatEuro, formatEuroCents, formatJobs, formatPct, leadPacks, type LeadPackResult, type RoiState } from "@/lib/roi";
+import { formatJobs, formatMoney, formatMoneyCents, formatPct, leadPacks, moneyUnit, type LeadPackResult, type RoiState } from "@/lib/roi";
 import { NumberField } from "@/components/roi/NumberField";
 import { Sheet, SheetHeadline, SheetNote, SheetRow, SheetRows } from "@/components/roi/Sheet";
 
@@ -25,6 +25,7 @@ function result(state: RoiState): LeadPackResult | null {
 
 export function LeadPacksInputs({ state, set }: Props) {
   const f = l.fields;
+  const sym = roi.currency.options[state.currency];
   return (
     <div className="grid gap-6 sm:grid-cols-2">
       <fieldset className="sm:col-span-2">
@@ -49,9 +50,9 @@ export function LeadPacksInputs({ state, set }: Props) {
         </div>
         <p className="mt-1.5 text-xs leading-relaxed text-stone-500">{l.packHint}</p>
       </fieldset>
-      <NumberField {...f.pricePerLead} value={state.pricePerLead} limit={lim.pricePerLead} prefix="€" onChange={(v) => set({ pricePerLead: v })} />
+      <NumberField {...f.pricePerLead} value={state.pricePerLead} limit={lim.pricePerLead} prefix={sym} onChange={(v) => set({ pricePerLead: v })} />
       <NumberField {...f.closePct} value={state.closePct} limit={lim.percent} suffix="%" onChange={(v) => set({ closePct: v })} />
-      <NumberField {...f.jobValue} value={state.leadsJobValue} limit={lim.jobValue} prefix="€" onChange={(v) => set({ leadsJobValue: v })} />
+      <NumberField {...f.jobValue} value={state.leadsJobValue} limit={lim.jobValue} prefix={sym} onChange={(v) => set({ leadsJobValue: v })} />
       <NumberField {...f.marginPct} value={state.leadsMarginPct} limit={lim.percent} suffix="%" onChange={(v) => set({ leadsMarginPct: v })} />
     </div>
   );
@@ -81,15 +82,17 @@ export function LeadPacksSheet({ state }: { state: RoiState }) {
 
   const b = r.atBuyerRate;
   const close = formatPct(b.closePct);
+  const cur = state.currency;
+  const money = (n: number) => formatMoney(n, cur);
   return (
     <Sheet label={s.label} range={range}>
-      <SheetHeadline before={s.headlinePrefix} figure={formatEuroCents(b.returnPerEuro)} after={s.headlineSuffix} />
+      <SheetHeadline before={s.headlinePrefix.replace("{one}", moneyUnit(cur).one)} figure={formatMoneyCents(b.returnPerUnit, cur)} after={s.headlineSuffix} />
       <SheetRows>
-        <SheetRow label={s.rows.packPrice} value={formatEuro(b.packPrice)} tone="muted" />
+        <SheetRow label={s.rows.packPrice} value={money(b.packPrice)} tone="muted" />
         <SheetRow label={s.rows.expectedJobs.replace("{pct}", close)} value={formatJobs(b.expectedJobs)} />
-        <SheetRow label={s.rows.revenue} value={formatEuro(b.revenue)} />
-        <SheetRow label={s.rows.grossProfit.replace("{pct}", formatPct(state.leadsMarginPct ?? 0))} value={formatEuro(b.grossProfit)} />
-        <SheetRow label={s.rows.afterPack} value={formatEuro(b.profitAfterPack)} tone={b.profitAfterPack < 0 ? "loss" : "gain"} />
+        <SheetRow label={s.rows.revenue} value={money(b.revenue)} />
+        <SheetRow label={s.rows.grossProfit.replace("{pct}", formatPct(state.leadsMarginPct ?? 0))} value={money(b.grossProfit)} />
+        <SheetRow label={s.rows.afterPack} value={money(b.profitAfterPack)} tone={b.profitAfterPack < 0 ? "loss" : "gain"} />
         <SheetRow
           label={s.rows.breakEven}
           value={r.breakEvenClosePct === null ? s.noBreakEvenValue : formatPct(r.breakEvenClosePct)}
@@ -105,6 +108,8 @@ export function LeadPacksTable({ state }: { state: RoiState }) {
   if (!r) return null;
   const t = l.table;
   const cols = t.columns;
+  const cur = state.currency;
+  const money = (n: number) => formatMoney(n, cur);
 
   return (
     <section className="break-inside-avoid" aria-labelledby="close-rate-table">
@@ -121,7 +126,7 @@ export function LeadPacksTable({ state }: { state: RoiState }) {
               <th scope="col" className="hidden px-4 py-3 text-right font-semibold sm:table-cell">{cols.revenue}</th>
               <th scope="col" className="hidden px-4 py-3 text-right font-semibold sm:table-cell">{cols.grossProfit}</th>
               <th scope="col" className="px-4 py-3 text-right font-semibold">{cols.afterPack}</th>
-              <th scope="col" className="px-4 py-3 text-right font-semibold">{cols.perEuro}</th>
+              <th scope="col" className="px-4 py-3 text-right font-semibold">{cols.perUnit.replace("{one}", moneyUnit(cur).one)}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-200">
@@ -136,13 +141,13 @@ export function LeadPacksTable({ state }: { state: RoiState }) {
                   )}
                 </th>
                 <td className="px-4 py-3 text-right">{formatJobs(row.expectedJobs)}</td>
-                <td className="hidden px-4 py-3 text-right sm:table-cell">{formatEuro(row.revenue)}</td>
-                <td className="hidden px-4 py-3 text-right sm:table-cell">{formatEuro(row.grossProfit)}</td>
+                <td className="hidden px-4 py-3 text-right sm:table-cell">{money(row.revenue)}</td>
+                <td className="hidden px-4 py-3 text-right sm:table-cell">{money(row.grossProfit)}</td>
                 <td className={`whitespace-nowrap px-4 py-3 text-right font-semibold ${row.losesMoney ? "text-red-700" : "text-accent-700"}`}>
-                  {formatEuro(row.profitAfterPack)}
+                  {money(row.profitAfterPack)}
                   {row.losesMoney && <span className="sr-only"> ({t.loss})</span>}
                 </td>
-                <td className="px-4 py-3 text-right">{formatEuroCents(row.returnPerEuro)}</td>
+                <td className="px-4 py-3 text-right">{formatMoneyCents(row.returnPerUnit, cur)}</td>
               </tr>
             ))}
           </tbody>

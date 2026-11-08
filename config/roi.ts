@@ -14,6 +14,10 @@
  */
 
 export const PACK_SIZES = [10, 30, 50] as const;
+
+/** Euros for Ireland, dollars for US calls. Lower-case ISO codes, as in the link. */
+export const CURRENCIES = ["eur", "usd"] as const;
+export type Currency = (typeof CURRENCIES)[number];
 export type PackSize = (typeof PACK_SIZES)[number];
 
 /** Inclusive bounds a value is clamped to, from the URL or the keyboard. */
@@ -29,6 +33,13 @@ export const roi = {
     headline: "What are the leaks",
     headlineEmphasis: "costing you?",
     lead: "Put in your own numbers and everything works out live. The link under the results saves exactly what you see, so you can come back to it.",
+  },
+
+  currency: {
+    label: "Currency",
+    options: { eur: "€", usd: "$" },
+    optionNames: { eur: "Euros", usd: "US dollars" },
+    names: { eur: "euro", usd: "dollar" },
   },
 
   modes: {
@@ -77,7 +88,7 @@ export const roi = {
       fee: {
         fee: "Our fee",
         netGain: "Left over after our fee",
-        multiple: "Profit won back for every euro of fee",
+        multiple: "Profit won back for every {unit} of fee",
         breakEven: "Pays for itself once it wins back",
         breakEvenUnit: "calls a month",
         noBreakEven: "Not at these numbers",
@@ -109,7 +120,7 @@ export const roi = {
       blank: "Add a price per lead to see what this pack would return.",
       incomplete: "Fill in every box to see what this pack would return.",
       noBreakEvenValue: "None",
-      headlinePrefix: "Every €1 on leads returns",
+      headlinePrefix: "Every {one} on leads returns",
       headlineSuffix: "in gross profit",
       rows: {
         packPrice: "Pack price",
@@ -133,7 +144,7 @@ export const roi = {
         revenue: "Revenue",
         grossProfit: "Gross profit",
         afterPack: "After the pack",
-        perEuro: "Per €1",
+        perUnit: "Per {one}",
       },
       yourRate: "your rate",
       loss: "loss",

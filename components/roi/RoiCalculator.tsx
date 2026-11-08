@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { roi } from "@/config/roi";
+import { CURRENCIES, roi } from "@/config/roi";
 import { serialiseRoiState, type RoiMode, type RoiState } from "@/lib/roi";
 import { MissedCallsInputs, MissedCallsSheet } from "@/components/roi/MissedCallsMode";
 import { LeadPacksInputs, LeadPacksSheet, LeadPacksTable } from "@/components/roi/LeadPacksMode";
@@ -40,23 +40,45 @@ export function RoiCalculator({ initial }: { initial: RoiState }) {
 
   return (
     <div>
-      <div role="group" aria-label="Calculator" className="inline-flex rounded-full border border-stone-300 bg-white p-1 shadow-tight print:hidden">
-        {MODES.map((mode) => {
-          const on = state.mode === mode;
-          return (
-            <button
-              key={mode}
-              type="button"
-              aria-pressed={on}
-              onClick={() => set({ mode })}
-              className={`rounded-full px-5 py-2.5 text-sm font-semibold transition sm:px-6 ${
-                on ? "bg-ink text-paper" : "text-stone-600 hover:text-ink"
-              }`}
-            >
-              {roi.modes[mode].label}
-            </button>
-          );
-        })}
+      <div className="flex flex-wrap items-center gap-3 print:hidden">
+        <div role="group" aria-label="Calculator" className="inline-flex rounded-full border border-stone-300 bg-white p-1 shadow-tight">
+          {MODES.map((mode) => {
+            const on = state.mode === mode;
+            return (
+              <button
+                key={mode}
+                type="button"
+                aria-pressed={on}
+                onClick={() => set({ mode })}
+                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition sm:px-6 ${
+                  on ? "bg-ink text-paper" : "text-stone-600 hover:text-ink"
+                }`}
+              >
+                {roi.modes[mode].label}
+              </button>
+            );
+          })}
+        </div>
+        <div role="group" aria-label={roi.currency.label} className="inline-flex rounded-full border border-stone-300 bg-white p-1 shadow-tight">
+          {CURRENCIES.map((currency) => {
+            const on = state.currency === currency;
+            return (
+              <button
+                key={currency}
+                type="button"
+                aria-pressed={on}
+                aria-label={roi.currency.optionNames[currency]}
+                title={roi.currency.optionNames[currency]}
+                onClick={() => set({ currency })}
+                className={`h-10 w-10 rounded-full text-sm font-semibold transition ${
+                  on ? "bg-ink text-paper" : "text-stone-600 hover:text-ink"
+                }`}
+              >
+                {roi.currency.options[currency]}
+              </button>
+            );
+          })}
+        </div>
       </div>
       <p className="mt-3 text-sm text-stone-500 print:hidden">{roi.modes[state.mode].short}</p>
 

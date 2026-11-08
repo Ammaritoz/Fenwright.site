@@ -5,8 +5,9 @@ import Cal, { getCalApi } from "@calcom/embed-react";
 import { site } from "@/config/site";
 import { SectionHead } from "@/components/SectionHead";
 
-export function BookCall() {
-  const b = site.book;
+/** `headline` and `subhead` override the homepage copy for another page's booking section. */
+export function BookCall({ headline, subhead }: { headline?: string; subhead?: string } = {}) {
+  const b = { headline: headline ?? site.book.headline, subhead: subhead ?? site.book.subhead };
   const calLink = site.calcom.link;
   const calOrigin = site.calcom.origin;
   const embedJsUrl = `${calOrigin}/embed/embed.js`;

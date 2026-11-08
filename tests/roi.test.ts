@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   WEEKS_PER_MONTH,
   defaultState,
-  formatEuro,
-  formatEuroCents,
+  formatMoney,
+  formatMoneyCents,
+  moneyUnit,
   formatJobs,
   formatPct,
   leadPacks,
@@ -90,7 +91,7 @@ describe("leadPacks", () => {
 
   it("measures return per euro in gross profit, not revenue", () => {
     // Revenue per euro would be 12.5, which flatters the pack by ignoring job costs.
-    expect(leads()!.atBuyerRate.returnPerEuro).toBeCloseTo(3.75);
+    expect(leads()!.atBuyerRate.returnPerUnit).toBeCloseTo(3.75);
   });
 
   it("finds the close rate at which the pack pays for itself", () => {
@@ -170,6 +171,21 @@ describe("URL state", () => {
     expect(s.packSize).toBe(defaultState().packSize);
   });
 
+  it("defaults to euros and keeps existing links unchanged", () => {
+    expect(defaultState().currency).toBe("eur");
+    expect(parseRoiParams({ mode: "leads" }).currency).toBe("eur");
+    expect(serialiseRoiState(defaultState()).has("cur")).toBe(false);
+  });
+
+  it("reads and writes dollars in either mode", () => {
+    expect(parseRoiParams({ mode: "leads", cur: "usd" }).currency).toBe("usd");
+    expect(parseRoiParams({ mode: "calls", cur: "usd" }).currency).toBe("usd");
+    expect(parseRoiParams({ mode: "calls", cur: "gbp" }).currency).toBe("eur");
+    const s: RoiState = { ...defaultState(), mode: "leads", currency: "usd", pricePerLead: 120 };
+    expect([...serialiseRoiState(s).keys()].slice(0, 2)).toEqual(["mode", "cur"]);
+    expect(parseRoiParams(Object.fromEntries(serialiseRoiState(s)))).toEqual(s);
+  });
+
   it("falls back to missed calls for an unknown mode", () => {
     expect(parseRoiParams({ mode: "nonsense" }).mode).toBe("calls");
   });
@@ -181,13 +197,24 @@ describe("URL state", () => {
 
 describe("formatting", () => {
   it("shows estimates in whole euros", () => {
-    expect(formatEuro(2600)).toBe("€2,600");
-    expect(formatEuro(389.6)).toBe("€390");
-    expect(formatEuro(-110)).toContain("110");
+    expect(formatMoney(2600, "eur")).toBe("€2,600");
+    expect(formatMoney(389.6, "eur")).toBe("€390");
+    expect(formatMoney(-110, "eur")).toContain("110");
   });
 
-  it("shows return per euro with cents", () => {
-    expect(formatEuroCents(3.75)).toBe("€3.75");
+  it("shows estimates in whole dollars for US calls", () => {
+    expect(formatMoney(2600, "usd")).toBe("$2,600");
+    expect(formatMoney(389.6, "usd")).toBe("$390");
+  });
+
+  it("shows return per euro or dollar with cents", () => {
+    expect(formatMoneyCents(3.75, "eur")).toBe("€3.75");
+    expect(formatMoneyCents(3.75, "usd")).toBe("$3.75");
+  });
+
+  it("names one unit of each currency for the copy", () => {
+    expect(moneyUnit("eur")).toEqual({ one: "€1", name: "euro" });
+    expect(moneyUnit("usd")).toEqual({ one: "$1", name: "dollar" });
   });
 
   it("shows percentages and jobs to at most one decimal", () => {

@@ -7,7 +7,7 @@ import { site } from "@/config/site";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "How Fenwright collects, uses, and protects your personal data, and your rights under GDPR.",
+    "How Fenwright collects, uses, and protects personal data from this website, our business emails and our quote forms, and your rights under GDPR.",
   alternates: { canonical: "/privacy" },
   robots: { index: true, follow: true },
 };
@@ -47,8 +47,11 @@ export default function PrivacyPage() {
               <P>
                 This policy explains how {l.tradingName} (&ldquo;we&rdquo;,
                 &ldquo;us&rdquo;) collects and uses your personal data when you
-                use this website, and your rights under the EU General Data
-                Protection Regulation (GDPR) and, for UK visitors, the UK GDPR.
+                use this website, when we email your business, when you buy
+                leads from us, and when you ask for a quote through one of our
+                quote forms. It also explains your rights under the EU General
+                Data Protection Regulation (GDPR) and, for UK visitors, the UK
+                GDPR.
               </P>
 
               <H2>Who we are</H2>
@@ -66,9 +69,9 @@ export default function PrivacyPage() {
                 .
               </P>
 
-              <H2>What we collect and why</H2>
+              <H2>What we collect on this site, and why</H2>
               <P>
-                We only collect what you choose to give us through this site:
+                Through this site, we only collect what you choose to give us:
               </P>
               <ul className="mt-4 list-disc space-y-2 pl-5 text-[0.98rem] leading-relaxed text-stone-600">
                 <li>
@@ -97,9 +100,49 @@ export default function PrivacyPage() {
                 </li>
               </ul>
               <P>
-                We do not use your data for unrelated marketing, and we do not
-                sell it. You can opt out of any further texts at any time by
-                replying STOP or emailing us.
+                We do not use the data you give us on this site for unrelated
+                marketing, and we do not sell it. You can opt out of any further
+                texts at any time by replying STOP or emailing us.
+              </P>
+
+              <H2>If we emailed your business</H2>
+              <P>
+                We find businesses that may want our services from their public
+                listings, such as Google Maps, and from their own websites. For
+                each one we keep the business name, website, phone number,
+                address, rating and review count shown on the listing, and the
+                business email address published on its website. We use these
+                to send a short business offer and, if there is no reply, one
+                follow-up. Lawful basis: our <em>legitimate interest</em> in
+                offering our services to businesses.
+              </P>
+              <P>
+                Every email says who we are and has a link to stop hearing from
+                us. If you use it, or reply asking us to stop, we stop at once
+                and keep only your email address on a do-not-contact list, so we
+                never email you again.
+              </P>
+
+              <H2>If you buy leads from us</H2>
+              <P>
+                We keep your business name and contact details, the areas and
+                jobs you chose, the leads we send you, and your payments. We use
+                these to deliver your leads and run our agreement with you.
+                Lawful basis: <em>contract</em>, and <em>legal obligation</em>{" "}
+                for accounting records.
+              </P>
+
+              <H2>If you ask for a quote through one of our quote forms</H2>
+              <P>
+                Some of our quote forms help homeowners find a local
+                tradesperson, such as a roofer. If you fill one in, we collect
+                your name, phone number, email, the area of the property and
+                your answers about the job. We check the details, then pass
+                them to one local business that covers your area, which will
+                contact you about the job. That business pays us for the
+                enquiries we send it, and uses your details under its own
+                privacy terms. Lawful basis: <em>consent</em>, given on the
+                form. You can withdraw it at any time by emailing us.
               </P>
 
               <H2>Who we share it with</H2>
@@ -138,6 +181,16 @@ export default function PrivacyPage() {
                       <td className="py-3">United States. Data Processing Agreement with Standard Contractual Clauses.</td>
                     </tr>
                     <tr>
+                      <td className="py-3 pr-4 font-medium text-ink">Zoho Mail</td>
+                      <td className="py-3 pr-4">Sends and stores our email, including the business emails described above</td>
+                      <td className="py-3">United States. Data Processing Agreement with Standard Contractual Clauses.</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 pr-4 font-medium text-ink">Base44</td>
+                      <td className="py-3 pr-4">Hosts our quote forms and stores the quote requests</td>
+                      <td className="py-3">United States. Data Processing Agreement with Standard Contractual Clauses.</td>
+                    </tr>
+                    <tr>
                       <td className="py-3 pr-4 font-medium text-ink">Cal.com</td>
                       <td className="py-3 pr-4">Powers the booking calendar</td>
                       <td className="py-3">United States. Data Processing Agreement with Standard Contractual Clauses.</td>
@@ -157,16 +210,19 @@ export default function PrivacyPage() {
 
               <H2>How long we keep it</H2>
               <P>
-                We keep enquiry and lead data for {l.dataRetention}, after which
-                it is deleted, unless we need to keep it longer to meet a legal
-                obligation.
+                We keep enquiry, lead and business contact data for{" "}
+                {l.dataRetention}, after which it is deleted, unless we need to
+                keep it longer to meet a legal obligation. Email addresses on
+                our do-not-contact list are kept for as long as we send business
+                emails, so a request to stop is never forgotten.
               </P>
 
               <H2>Your rights</H2>
               <P>
                 You have the right to access, correct, delete, or restrict the
                 use of your personal data, to object to processing, and to data
-                portability. To exercise any of these, email us at{" "}
+                portability. You can object to direct marketing at any time, and
+                we will stop. To exercise any of these, email us at{" "}
                 <a
                   href={`mailto:${l.contactEmail}`}
                   className="font-medium text-ink underline underline-offset-4"

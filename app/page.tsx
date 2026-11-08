@@ -2,6 +2,7 @@ import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/Hero";
 import { Problem } from "@/components/Problem";
 import { Services } from "@/components/Services";
+import { Leads } from "@/components/Leads";
 import { Demo } from "@/components/Demo";
 import { HowItWorks } from "@/components/HowItWorks";
 import { AboutUs } from "@/components/AboutUs";
@@ -17,6 +18,7 @@ export default function Home() {
         <Hero />
         <Problem />
         <Services />
+        <Leads />
         {/* Server-side check, so the button only shows when /api/voice/web-call can work. */}
         <Demo voiceEnabled={Boolean(process.env.VAPI_PUBLIC_KEY && process.env.VAPI_WEB_ASSISTANT_ID)} />
         <HowItWorks />

@@ -84,7 +84,7 @@ const organizationJsonLd = {
   description: site.brand.tagline,
   email: site.legal.contactEmail,
   image: "https://www.fenwright.ie/og-image.png",
-  areaServed: ["IE", "GB"],
+  areaServed: ["IE", "GB", "US"],
 };
 
 export default function RootLayout({

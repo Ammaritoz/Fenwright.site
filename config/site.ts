@@ -20,7 +20,7 @@ export const site = {
   brand: {
     name: "Fenwright",
     wordmark: "Fenwright",
-    tagline: "Consulting and systems that give small businesses their time back.",
+    tagline: "Exclusive local leads, and the systems that win them.",
     email: "contact@fenwright.ie",
   },
 
@@ -30,6 +30,7 @@ export const site = {
     // works when you're already on the homepage.
     links: [
       { label: "What we do", href: "/#services" },
+      { label: "Leads", href: "/#leads" },
       { label: "Demo", href: "/#demo" },
       { label: "How it works", href: "/#how-it-works" },
       { label: "About", href: "/#about" },
@@ -39,12 +40,12 @@ export const site = {
 
   hero: {
     // The headline renders `headline` then `headlineEmphasis` in italic.
-    headline: "Get your week",
-    headlineEmphasis: "back.",
+    headline: "More jobs in.",
+    headlineEmphasis: "Fewer let slip.",
     subhead:
-      "Missed calls, quotes that never went out, invoices at the kitchen table. Fenwright works with clinics, salons and trades in Ireland and the UK to find where the week leaks time and money, then builds the quiet systems that plug it.",
+      "Fenwright sends you exclusive enquiries from customers in your area, one business per area, then builds the systems that answer, follow up and win them. Use one, or both.",
     primaryCta: { label: "Book a call", href: "#book" },
-    secondaryCta: { label: "See a live example", href: "#demo" },
+    secondaryCta: { label: "How the leads work", href: "#leads" },
     note: "Ammar and Billal. Two people, no agency retainers, no jargon.",
     // The "example week" sheet beside the headline. Illustrative, not a client:
     // keep the label saying so.
@@ -54,9 +55,9 @@ export const site = {
       entries: [
         {
           day: "Mon",
-          time: "10:40",
-          leak: "New customer rang while you were on a job",
-          fix: "Answered and booked in",
+          time: "07:50",
+          leak: "Crew free on Thursday, nothing booked",
+          fix: "New quote request from your area, sent to you only",
         },
         {
           day: "Tue",
@@ -66,31 +67,31 @@ export const site = {
         },
         {
           day: "Wed",
-          time: "18:30",
-          leak: "The quote you meant to send on Friday",
-          fix: "Out the door the same day",
+          time: "10:20",
+          leak: "Bought a shared lead, lost the race to call",
+          fix: "Exclusive enquiry. Nobody else rang them",
         },
         {
           day: "Thu",
-          time: "21:45",
-          leak: "Two hours of invoices after the kids went to bed",
-          fix: "Raised and sent automatically",
+          time: "18:30",
+          leak: "Last week's quote went quiet",
+          fix: "Followed up until they gave an answer",
         },
         {
           day: "Fri",
-          time: "09:00",
-          leak: "A no-show. Nobody sent a reminder",
-          fix: "Reminder went out the day before",
+          time: "16:00",
+          leak: "Happy customer, no review asked for",
+          fix: "Review request went out after the job",
         },
       ],
-      footnote: "Five small leaks, none of them a crisis. Each one is a system we build.",
+      footnote: "Two kinds of leak: too few enquiries, and enquiries let slip. We fix both.",
     },
   },
 
   problem: {
     kicker: "Where the day goes",
-    headline: "Small businesses rarely lose money in big ways. They lose it in minutes.",
-    body: "A call missed while you are with a customer. A quote you meant to send on Friday. An evening gone to invoices. None of it looks like a crisis, and together it quietly caps how far your business can grow. The clearest leak of all is the enquiry that never got answered:",
+    headline: "Shared leads start a race. Slow replies lose it.",
+    body: "Many lead sites send the same enquiry to several firms at once, so you pay for a job you then have to race for. Even an enquiry that is yours alone goes cold fast. Two things decide how much work you win: where your enquiries come from, and how quickly they get answered. Speed matters more than most people think:",
     stats: [
       {
         value: "21x",
@@ -197,21 +198,48 @@ export const site = {
 
   howItWorks: {
     kicker: "How it works",
-    headline: "One short call. A clear plan. Systems that quietly run.",
+    headline: "One short call. A clear plan. Then we switch it on.",
     steps: [
       {
         title: "Book a call",
-        body: "Thirty minutes with Billal about how your week actually runs. No pitch, no jargon, just questions about where the time goes.",
+        body: "A short call with one of us about where your work comes from and where it slips. No pitch, no jargon.",
       },
       {
         title: "Get a plain-English plan",
-        body: "We come back with the two or three fixes worth doing first, what each one is worth to you, and a fixed price.",
+        body: "Whether to start with more enquiries, faster replies or both, what each is worth to you, and a fixed price.",
       },
       {
-        title: "We build it, you feel it",
-        body: "Ammar builds the systems around how you already work. Leads answered, diary fuller, evenings back.",
+        title: "We switch it on",
+        body: "Leads go live for your area within 72 hours of payment. Systems are built around how you already work.",
       },
     ],
+  },
+
+  // The "Get" half of the offer on the homepage (components/Leads.tsx). The
+  // trade-specific detail lives on its own page (config/roofing.ts).
+  leads: {
+    headline: "How the leads work",
+    lead: "We run lead generation one trade at a time, so every ad and every question on the form is built for that trade. Right now, that trade is roofing.",
+    steps: [
+      {
+        title: "We agree your patch",
+        body: "The areas you cover, the jobs you want and how many more you can take on. One business per area, so nobody else gets your leads.",
+      },
+      {
+        title: "We run the ads",
+        body: "Our own ads send local customers to our own quote form, which checks every enquiry before it goes anywhere.",
+      },
+      {
+        title: "Leads land in seconds",
+        body: "Each one is emailed to you the moment it passes the checks, with everything you need to call them back.",
+      },
+      {
+        title: "You call, we keep count",
+        body: "Call within 10 minutes and they are far easier to win. We send a weekly update and remind you before a pack runs out.",
+      },
+    ],
+    cta: { label: "Roofer? See how it works for you", href: "/roofing-leads" },
+    note: "Another trade? Tell us what you do on a call and we will say honestly whether we can run it for you.",
   },
 
   about: {
@@ -243,32 +271,55 @@ export const site = {
 
   services: {
     kicker: "What we do",
-    headline: "We find the leak, then build the fix.",
-    bullets: [
+    headline: "We bring the enquiries in, then help you win them.",
+    // Two equal halves: the lead packs ("Get") and the systems ("Answer",
+    // "Convert", "Grow"). Keep them the same length so neither reads as the
+    // add-on.
+    groups: [
       {
-        title: "Every enquiry answered",
-        body: "Missed calls, website forms and ad enquiries get a warm reply straight away, so the job is yours before anyone else picks up the phone.",
+        title: "Get more enquiries",
+        lead: "Exclusive leads from our own ads and quote forms.",
+        bullets: [
+          {
+            title: "Yours alone",
+            body: "Each enquiry goes to one business in the area, the moment it comes in. Never shared, never resold.",
+          },
+          {
+            title: "Checked before they reach you",
+            body: "A real person in your area, asking for the work you do, in the timeframe you set. A lead that fails the checks we agreed gets replaced.",
+          },
+          {
+            title: "Prepaid packs, no retainer",
+            body: "Packs of 10, 30 or 50 leads. No monthly contract, and you know the price before you pay.",
+          },
+        ],
       },
       {
-        title: "Bookings that look after themselves",
-        body: "Confirmations, reminders and follow-ups go out on time, every time. Fewer no-shows, a fuller diary.",
-      },
-      {
-        title: "Admin off your plate",
-        body: "Quotes, invoices and customer records kept tidy automatically, instead of eating your evenings.",
-      },
-      {
-        title: "One clear picture",
-        body: "Every lead, job and follow-up logged in one place, so you always know where the money is.",
+        title: "Win more of them",
+        lead: "Systems that answer, follow up and bring customers back.",
+        bullets: [
+          {
+            title: "Every enquiry answered",
+            body: "Missed calls, website forms and ad enquiries get a warm reply straight away, so the job is yours before anyone else picks up the phone.",
+          },
+          {
+            title: "Quotes followed up",
+            body: "Polite follow-ups go out until the customer gives you an answer, so work you have priced does not go quiet.",
+          },
+          {
+            title: "Bookings, reviews and repeat work",
+            body: "Reminders before the visit, a review request after it, and a check-in with past customers when it is time again.",
+          },
+        ],
       },
     ],
   },
 
   book: {
     kicker: "Book a call",
-    headline: "Tell us how your week runs. We will tell you what we would fix.",
+    headline: "Tell us where your work comes from. We will tell you what we would do first.",
     subhead:
-      "A short, no-pressure call. If we cannot see a fix worth paying for, we will say so.",
+      "A short, no-pressure call. If we cannot see something worth paying for, we will say so.",
   },
 
   contact: {
@@ -280,7 +331,7 @@ export const site = {
     nameLabel: "Your name",
     phoneLabel: "Your mobile number",
     messageLabel: "What do you need?",
-    messagePlaceholder: "e.g. I run a salon and miss calls when we are with clients.",
+    messagePlaceholder: "e.g. I run a roofing company and want more quote requests.",
     submitLabel: "Text me back",
     consentLabel:
       "Text me one reply at this number. I can reply STOP to opt out. No spam, ever.",
@@ -294,8 +345,10 @@ export const site = {
 
   footer: {
     blurb:
-      "Fenwright helps small service businesses in Ireland and the UK run faster. Enquiries answered, bookings kept, admin handled.",
+      "Fenwright sends small businesses exclusive local enquiries, then builds the systems that answer, follow up and win them.",
     email: "contact@fenwright.ie",
+    // Extra footer links after the nav ones.
+    links: [{ label: "For roofers", href: "/roofing-leads" }],
     copyright: `© ${new Date().getFullYear()} Fenwright. All rights reserved.`,
   },
 
@@ -326,11 +379,10 @@ export const site = {
     // name and fill registrationNumber below.
     entityName: "Ammar Bakhet, trading as Fenwright",
     tradingName: "Fenwright",
-    // Deliberately omitted (owner's call). A geographic address is technically
-    // required for e-commerce sites under the Irish E-Commerce Regulations
-    // 2003, but it does not have to be a home address — a registered/virtual
-    // office or accountant's address would satisfy it. Add one via this field
-    // whenever that's sorted; footer + /privacy already render cleanly with "".
+    // Deliberately blank (owner's call, confirmed again 2026-11-08): the postal
+    // address goes in the US cold emails only (US_POSTAL_ADDRESS in
+    // outreach/.env), never on the site. Footer + /privacy render cleanly
+    // with "".
     address: "",
     // Leave "" until incorporated with the CRO (not applicable to sole traders).
     registrationNumber: "",
@@ -339,7 +391,7 @@ export const site = {
     contactEmail: "contact@fenwright.ie",
     // How long leads are kept in Airtable before deletion.
     dataRetention: "12 months",
-    privacyLastUpdated: "28 October 2026",
+    privacyLastUpdated: "8 November 2026",
   },
 } as const;
 

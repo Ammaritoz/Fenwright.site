@@ -1,7 +1,7 @@
 "use client";
 
 import { roi } from "@/config/roi";
-import { formatEuro, formatEuroCents, formatJobs, formatPct, missedCalls, type RoiState } from "@/lib/roi";
+import { formatJobs, formatMoney, formatMoneyCents, formatPct, missedCalls, moneyUnit, type RoiState } from "@/lib/roi";
 import { NumberField } from "@/components/roi/NumberField";
 import { Sheet, SheetHeadline, SheetNote, SheetRow, SheetRows } from "@/components/roi/Sheet";
 
@@ -15,14 +15,15 @@ const lim = roi.limits;
 
 export function MissedCallsInputs({ state, set }: Props) {
   const f = c.fields;
+  const sym = roi.currency.options[state.currency];
   return (
     <div className="grid gap-6 sm:grid-cols-2">
       <NumberField {...f.callsPerWeek} value={state.callsPerWeek} limit={lim.callsPerWeek} onChange={(v) => set({ callsPerWeek: v })} />
       <NumberField {...f.jobPct} value={state.jobPct} limit={lim.percent} suffix="%" onChange={(v) => set({ jobPct: v })} />
-      <NumberField {...f.jobValue} value={state.callsJobValue} limit={lim.jobValue} prefix="€" onChange={(v) => set({ callsJobValue: v })} />
+      <NumberField {...f.jobValue} value={state.callsJobValue} limit={lim.jobValue} prefix={sym} onChange={(v) => set({ callsJobValue: v })} />
       <NumberField {...f.marginPct} value={state.callsMarginPct} limit={lim.percent} suffix="%" onChange={(v) => set({ callsMarginPct: v })} />
       <NumberField {...f.recoveryPct} value={state.recoveryPct} limit={lim.percent} suffix="%" onChange={(v) => set({ recoveryPct: v })} />
-      <NumberField {...f.monthlyFee} value={state.monthlyFee} limit={lim.monthlyFee} prefix="€" suffix="/month" onChange={(v) => set({ monthlyFee: v })} />
+      <NumberField {...f.monthlyFee} value={state.monthlyFee} limit={lim.monthlyFee} prefix={sym} suffix="/month" onChange={(v) => set({ monthlyFee: v })} />
     </div>
   );
 }
@@ -47,28 +48,30 @@ export function MissedCallsSheet({ state }: { state: RoiState }) {
   }
 
   const fee = r.fee;
+  const cur = state.currency;
+  const money = (n: number) => formatMoney(n, cur);
   return (
     <Sheet label={s.label} range={s.range}>
       <SheetHeadline
-        figure={formatEuro(r.revenueLostPerMonth)}
+        figure={money(r.revenueLostPerMonth)}
         after={s.headlineSuffix}
-        note={s.perYear.replace("{amount}", formatEuro(r.revenueLostPerYear))}
+        note={s.perYear.replace("{amount}", money(r.revenueLostPerYear))}
       />
       <SheetRows>
         <SheetRow label={s.rows.jobsLost} value={formatJobs(r.jobsLostPerMonth)} />
-        <SheetRow label={s.rows.revenueLost} value={formatEuro(r.revenueLostPerMonth)} />
-        <SheetRow label={s.rows.profitLost} value={formatEuro(r.profitLostPerMonth)} />
+        <SheetRow label={s.rows.revenueLost} value={money(r.revenueLostPerMonth)} />
+        <SheetRow label={s.rows.profitLost} value={money(r.profitLostPerMonth)} />
         <SheetRow
           label={s.rows.recovered.replace("{pct}", formatPct(state.recoveryPct ?? 0))}
-          value={formatEuro(r.recoveredProfitPerMonth)}
+          value={money(r.recoveredProfitPerMonth)}
           tone="gain"
         />
       </SheetRows>
       {fee ? (
         <SheetRows>
-          <SheetRow label={s.fee.fee} value={formatEuro(state.monthlyFee ?? 0)} tone="muted" />
-          <SheetRow label={s.fee.netGain} value={formatEuro(fee.netGain)} tone={fee.netGain < 0 ? "loss" : "gain"} />
-          <SheetRow label={s.fee.multiple} value={formatEuroCents(fee.multiple)} />
+          <SheetRow label={s.fee.fee} value={money(state.monthlyFee ?? 0)} tone="muted" />
+          <SheetRow label={s.fee.netGain} value={money(fee.netGain)} tone={fee.netGain < 0 ? "loss" : "gain"} />
+          <SheetRow label={s.fee.multiple.replace("{unit}", moneyUnit(cur).name)} value={formatMoneyCents(fee.multiple, cur)} />
           <SheetRow
             label={s.fee.breakEven}
             value={

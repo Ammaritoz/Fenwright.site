@@ -1,45 +1,49 @@
 import { site } from "@/config/site";
-import { SectionHead } from "@/components/SectionHead";
+import { roofing } from "@/config/roofing";
+import { media } from "@/config/media";
 import { Reveal } from "@/components/Reveal";
 import { SampleLead } from "@/components/SampleLead";
+import { Backdrop } from "@/components/Backdrop";
+import { Arrow } from "@/components/Arrow";
+import { Roll } from "@/components/Roll";
+import { Deck, type DeckCard } from "@/components/Deck";
 
-/** The homepage's "Get" half in detail: how a lead reaches you, beside one. */
+/** The "Get" half in detail: how a lead reaches you, beside one, then the trade we run it for. */
 export function Leads() {
   const l = site.leads;
+  const cards: DeckCard[] = [
+    ...l.steps.map((s) => ({ kind: "text" as const, title: s.title, body: s.body })),
+    { kind: "photo", image: media.enquiries.image, caption: l.photoCaption },
+  ];
   return (
-    <section id="leads" className="section py-24 sm:py-32">
-      <div className="container-px grid items-start gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
-        <div>
+    <section id="leads" className="section bg-ink py-24 text-white sm:py-36">
+      <div className="container-px">
+        <div className="grid items-center gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
           <Reveal>
-            <SectionHead title={l.headline} lead={l.lead} />
+            <h2 className="h-section">{l.headline}</h2>
+            <p className="mt-6 max-w-xl text-lg font-light leading-relaxed text-white/80">{l.lead}</p>
           </Reveal>
-
-          <ol className="mt-12 grid gap-x-8 gap-y-9 sm:grid-cols-2">
-            {l.steps.map((step, i) => (
-              <Reveal as="li" key={step.title} delay={(i % 2) * 90}>
-                <div className="flex items-center gap-3">
-                  <span className="font-display text-3xl font-extrabold leading-none tabular-nums text-accent">{i + 1}</span>
-                  <span className="h-px flex-1 bg-stone-200" aria-hidden="true" />
-                </div>
-                <h3 className="mt-4 font-display text-lg font-bold text-ink">{step.title}</h3>
-                <p className="mt-2 text-[0.98rem] leading-relaxed text-stone-600">{step.body}</p>
-              </Reveal>
-            ))}
-          </ol>
-
-          <Reveal className="mt-12">
-            <a href={l.cta.href} className="btn-primary">
-              {l.cta.label}
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </a>
-            <p className="mt-4 max-w-md text-sm leading-relaxed text-stone-500">{l.note}</p>
+          <Reveal delay={120}>
+            <SampleLead tone="dark" />
           </Reveal>
         </div>
 
-        <Reveal delay={120} className="lg:sticky lg:top-28">
-          <SampleLead />
+        <Reveal className="mt-20 sm:mt-28">
+          <Deck cards={cards} label={l.headline} />
+        </Reveal>
+
+        <Reveal className="relative isolate mt-20 flex min-h-[24rem] flex-col justify-end overflow-hidden rounded-[2rem] p-8 sm:mt-28 sm:p-12 lg:p-14">
+          <Backdrop slot={media.roofing} fade />
+          <h3 className="h-card max-w-xl">{roofing.meta.title}</h3>
+          <p className="mt-4 max-w-md text-white/80">{l.note}</p>
+          <div className="mt-8">
+            <a href={l.cta.href} className="btn-onink">
+              <Roll>
+                {l.cta.label}
+                <Arrow />
+              </Roll>
+            </a>
+          </div>
         </Reveal>
       </div>
     </section>

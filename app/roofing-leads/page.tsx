@@ -5,8 +5,13 @@ import { BookCall } from "@/components/BookCall";
 import { Reveal } from "@/components/Reveal";
 import { SectionHead } from "@/components/SectionHead";
 import { SampleLead } from "@/components/SampleLead";
+import { Backdrop } from "@/components/Backdrop";
+import { Arrow } from "@/components/Arrow";
+import { media } from "@/config/media";
 import { roofing } from "@/config/roofing";
 import { site } from "@/config/site";
+import { Roll } from "@/components/Roll";
+import { Deck } from "@/components/Deck";
 
 /**
  * The page every US roofer cold email links to (outreach/us_roofing.py). Copy
@@ -50,57 +55,44 @@ function Dot({ className = "" }: { className?: string }) {
   );
 }
 
-const founders = site.about.people;
-
 export default function RoofingLeadsPage() {
   const r = roofing;
   return (
     <>
-      <Nav cta={{ label: "Book a call", href: "#book" }} />
+      <Nav overlay cta={{ label: "Book a call", href: "#book" }} />
       <main id="main">
         {/* Hero, with the lead itself beside the pitch */}
-        <section id="top" className="relative overflow-hidden">
-          <div className="container-px grid items-center gap-14 pt-28 pb-20 sm:pt-32 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:pt-36 lg:pb-28">
+        <section id="top" className="relative isolate overflow-hidden bg-ink text-white">
+          <Backdrop slot={media.roofingHero} wash="heavy" drift />
+          <div className="container-px grid items-center gap-14 pb-20 pt-32 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20 lg:pb-28 lg:pt-44">
             <div>
-              <h1 className="animate-fade-up font-display text-[clamp(2.6rem,6.4vw,4.6rem)] font-semibold leading-[0.98] tracking-[-0.03em] text-ink">
-                {r.hero.headline} <em className="font-medium italic text-accent">{r.hero.headlineEmphasis}</em>
+              <h1 className="animate-fade-up font-display text-[clamp(2.6rem,6vw,4.75rem)] leading-[1.04] tracking-[-0.02em]">
+                {r.hero.headline} {r.hero.headlineEmphasis}
               </h1>
-              <p className="animate-fade-up [animation-delay:80ms] mt-7 max-w-[34rem] text-lg leading-relaxed text-stone-600 sm:text-[1.15rem]">
+              <p className="animate-fade-up mt-7 max-w-[34rem] text-lg font-light leading-relaxed text-white/85 [animation-delay:80ms] sm:text-xl">
                 {r.hero.lead}
               </p>
-              <p className="animate-fade-up [animation-delay:120ms] mt-6 max-w-[34rem] border-l-2 border-accent pl-4 text-[1.02rem] font-medium leading-relaxed text-ink">
+              <p className="animate-fade-up mt-6 max-w-[34rem] border-l border-accent-300 pl-5 leading-relaxed text-white [animation-delay:120ms]">
                 {r.hero.offer}
               </p>
 
-              <div className="animate-fade-up [animation-delay:160ms] mt-9 flex flex-col gap-3 sm:flex-row">
-                <a href={r.hero.primaryCta.href} className="btn-primary">
-                  {r.hero.primaryCta.label}
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+              <div className="animate-fade-up mt-9 flex flex-col gap-3 [animation-delay:160ms] sm:flex-row">
+                <a href={r.hero.primaryCta.href} className="btn-cta">
+                  <Roll>
+                    {r.hero.primaryCta.label}
+                    <Arrow />
+                  </Roll>
                 </a>
-                <a href={r.hero.secondaryCta.href} className="btn-secondary">
-                  {r.hero.secondaryCta.label}
+                <a href={r.hero.secondaryCta.href} className="btn-ghost-onink">
+                  <Roll>{r.hero.secondaryCta.label}</Roll>
                 </a>
               </div>
 
-              <div className="animate-fade-up [animation-delay:240ms] mt-10 flex items-center gap-3.5">
-                <div className="flex -space-x-1" aria-hidden="true">
-                  {founders.map((p) => (
-                    <span
-                      key={p.initials}
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-ink font-display text-[0.8rem] font-semibold text-paper ring-2 ring-paper"
-                    >
-                      {p.initials}
-                    </span>
-                  ))}
-                </div>
-                <p className="text-[0.95rem] font-medium text-stone-600">{r.hero.note}</p>
-              </div>
+              <p className="animate-fade-up mt-10 text-sm text-white/65 [animation-delay:240ms]">{r.hero.note}</p>
             </div>
 
             <Reveal delay={120}>
-              <SampleLead />
+              <SampleLead tone="dark" />
             </Reveal>
           </div>
         </section>
@@ -152,14 +144,17 @@ export default function RoofingLeadsPage() {
               <SectionHead title={r.checks.headline} lead={r.checks.lead} />
               <p className="mt-6 max-w-md text-sm leading-relaxed text-stone-500">{r.checks.note}</p>
             </Reveal>
-            <ol className="divide-y divide-stone-200 border-y border-stone-200">
-              {r.checks.items.map((item, i) => (
-                <Reveal as="li" key={item} delay={i * 60} className="flex items-baseline gap-5 py-5">
-                  <span className="font-display text-xl font-bold tabular-nums text-accent">{i + 1}</span>
-                  <span className="text-[1.05rem] leading-snug text-ink">{item}</span>
-                </Reveal>
+            <Reveal className="flex flex-wrap content-start gap-3">
+              {r.checks.items.map((item) => (
+                <span
+                  key={item}
+                  className="inline-flex items-center gap-2.5 rounded-full border border-stone-300 bg-paper px-5 py-3 text-[1.02rem] leading-snug text-ink"
+                >
+                  <Check className="text-accent" />
+                  {item}
+                </span>
               ))}
-            </ol>
+            </Reveal>
           </div>
         </section>
 
@@ -169,18 +164,16 @@ export default function RoofingLeadsPage() {
             <Reveal>
               <SectionHead title={r.steps.headline} />
             </Reveal>
-            <ol className="mt-14 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-              {r.steps.items.map((step, i) => (
-                <Reveal as="li" key={step.title} delay={i * 100}>
-                  <div className="flex items-center gap-4">
-                    <span className="font-display text-5xl font-extrabold leading-none tabular-nums text-accent">{i + 1}</span>
-                    <span className="h-px flex-1 bg-stone-300" aria-hidden="true" />
-                  </div>
-                  <h3 className="mt-5 font-display text-xl font-bold text-ink">{step.title}</h3>
-                  <p className="mt-3 text-[0.98rem] leading-relaxed text-stone-600">{step.body}</p>
-                </Reveal>
-              ))}
-            </ol>
+            <Reveal className="mt-14">
+              <Deck
+                tone="light"
+                label={r.steps.headline}
+                cards={[
+                  ...r.steps.items.map((s) => ({ kind: "text" as const, title: s.title, body: s.body })),
+                  { kind: "photo" as const, image: media.roofing.image, caption: r.steps.photoCaption },
+                ]}
+              />
+            </Reveal>
           </div>
         </section>
 
@@ -195,11 +188,11 @@ export default function RoofingLeadsPage() {
                 <Reveal
                   key={col.title}
                   delay={i * 100}
-                  className={`rounded-xl2 border p-7 ${
-                    col.tone === "neutral" ? "border-ink bg-ink text-paper" : "border-stone-200 bg-paper shadow-card"
+                  className={`rounded-[2rem] border p-8 ${
+                    col.tone === "neutral" ? "border-ink bg-ink text-paper" : "border-stone-200 bg-paper"
                   }`}
                 >
-                  <h3 className={`font-display text-xl font-bold ${col.tone === "neutral" ? "text-paper" : "text-ink"}`}>
+                  <h3 className={`font-display text-2xl ${col.tone === "neutral" ? "text-paper" : "text-ink"}`}>
                     {col.title}
                   </h3>
                   <ul className="mt-5 space-y-3.5">
@@ -226,13 +219,13 @@ export default function RoofingLeadsPage() {
         {/* Process, not outcome */}
         <section id="promise" className="section pb-24 sm:pb-32">
           <div className="container-px">
-            <Reveal className="rounded-xl2 bg-ink px-6 py-12 text-paper sm:px-12 sm:py-14">
-              <h2 className="max-w-2xl font-display text-[1.9rem] font-bold leading-[1.08] sm:text-[2.4rem]">
+            <Reveal className="rounded-[2rem] bg-ink px-6 py-12 text-paper sm:px-14 sm:py-16">
+              <h2 className="h-card max-w-2xl">
                 {r.promise.headline}
               </h2>
               <p className="mt-5 max-w-2xl text-lg leading-relaxed text-stone-300">{r.promise.body}</p>
               <a href={r.promise.cta.href} className="btn-onink mt-8">
-                {r.promise.cta.label}
+                <Roll>{r.promise.cta.label}</Roll>
               </a>
             </Reveal>
           </div>
@@ -247,7 +240,7 @@ export default function RoofingLeadsPage() {
             <div className="divide-y divide-stone-300 border-y border-stone-300">
               {r.faq.items.map((item) => (
                 <details key={item.q} className="group py-1">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 font-display text-lg font-semibold text-ink [&::-webkit-details-marker]:hidden">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 font-display text-xl text-ink [&::-webkit-details-marker]:hidden">
                     {item.q}
                     <svg
                       width="18"
@@ -257,7 +250,7 @@ export default function RoofingLeadsPage() {
                       aria-hidden="true"
                       className="shrink-0 text-stone-500 transition-transform duration-200 group-open:rotate-45"
                     >
-                      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                     </svg>
                   </summary>
                   <p className="max-w-2xl pb-6 text-[1rem] leading-relaxed text-stone-600">{item.a}</p>

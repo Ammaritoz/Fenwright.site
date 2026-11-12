@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 import Cal, { getCalApi } from "@calcom/embed-react";
 import { site } from "@/config/site";
-import { SectionHead } from "@/components/SectionHead";
+import { media } from "@/config/media";
+import { Backdrop } from "@/components/Backdrop";
 
 /** `headline` and `subhead` override the homepage copy for another page's booking section. */
 export function BookCall({ headline, subhead }: { headline?: string; subhead?: string } = {}) {
@@ -21,8 +22,8 @@ export function BookCall({ headline, subhead }: { headline?: string; subhead?: s
         theme: "light",
         hideEventTypeDetails: false,
         cssVarsPerTheme: {
-          light: { "cal-brand": "#1F6B4E" },
-          dark: { "cal-brand": "#A7C9B6" },
+          light: { "cal-brand": "#07182A" },
+          dark: { "cal-brand": "#7FD1AE" },
         },
         layout: "month_view",
       });
@@ -30,11 +31,20 @@ export function BookCall({ headline, subhead }: { headline?: string; subhead?: s
   }, [embedJsUrl]);
 
   return (
-    <section id="book" className="section py-24 sm:py-32">
-      <div className="container-px">
-        <SectionHead size="lg" align="center" title={b.headline} lead={b.subhead} />
+    <section id="book" className="section bg-paper-alt pb-24 sm:pb-36">
+      {/* The headline sits on the picture; the calendar overlaps its lower edge. */}
+      <div className="relative isolate overflow-hidden bg-ink pb-56 pt-24 text-white sm:pb-64 sm:pt-36">
+        <Backdrop slot={media.closing} wash="heavy" fade={false} />
+        <div className="container-px">
+          <div className="mx-auto max-w-4xl text-center">
+            <h2 className="h-section">{b.headline}</h2>
+            <p className="mx-auto mt-6 max-w-xl text-lg font-light leading-relaxed text-white/80">{b.subhead}</p>
+          </div>
+        </div>
+      </div>
 
-        <div className="mx-auto mt-12 max-w-3xl overflow-hidden rounded-xl2 border border-stone-200 bg-paper shadow-card">
+      <div className="container-px relative -mt-40 sm:-mt-44">
+        <div className="mx-auto max-w-4xl overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-lift">
           <Cal
             calLink={calLink}
             calOrigin={calOrigin}

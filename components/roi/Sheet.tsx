@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
  */
 export function Sheet({ label, range, children }: { label: string; range?: string; children: ReactNode }) {
   return (
-    <figure className="break-inside-avoid rounded-[4px] border border-stone-200 bg-[#FBFAF7] shadow-lift print:shadow-none">
+    <figure className="break-inside-avoid rounded-2xl border border-stone-200 bg-paper-alt print:shadow-none">
       <figcaption className="flex items-baseline justify-between border-b border-stone-200 px-6 py-4 sm:px-7">
         <span className="font-display text-[1.05rem] font-semibold text-ink">{label}</span>
         {range && <span className="text-xs font-medium uppercase tracking-[0.12em] text-stone-500">{range}</span>}
@@ -28,7 +28,7 @@ export function SheetHeadline({ before, figure, after, note }: { before?: string
       {before && <p className="text-sm font-medium text-stone-600">{before}</p>}
       <p className="font-display text-[2.75rem] font-bold leading-none tabular-nums lining-nums text-ink sm:text-[3.25rem]">{figure}</p>
       <p className="mt-2 text-[0.95rem] leading-snug text-stone-600">{after}</p>
-      {note && <p className="mt-3 font-display text-[0.95rem] italic text-accent">{note}</p>}
+      {note && <p className="mt-3 text-[0.95rem] text-accent">{note}</p>}
     </div>
   );
 }

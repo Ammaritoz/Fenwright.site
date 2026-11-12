@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type Vapi from "@vapi-ai/web";
 import { site } from "@/config/site";
+import { Roll } from "@/components/Roll";
 
 /**
  * Talk to the voice receptionist from the browser: a Vapi web call, so no
@@ -147,11 +148,13 @@ export function VoiceCall({ enabled }: { enabled: boolean }) {
               disabled={busy}
               className="btn-primary disabled:cursor-wait disabled:opacity-70"
             >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="2" />
-                <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-              {busy ? v.connectingLabel : v.startLabel}
+              <Roll>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="2" />
+                  <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                {busy ? v.connectingLabel : v.startLabel}
+              </Roll>
             </button>
           )}
 

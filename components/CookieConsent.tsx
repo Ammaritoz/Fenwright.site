@@ -5,6 +5,7 @@ import Script from "next/script";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { site } from "@/config/site";
+import { Roll } from "@/components/Roll";
 
 type Consent = "accepted" | "declined" | null;
 
@@ -75,14 +76,14 @@ export function CookieConsent() {
                 onClick={() => choose("declined")}
                 className="btn-secondary px-4 py-2 text-sm"
               >
-                {c.declineLabel}
+                <Roll>{c.declineLabel}</Roll>
               </button>
               <button
                 type="button"
                 onClick={() => choose("accepted")}
                 className="btn-primary px-4 py-2 text-sm"
               >
-                {c.acceptLabel}
+                <Roll>{c.acceptLabel}</Roll>
               </button>
             </div>
           </div>

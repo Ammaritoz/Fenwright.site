@@ -31,7 +31,6 @@ export const site = {
     links: [
       { label: "What we do", href: "/#services" },
       { label: "Leads", href: "/#leads" },
-      { label: "Demo", href: "/#demo" },
       { label: "How it works", href: "/#how-it-works" },
       { label: "About", href: "/#about" },
     ],
@@ -42,16 +41,26 @@ export const site = {
     // The headline renders `headline` then `headlineEmphasis` in italic.
     headline: "More jobs in.",
     headlineEmphasis: "Fewer let slip.",
+    // Short line under the hero headline.
+    lede: "Exclusive local leads, and the systems that win them.",
+    // Longer statement: the page's opening paragraph and the meta description.
     subhead:
       "Fenwright sends you exclusive enquiries from customers in your area, one business per area, then builds the systems that answer, follow up and win them. Use one, or both.",
     primaryCta: { label: "Book a call", href: "#book" },
     secondaryCta: { label: "How the leads work", href: "#leads" },
-    note: "Ammar and Billal. Two people, no agency retainers, no jargon.",
+    // The strip along the bottom of the hero. Terms of the offer only: no
+    // results or client numbers until there are real ones.
+    facts: [
+      { value: "One business per area", label: "Every enquiry is yours alone" },
+      { value: "Live within 72 hours", label: "From payment to your first leads" },
+      { value: "Packs of 10, 30 or 50", label: "Prepaid. No retainer, no contract" },
+    ],
     // The "example week" sheet beside the headline. Illustrative, not a client:
     // keep the label saying so.
     ledger: {
       label: "An example week",
       range: "Mon to Fri",
+      columns: { before: "What happens now", after: "With Fenwright" },
       entries: [
         {
           day: "Mon",
@@ -88,8 +97,12 @@ export const site = {
     },
   },
 
+  statement: {
+    kicker: "What we do",
+  },
+
   problem: {
-    kicker: "Where the day goes",
+    kicker: "Why it matters",
     headline: "Shared leads start a race. Slow replies lose it.",
     body: "Many lead sites send the same enquiry to several firms at once, so you pay for a job you then have to race for. Even an enquiry that is yours alone goes cold fast. Two things decide how much work you win: where your enquiries come from, and how quickly they get answered. Speed matters more than most people think:",
     stats: [
@@ -139,7 +152,7 @@ export const site = {
       liveLabel: "Live with Erin",
       endLabel: "End call",
       endedLabel: "Call ended. That is what your callers would get.",
-      endedCta: { label: "Book a call", href: "#book" },
+      endedCta: { label: "Book a call", href: "/#book" },
       micError: "We could not use a microphone. Check one is connected and allowed for this site, then try again.",
       genericError: "The call could not connect. Please try again in a moment.",
     },
@@ -199,6 +212,8 @@ export const site = {
   howItWorks: {
     kicker: "How it works",
     headline: "One short call. A clear plan. Then we switch it on.",
+    // Caption on the photo card that opens the steps deck.
+    photoCaption: "Built around how you already work.",
     steps: [
       {
         title: "Book a call",
@@ -238,15 +253,17 @@ export const site = {
         body: "Call within 10 minutes and they are far easier to win. We send a weekly update and remind you before a pack runs out.",
       },
     ],
+    // Caption on the photo card at the end of the steps deck.
+    photoCaption: "Every enquiry checked before it reaches you.",
     cta: { label: "Roofer? See how it works for you", href: "/roofing-leads" },
     note: "Another trade? Tell us what you do on a call and we will say honestly whether we can run it for you.",
   },
 
   about: {
-    kicker: "Who you'll work with",
-    headline: "Two people, fully dedicated to your business.",
+    kicker: "Leadership",
+    headline: "The people you will work with.",
     subhead:
-      "From the first call to the day your systems go live, you're working directly with the two of us, not passed between departments.",
+      "From the first call to the day your systems go live, you work directly with the people who design and build them.",
     // Shared business WhatsApp in E.164. Empty string hides the buttons.
     whatsapp: "+353899406583",
     whatsappPreset: "Hi Fenwright, I'd like to talk about my business.",
@@ -277,6 +294,8 @@ export const site = {
     // add-on.
     groups: [
       {
+        kicker: "Lead generation",
+        image: "enquiries",
         title: "Get more enquiries",
         lead: "Exclusive leads from our own ads and quote forms.",
         bullets: [
@@ -295,6 +314,8 @@ export const site = {
         ],
       },
       {
+        kicker: "Systems",
+        image: "systems",
         title: "Win more of them",
         lead: "Systems that answer, follow up and bring customers back.",
         bullets: [
@@ -348,7 +369,10 @@ export const site = {
       "Fenwright sends small businesses exclusive local enquiries, then builds the systems that answer, follow up and win them.",
     email: "contact@fenwright.ie",
     // Extra footer links after the nav ones.
-    links: [{ label: "For roofers", href: "/roofing-leads" }],
+    links: [
+      { label: "For roofers", href: "/roofing-leads" },
+      { label: "Live demo", href: "/demo" },
+    ],
     copyright: `© ${new Date().getFullYear()} Fenwright. All rights reserved.`,
   },
 

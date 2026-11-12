@@ -17,7 +17,7 @@ export function Footer() {
     .join("  ·  ");
 
   return (
-    <footer className="bg-ink text-paper">
+    <footer className="bg-ink-900 text-paper">
       <div className="container-px flex flex-col gap-8 py-14 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-sm">
           <Logo variant="paper" />

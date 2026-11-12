@@ -1,55 +1,49 @@
 import { site } from "@/config/site";
-import { WeekLedger } from "@/components/WeekLedger";
-import { Reveal } from "@/components/Reveal";
+import { media } from "@/config/media";
+import { Backdrop } from "@/components/Backdrop";
+import { Arrow } from "@/components/Arrow";
+import { Roll } from "@/components/Roll";
 
 export function Hero() {
   const h = site.hero;
-  const founders = site.about.people;
   return (
-    <section id="top" className="relative overflow-hidden">
-      <div className="container-px grid items-center gap-14 pt-28 pb-20 sm:pt-32 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:pt-36 lg:pb-28">
-        <div>
-          <h1 className="animate-fade-up font-display text-[clamp(3rem,8.5vw,6rem)] font-semibold leading-[0.95] tracking-[-0.035em] text-ink">
-            {h.headline} <em className="font-medium italic text-accent">{h.headlineEmphasis}</em>
-          </h1>
+    <section id="top" className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-ink text-white">
+      <Backdrop slot={media.hero} drift />
 
-          <p className="animate-fade-up [animation-delay:80ms] mt-7 max-w-[34rem] text-lg leading-relaxed text-stone-600 sm:text-[1.2rem]">
-            {h.subhead}
-          </p>
+      <div className="container-px flex flex-1 flex-col items-center justify-center pb-16 pt-32 text-center">
+        <h1 className="h-display animate-fade-up max-w-5xl">
+          <span className="block">{h.headline}</span>
+          <span className="block">{h.headlineEmphasis}</span>
+        </h1>
 
-          <div className="animate-fade-up [animation-delay:160ms] mt-9 flex flex-col gap-3 sm:flex-row">
-            <a href={h.primaryCta.href} className="btn-primary">
+        <p className="animate-fade-up mt-8 max-w-2xl text-xl font-light leading-snug text-white/85 [animation-delay:90ms] sm:text-2xl">
+          {h.lede}
+        </p>
+
+        <div className="animate-fade-up mt-10 flex flex-col gap-3 [animation-delay:180ms] sm:flex-row">
+          <a href={h.primaryCta.href} className="btn-cta">
+            <Roll>
               {h.primaryCta.label}
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </a>
-            <a href={h.secondaryCta.href} className="btn-secondary">
-              {h.secondaryCta.label}
-            </a>
-          </div>
-
-          <div className="animate-fade-up [animation-delay:240ms] mt-10 flex items-center gap-3.5">
-            <div className="flex -space-x-1" aria-hidden="true">
-              {founders.map((p) => (
-                <span
-                  key={p.initials}
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-ink font-display text-[0.8rem] font-semibold text-paper ring-2 ring-paper"
-                >
-                  {p.initials}
-                </span>
-              ))}
-            </div>
-            <p className="text-[0.95rem] font-medium text-stone-600">{h.note}</p>
-          </div>
+              <Arrow />
+            </Roll>
+          </a>
+          <a href={h.secondaryCta.href} className="btn-ghost-onink">
+            <Roll>{h.secondaryCta.label}</Roll>
+          </a>
         </div>
-
-        {/* Reveal, not a load animation: on phones the sheet sits below the
-            fold, and its strike-throughs should play when it is seen. */}
-        <Reveal delay={120}>
-          <WeekLedger />
-        </Reveal>
       </div>
+
+      <dl className="container-px animate-fade-up grid border-t border-white/20 [animation-delay:270ms] sm:grid-cols-3">
+        {h.facts.map((f, i) => (
+          <div
+            key={f.value}
+            className={`py-5 sm:py-7 ${i > 0 ? "border-t border-white/20 sm:border-l sm:border-t-0 sm:pl-8" : ""}`}
+          >
+            <dt className="font-display text-xl sm:text-2xl">{f.value}</dt>
+            <dd className="mt-1 text-sm text-white/70">{f.label}</dd>
+          </div>
+        ))}
+      </dl>
     </section>
   );
 }

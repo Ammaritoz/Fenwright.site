@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { RoiCalculator } from "@/components/roi/RoiCalculator";
 import { roi } from "@/config/roi";
 import { parseRoiParams } from "@/lib/roi";
+import { Roll } from "@/components/Roll";
 
 /**
  * The ROI calculator we share on pipeline calls.
@@ -36,7 +37,7 @@ export default function RoiPage({
           <div className="container-px">
             <div className="max-w-2xl">
               <h1 className="font-display text-[2.4rem] font-bold leading-[1.02] text-ink sm:text-[3.4rem]">
-                {roi.intro.headline} <em className="font-semibold text-accent">{roi.intro.headlineEmphasis}</em>
+                {roi.intro.headline} {roi.intro.headlineEmphasis}
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-relaxed text-stone-600 print:hidden">{roi.intro.lead}</p>
             </div>
@@ -50,8 +51,8 @@ export default function RoiPage({
                 {roi.cta.headline}
               </h2>
               <p className="mt-4 max-w-xl leading-relaxed text-stone-300">{roi.cta.body}</p>
-              <a href={roi.cta.href} className="btn-onink mt-7">
-                {roi.cta.label}
+              <a href={roi.cta.href} className="btn-cta mt-7">
+                <Roll>{roi.cta.label}</Roll>
               </a>
             </div>
           </div>

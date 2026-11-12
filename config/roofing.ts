@@ -79,6 +79,8 @@ export const roofing = {
   },
 
   steps: {
+    // Caption on the photo card that closes the deck.
+    photoCaption: "Homeowners in your area, asking for a quote.",
     headline: "How it starts",
     items: [
       {

@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { site } from "@/config/site";
 import { SectionHead } from "@/components/SectionHead";
 import { VoiceCall } from "@/components/VoiceCall";
+import { Roll } from "@/components/Roll";
 
 const PhoneField = dynamic(
   () => import("@/components/PhoneField").then((m) => m.PhoneField),
@@ -258,7 +259,7 @@ export function Demo({ voiceEnabled = false }: { voiceEnabled?: boolean }) {
               disabled={busy}
               className="btn-primary mt-5 w-full disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {busy ? "Thinking..." : phase === "done" ? d.regenerateLabel : d.generateLabel}
+              <Roll>{busy ? "Thinking..." : phase === "done" ? d.regenerateLabel : d.generateLabel}</Roll>
             </button>
 
             {error && (
@@ -350,7 +351,7 @@ export function Demo({ voiceEnabled = false }: { voiceEnabled?: boolean }) {
                       disabled={smsState === "sending"}
                       className="btn-primary whitespace-nowrap disabled:opacity-70"
                     >
-                      {smsState === "sending" ? "Sending..." : d.sms.sendLabel}
+                      <Roll>{smsState === "sending" ? "Sending..." : d.sms.sendLabel}</Roll>
                     </button>
                   </div>
 

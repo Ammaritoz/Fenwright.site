@@ -4,6 +4,7 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { site } from "@/config/site";
 import { SectionHead } from "@/components/SectionHead";
+import { Roll } from "@/components/Roll";
 
 const PhoneField = dynamic(
   () => import("@/components/PhoneField").then((m) => m.PhoneField),
@@ -62,17 +63,17 @@ export function ContactForm() {
   }
 
   return (
-    <section id="contact" className="section bg-paper-alt py-24 sm:py-32">
+    <section id="contact" className="section bg-paper-alt pb-24 sm:pb-36">
       <div className="container-px">
-        <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-2 lg:items-center">
+        <div className="mx-auto grid max-w-6xl gap-10 border-t border-stone-300 pt-16 lg:grid-cols-2 lg:items-center lg:gap-20">
           <div>
             <SectionHead size="lg" title={c.headline} lead={c.subhead} />
-            <p className="mt-7 text-[0.95rem] font-semibold text-accent-700">
+            <p className="mt-7 text-[0.95rem] font-medium text-accent">
               {c.note}
             </p>
           </div>
 
-          <div className="rounded-xl2 border border-stone-200 bg-paper p-6 shadow-card sm:p-8">
+          <div className="rounded-[2rem] border border-stone-200 bg-paper p-6 sm:p-10">
             {state === "done" ? (
               <div className="py-6 text-center">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent text-paper">
@@ -145,7 +146,7 @@ export function ContactForm() {
                   disabled={state === "sending"}
                   className="btn-primary mt-4 w-full disabled:opacity-70"
                 >
-                  {state === "sending" ? "Sending..." : c.submitLabel}
+                  <Roll>{state === "sending" ? "Sending..." : c.submitLabel}</Roll>
                 </button>
 
                 {error && (

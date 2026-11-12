@@ -1,30 +1,35 @@
 import { site } from "@/config/site";
-import { SectionHead } from "@/components/SectionHead";
+import { media } from "@/config/media";
 import { Reveal } from "@/components/Reveal";
+import { Arrow } from "@/components/Arrow";
+import { Roll } from "@/components/Roll";
+import { Deck, type DeckCard } from "@/components/Deck";
 
 export function HowItWorks() {
   const h = site.howItWorks;
+  const cards: DeckCard[] = [
+    { kind: "photo", image: media.process.image, caption: h.photoCaption },
+    ...h.steps.map((s) => ({ kind: "text" as const, title: s.title, body: s.body })),
+  ];
   return (
-    <section id="how-it-works" className="section py-24 sm:py-32">
+    <section id="how-it-works" className="section bg-paper-alt py-24 text-ink sm:py-36">
       <div className="container-px">
-        <Reveal>
-          <SectionHead title={h.headline} />
+        <Reveal className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+          <div className="max-w-2xl">
+            <p className="kicker text-accent">{h.kicker}</p>
+            <h2 className="h-section mt-6">{h.headline}</h2>
+          </div>
+          <a href={site.nav.cta.href} className="btn-cta !border-ink shrink-0 self-start lg:self-auto">
+            <Roll>
+              {site.nav.cta.label}
+              <Arrow />
+            </Roll>
+          </a>
         </Reveal>
 
-        <ol className="mt-16 grid gap-x-8 gap-y-12 md:grid-cols-3">
-          {h.steps.map((step, i) => (
-            <Reveal as="li" key={i} delay={i * 110} className="relative">
-              <div className="flex items-center gap-4">
-                <span className="font-display text-6xl font-extrabold leading-none tabular-nums text-accent">
-                  {i + 1}
-                </span>
-                <span className="h-px flex-1 bg-stone-200" aria-hidden="true" />
-              </div>
-              <h3 className="mt-6 font-display text-xl font-bold text-ink">{step.title}</h3>
-              <p className="mt-3 text-[0.98rem] leading-relaxed text-stone-600">{step.body}</p>
-            </Reveal>
-          ))}
-        </ol>
+        <Reveal className="mt-14 sm:mt-16">
+          <Deck cards={cards} tone="light" label={h.headline} />
+        </Reveal>
       </div>
     </section>
   );

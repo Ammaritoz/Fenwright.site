@@ -11,8 +11,8 @@ type Props = {
 };
 
 /**
- * A plain, confident section headline with an optional lead. No eyebrows, no
- * numbered markers, no rules. Weight and size carry the hierarchy.
+ * A plain section headline with an optional lead. Set at regular weight: size
+ * carries the hierarchy.
  */
 export function SectionHead({
   title,
@@ -26,11 +26,11 @@ export function SectionHead({
   const center = align === "center";
   const headSize =
     size === "lg"
-      ? "text-[2.4rem] leading-[1.02] sm:text-[3.4rem]"
-      : "text-[2rem] leading-[1.05] sm:text-[2.75rem]";
+      ? "text-[2.4rem] leading-[1.06] sm:text-[3.5rem]"
+      : "text-[2rem] leading-[1.08] sm:text-[2.75rem]";
   return (
     <div className={`${center ? "mx-auto max-w-2xl text-center" : "max-w-2xl"} ${className}`}>
-      <h2 className={`font-display font-bold ${headSize} ${dark ? "text-paper" : "text-ink"}`}>
+      <h2 className={`font-display font-normal tracking-[-0.015em] ${headSize} ${dark ? "text-paper" : "text-ink"}`}>
         {title}
       </h2>
       {lead && (

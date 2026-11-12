@@ -5,6 +5,7 @@ import { CURRENCIES, roi } from "@/config/roi";
 import { serialiseRoiState, type RoiMode, type RoiState } from "@/lib/roi";
 import { MissedCallsInputs, MissedCallsSheet } from "@/components/roi/MissedCallsMode";
 import { LeadPacksInputs, LeadPacksSheet, LeadPacksTable } from "@/components/roi/LeadPacksMode";
+import { Roll } from "@/components/Roll";
 
 const MODES: RoiMode[] = ["calls", "leads"];
 
@@ -94,7 +95,7 @@ export function RoiCalculator({ initial }: { initial: RoiState }) {
           {leads ? <LeadPacksSheet state={state} /> : <MissedCallsSheet state={state} />}
           <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 print:hidden">
             <button type="button" onClick={copyLink} className="btn-secondary px-5 py-2.5 text-sm">
-              {copied ? roi.share.copiedLabel : roi.share.copyLabel}
+              <Roll>{copied ? roi.share.copiedLabel : roi.share.copyLabel}</Roll>
             </button>
             <span className="text-xs text-stone-500" aria-live="polite">
               {roi.share.note}

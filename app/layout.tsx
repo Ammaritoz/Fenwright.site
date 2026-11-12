@@ -1,26 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Hanken_Grotesk } from "next/font/google";
+import { Newsreader, IBM_Plex_Sans } from "next/font/google";
 import { site } from "@/config/site";
 import { CookieConsent } from "@/components/CookieConsent";
 import "./globals.css";
 
-// Display: classical serif to match the Fenwright wordmark. Editorial,
-// established-firm feel; deliberately not a tech-startup grotesque.
-const display = Fraunces({
+// Display: a text serif set at regular weight, large. The size carries the
+// hierarchy, not the weight, the way institutional firms set their headlines.
+const display = Newsreader({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
-  weight: ["500", "600", "700"],
-  // Italic carries the hero's emphasis and the ledger's written-in fixes.
   style: ["normal", "italic"],
+  axes: ["opsz"],
 });
 
-// Body/UI: clean, friendly humanist grotesk. Highly legible at text sizes.
-const sans = Hanken_Grotesk({
+// Body/UI: a neutral engineering sans with a true light weight for large text.
+const sans = IBM_Plex_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -67,7 +66,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1A1713",
+  themeColor: "#07182A",
   width: "device-width",
   initialScale: 1,
 };

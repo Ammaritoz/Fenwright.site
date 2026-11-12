@@ -4,13 +4,15 @@
 
 @layer base {
   :root {
-    --font-display: "Fraunces", Georgia, serif;
-    --font-sans: "Hanken Grotesk", system-ui, sans-serif;
+    /* Spring with a slight overshoot, for the pill hover roll. */
+    --ease-spring: linear(0, 0.009 0.9%, 0.033 1.8%, 0.129 3.8%, 0.676 11.3%, 0.89 14.9%, 1.03 18.5%, 1.075 20.4%, 1.102 22.3%, 1.115 24.7%, 1.111 27.4%, 1.016 39.7%, 0.989 47.4%, 1.001 71.7%, 1);
   }
 
   html {
     scroll-behavior: smooth;
-    scroll-padding-top: 5.5rem;
+    /* No offset: every linked section has enough top padding to sit under
+       the fixed nav, so a link lands exactly on the section edge. */
+    scroll-padding-top: 0;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -27,7 +29,7 @@
   }
 
   body {
-    font-family: var(--font-sans);
+    font-family: var(--font-sans), system-ui, sans-serif;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
@@ -36,10 +38,22 @@
   h2,
   h3,
   h4 {
-    font-family: var(--font-display);
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    font-family: var(--font-display), Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.012em;
     text-wrap: balance;
+  }
+
+  /* Display type is never bold: size carries the hierarchy. These beat the
+     font-bold / font-semibold utilities still on older components, so every
+     page picks the rule up without each heading being touched. */
+  h1.font-display,
+  h2.font-display {
+    font-weight: 400;
+  }
+  h3.font-display,
+  h4.font-display {
+    font-weight: 500;
   }
 
   p {
@@ -47,65 +61,126 @@
   }
 
   :focus-visible {
-    outline: 2.5px solid #1F6B4E;
-    outline-offset: 2px;
-    border-radius: 5px;
+    outline: 2px solid #1F6B4E;
+    outline-offset: 3px;
+    border-radius: 4px;
   }
 
   .bg-ink :focus-visible,
+  .bg-ink-700 :focus-visible,
   .bg-ink-800 :focus-visible,
   .bg-ink-900 :focus-visible {
-    outline-color: #A7C9B6;
+    outline-color: #7FD1AE;
   }
 
   ::selection {
-    background: #1A1713;
-    color: #F7F5F0;
+    background: #7FD1AE;
+    color: #07182A;
   }
 }
 
 @layer components {
   .container-px {
-    @apply mx-auto w-full max-w-6xl px-5 sm:px-7 lg:px-8;
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12;
   }
 
-  /* --- Buttons --- */
+  /* --- Type scale --- */
+  .h-display {
+    @apply font-display font-normal leading-[1.04] tracking-[-0.02em];
+    font-size: clamp(2.75rem, 7.2vw, 5.75rem);
+  }
+  .h-section {
+    @apply font-display font-normal leading-[1.08] tracking-[-0.015em];
+    font-size: clamp(2.1rem, 4.6vw, 4rem);
+  }
+  .h-card {
+    @apply font-display font-normal leading-[1.12] tracking-[-0.01em];
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+  }
+  /* The large light-weight statement paragraph. */
+  .lead-xl {
+    @apply font-light leading-[1.28] tracking-[-0.01em];
+    font-size: clamp(1.4rem, 2.7vw, 2.25rem);
+  }
+  .kicker {
+    @apply text-[0.8rem] font-medium uppercase tracking-[0.16em];
+  }
+
+  /* --- Buttons: small, weighty pills --- */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[0.95rem] font-semibold transition duration-200 focus-visible:outline-2 focus-visible:outline-offset-2;
+    @apply inline-flex items-center justify-center gap-2 overflow-hidden rounded-full px-6 py-3 text-sm font-semibold transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2;
   }
 
-  /* Primary: solid ink pill with paper text. Quiet, confident. */
-  .btn-primary {
-    @apply btn bg-ink text-paper shadow-tight hover:bg-ink-700 hover:-translate-y-0.5 active:translate-y-0;
+  /* --- Pill hover roll (components/Roll.tsx) ---
+     Two copies of the label stacked in a clip. On hover the visible one rolls
+     up and out while the copy rises from below, on a spring that overshoots
+     about 11% and settles. Each copy carries the vertical padding (pulled
+     back out with a negative margin) so it travels the full height of the
+     pill, not just the line of text. */
+  .roll {
+    --roll-pad: 0.75rem;
+    position: relative;
+    display: inline-flex;
+    overflow: hidden;
+    margin-block: calc(var(--roll-pad) * -1);
+  }
+  .roll > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-block: var(--roll-pad);
+    transition: transform 0.8s var(--ease-spring);
+  }
+  .roll > span + span {
+    position: absolute;
+    inset: 0;
+    transform: translateY(100%);
+  }
+  /* Every button variant @applies .btn, but only its own class lands on the
+     element, so the hover rules have to name each variant. */
+  :is(.btn, .btn-primary, .btn-secondary, .btn-onink, .btn-ghost-onink, .btn-cta):not(:disabled):hover .roll > span:first-child,
+  :is(.btn, .btn-primary, .btn-secondary, .btn-onink, .btn-ghost-onink, .btn-cta):focus-visible .roll > span:first-child {
+    transform: translateY(-100%);
+  }
+  :is(.btn, .btn-primary, .btn-secondary, .btn-onink, .btn-ghost-onink, .btn-cta):not(:disabled):hover .roll > span + span,
+  :is(.btn, .btn-primary, .btn-secondary, .btn-onink, .btn-ghost-onink, .btn-cta):focus-visible .roll > span + span {
+    transform: translateY(0);
   }
 
-  /* Secondary on light: ink outline that fills on hover. (unchanged) */
-  .btn-secondary {
-    @apply btn border-2 border-ink/15 bg-transparent text-ink hover:border-ink hover:bg-ink hover:text-paper;
-  }
-
-  /* On the dark ink surface: paper pill with ink text. */
-  .btn-onink {
-    @apply btn bg-paper text-ink shadow-soft hover:bg-white hover:-translate-y-0.5 active:translate-y-0;
-  }
-
+  /* Every pill: navy at rest, white on hover. The thin white border keeps a
+     navy pill visible on the navy sections. All four names do the same
+     thing; they stay separate so existing markup keeps working. */
+  .btn-primary,
+  .btn-secondary,
+  .btn-onink,
   .btn-ghost-onink {
-    @apply btn border-2 border-white/20 bg-transparent text-paper hover:border-white/60 hover:bg-white/5;
+    @apply btn border border-white/30 bg-ink text-white hover:border-ink hover:bg-white hover:text-ink;
+  }
+
+  /* "Book a call" is reversed so it stands out: white at rest, navy on hover. */
+  .btn-cta {
+    @apply btn border border-white bg-white text-ink hover:bg-ink hover:text-white;
+  }
+
+  /* A disabled pill (e.g. "Sending...") stays navy. */
+  .btn-primary:disabled:hover {
+    @apply border-white/30 bg-ink text-white;
   }
 
   .section {
-    @apply scroll-mt-24;
+    @apply scroll-mt-0;
   }
 }
 
 /* Hero ledger strike-through. A background line rather than text-decoration so
    it can be drawn, and an inline box so it carries across wrapped lines. */
 .ledger-strike {
-  background-image: linear-gradient(#1F6B4E, #1F6B4E);
+  background-image: linear-gradient(#8A97AA, #8A97AA);
   background-repeat: no-repeat;
   background-position: 0 58%;
-  background-size: 100% 1.5px;
-  color: #6E665A;
+  background-size: 100% 1px;
+  color: #8A97AA;
   animation: ledger-strike 0.55s cubic-bezier(0.65, 0, 0.35, 1) both;
   animation-delay: var(--strike-delay, 0ms);
 }
@@ -121,12 +196,12 @@
 }
 @keyframes ledger-strike {
   from {
-    background-size: 0% 1.5px;
-    color: #1A1713;
+    background-size: 0% 1px;
+    color: #07182A;
   }
   to {
-    background-size: 100% 1.5px;
-    color: #6E665A;
+    background-size: 100% 1px;
+    color: #8A97AA;
   }
 }
 
@@ -152,7 +227,7 @@
   display: flex;
   align-items: center;
   width: 100%;
-  border: 1px solid #DAD4C8;
+  border: 1px solid #B8C2D0;
   background: #fff;
   border-radius: 0.75rem;
   padding: 0 0.5rem 0 0.75rem;
@@ -177,7 +252,7 @@
   align-items: center;
   margin-right: 0.5rem;
   padding-right: 0.5rem;
-  border-right: 1px solid #EAE6DE;
+  border-right: 1px solid #E9EDF2;
 }
 .fw-phone .PhoneInputCountryIcon {
   width: 1.5em;
@@ -189,7 +264,7 @@
   background: transparent;
 }
 .fw-phone .PhoneInputCountrySelectArrow {
-  color: #6E665A;
+  color: #5F6C80;
   opacity: 1;
   margin-left: 0.35rem;
 }
@@ -199,11 +274,11 @@
   background: transparent;
   padding: 0.75rem 0.25rem;
   font-size: 0.875rem;
-  color: #1A1713;
+  color: #07182A;
   outline: none;
 }
 .fw-phone .PhoneInputInput::placeholder {
-  color: #6E665A;
+  color: #5F6C80;
 }
 
 /* --- Safe scroll reveal ---

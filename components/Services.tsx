@@ -1,6 +1,7 @@
 import { site } from "@/config/site";
 import { media, type MediaKey, type MediaSlot } from "@/config/media";
 import { Reveal } from "@/components/Reveal";
+import { StackPins } from "@/components/StackPins";
 
 /**
  * The offer in two equal halves: leads in, and the systems that win them. Two
@@ -15,17 +16,18 @@ export function Services() {
           <h2 className="h-section">{w.headline}</h2>
         </Reveal>
 
-        <div className="mt-16 space-y-6 sm:mt-20">
+        <StackPins containerId="services-stack" />
+        <div id="services-stack" className="mt-16 space-y-6 sm:mt-20">
           {w.groups.map((g, i) => {
             const slot: MediaSlot = media[g.image as MediaKey];
             const flip = i % 2 === 1;
             return (
               <article
                 key={g.title}
-                // Each panel pins a little lower than the last, so the one
-                // before stays visible as a lip behind it.
+                // Sticky on every screen size; StackPins sets each panel's top.
+                data-stack=""
                 style={{ top: `calc(5.5rem + ${i * 1.5}rem)` }}
-                className={`overflow-hidden rounded-[2rem] lg:sticky ${flip ? "bg-ink-600" : "bg-ink-700"}`}
+                className={`sticky overflow-hidden rounded-[2rem] ${flip ? "bg-ink-600" : "bg-ink-700"}`}
               >
                 <div className="grid items-stretch gap-10 p-6 sm:p-10 lg:grid-cols-2 lg:gap-16 lg:p-14">
                   <div className={flip ? "lg:order-2" : ""}>

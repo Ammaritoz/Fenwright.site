@@ -398,18 +398,17 @@ export const site = {
   // fields (address, registrationNumber, vatNumber) are omitted cleanly by
   // both renderers, not shown as placeholders.
   legal: {
-    // Not yet an incorporated company: trading as a sole trader/unregistered
-    // business name. If you incorporate later, switch this to the company
-    // name and fill registrationNumber below.
-    entityName: "Ammar Bakhet, trading as Fenwright",
+    // Incorporated 2026-11-10 as FEN WRIGHT OPERATIONS LIMITED (CRO no. 830234);
+    // "Fenwright" is its trading name.
+    entityName: "FEN WRIGHT OPERATIONS LIMITED, trading as Fenwright",
     tradingName: "Fenwright",
-    // Deliberately blank (owner's call, confirmed again 2026-11-08): the postal
-    // address goes in the US cold emails only (US_POSTAL_ADDRESS in
-    // outreach/.env), never on the site. Footer + /privacy render cleanly
-    // with "".
+    // Deliberately blank (owner's call, 2026-11-12): the registered office is
+    // the owner's home, so it stays off the site until a paid registered-office
+    // address exists. The US cold emails carry a postal address for CAN-SPAM.
+    // Footer + /privacy render cleanly with "".
     address: "",
-    // Leave "" until incorporated with the CRO (not applicable to sole traders).
-    registrationNumber: "",
+    // CRO company number.
+    registrationNumber: "830234",
     // VAT number if VAT-registered; leave "" otherwise.
     vatNumber: "",
     contactEmail: "contact@fenwright.ie",

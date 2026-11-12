@@ -10,7 +10,7 @@ export function Footer() {
   const imprint = [
     l.entityName,
     l.address,
-    l.registrationNumber ? `Company no. ${l.registrationNumber}` : "",
+    l.registrationNumber ? `Registered in Ireland, no. ${l.registrationNumber}` : "",
     l.vatNumber ? `VAT ${l.vatNumber}` : "",
   ]
     .filter(Boolean)

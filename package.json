@@ -2,7 +2,7 @@
   "name": "fenwright-site",
   "version": "1.0.0",
   "private": true,
-  "description": "Marketing website for Fenwright, an AI speed-to-lead receptionist studio.",
+  "description": "Marketing website for Fenwright, CRA vulnerability response for makers of connected products.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,7 +11,6 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "voice:sync": "tsx --env-file=.env.local scripts/sync-assistant.ts",
     "portal:passcode": "tsx scripts/portal-passcode.ts",
     "airtable:check": "tsx --env-file=.env.local scripts/airtable-check.ts"
   },

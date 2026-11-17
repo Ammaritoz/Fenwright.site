@@ -47,7 +47,7 @@ export function DocShell({ docType, subtitle, clientName, meta = [], children }:
                 {site.brand.wordmark}
               </p>
               <p className="mt-2 text-[0.7rem] uppercase tracking-[0.18em] text-stone-400">
-                Consulting and systems
+                CRA vulnerability response
               </p>
             </div>
             <div className="text-right">

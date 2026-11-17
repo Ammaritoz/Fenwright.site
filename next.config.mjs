@@ -34,24 +34,15 @@ const CAL = "https://app.cal.com";
 const GTAG = "https://www.googletagmanager.com";
 const GA = "https://www.google-analytics.com";
 
-// Voice demo (components/VoiceCall.tsx): our server creates the call, then the
-// browser joins it over Daily (WebRTC). Daily loads its call engine script from
-// c.daily.co and signals over its own https/wss hosts. The browser never talks
-// to api.vapi.ai, so it is deliberately not listed.
-const DAILY_SCRIPT = "https://c.daily.co";
-const DAILY = ["https://*.daily.co", "wss://*.daily.co"];
-
 const scriptSrc = [
   "'self'",
   "'unsafe-inline'",
   CAL,
   GTAG,
-  DAILY_SCRIPT,
   ...(isDev ? ["'unsafe-eval'"] : []),
 ];
 const connectSrc = [
   "'self'",
-  ...DAILY,
   CAL,
   "https://*.cal.com",
   GTAG,
@@ -91,8 +82,7 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
     key: "Permissions-Policy",
-    // Microphone is allowed for this origin only, for the voice demo call.
-    value: "camera=(), microphone=(self), geolocation=(), browsing-topics=()",
+    value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
   },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "Content-Security-Policy", value: csp },
@@ -102,6 +92,15 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Pages from the roofing and voice-receptionist business, closed in
+  // November 2026. Old email signatures and links still point at them.
+  async redirects() {
+    return ["/roofing-leads", "/roi", "/demo"].map((source) => ({
+      source,
+      destination: "/",
+      permanent: true,
+    }));
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

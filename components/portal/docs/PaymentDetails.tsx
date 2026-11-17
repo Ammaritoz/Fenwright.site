@@ -75,7 +75,7 @@ export function PaymentDetails({ client, payload }: { client: Client; payload: P
         <DocSection title="Card">
           <DocText>
             Prefer to pay by card? Use the secure Stripe link below. Card payments clear
-            immediately, which is the fastest way to release a build slot.
+            immediately, which is the fastest way to start onboarding.
           </DocText>
           <a
             href={p.stripeLink}

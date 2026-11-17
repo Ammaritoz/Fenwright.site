@@ -5,35 +5,37 @@ import { formatDate } from "@/lib/portal/format";
 import { site } from "@/config/site";
 
 /**
- * Systems handover.
+ * Onboarding handover.
  *
- * Not a list of files in a Drive folder: what each system does, which account
- * it runs on, and what the client has to do to keep it alive. The accountOwner
+ * Not a list of files in a Drive folder: what we set up (ingredients lists,
+ * monitoring, the ENISA reporting account, the playbook), which account it
+ * runs on, and what the client has to do to keep it working. The accountOwner
  * column is the part clients thank you for a year later, when they want to know
  * what they are actually paying for each month.
  */
 export function Delivery({ client, payload }: { client: Client; payload: DeliveryDoc }) {
   return (
     <DocShell
-      docType="Delivery Guide"
-      subtitle="Systems handover"
+      docType="Onboarding Guide"
+      subtitle="Service handover"
       clientName={client.business.name}
       meta={[{ label: "Delivered", value: formatDate(payload.deliveredOn) }]}
     >
       <DocCallout>
-        <p className="font-semibold">Your systems are live.</p>
+        <p className="font-semibold">Monitoring is live.</p>
         <p className="mt-1 text-stone-600">
-          Everything below is running now. Read this guide once, then keep it. It is the
-          answer to almost every question you will have in the next six months.
+          We are now watching every product listed below. Read this guide once, then keep
+          it next to your reporting playbook. It answers most questions about who does what
+          when a vulnerability turns up.
         </p>
       </DocCallout>
 
-      <DocSection title="What we built">
+      <DocSection title="What we set up">
         <DocTable
           columns={[
-            { key: "name", label: "System" },
-            { key: "does", label: "What it does" },
-            { key: "platform", label: "Runs on", width: "w-28" },
+            { key: "name", label: "Item" },
+            { key: "does", label: "What it is" },
+            { key: "platform", label: "Where it lives", width: "w-28" },
             { key: "owner", label: "Account", width: "w-24" },
           ]}
         >
@@ -75,10 +77,10 @@ export function Delivery({ client, payload }: { client: Client; payload: Deliver
 
       <DocSection title="If something breaks">
         <DocText>
-          Tell us before you change anything. Most problems are a third party service
-          having a bad ten minutes, and switching things off makes it harder to see what
-          happened. Email {site.legal.contactEmail}, or text the mobile number in your
-          welcome pack if enquiries are actively going unanswered.
+          If you hear about a security problem in one of your products from anywhere else,
+          a researcher, a customer or a supplier, forward it to us straight away: the
+          24-hour clock may already be running. Email {site.legal.contactEmail}, and ring
+          or text the mobile number in your welcome pack if it looks urgent.
         </DocText>
       </DocSection>
     </DocShell>

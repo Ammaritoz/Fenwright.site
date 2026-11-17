@@ -89,20 +89,24 @@ export const templateClient: Client = {
     },
     {
       slug: "brief",
-      title: "Project Brief",
-      blurb: "The scope agreed before any building started. Read it, correct it.",
+      title: "Service Brief",
+      blurb: "The products we watch and how we will judge the work. Read it, correct it.",
       payload: {
         type: "brief",
         projectTitle: "[Project title]",
         deadline: "2026-01-31",
         objective: "[The business outcome, not the feature list]",
-        audience: {
-          who: "[Who their customers are]",
-          painPoint: "[What goes wrong for them today]",
-          cares: "[What actually matters to them]",
+        // Every product family and every version still on the market.
+        products: [
+          { name: "[Product]", versions: "[e.g. 2.1 to 2.6]", source: "[Build files / Firmware image only]" },
+        ],
+        // Written, measurable. Pilots are judged against these.
+        successCriteria: ["[e.g. Every exploited match assessed within 8 working hours]"],
+        responsibilities: {
+          fenwright: ["Build and update the ingredients lists", "Watch the feeds every day", "Check each match and record the decision", "Draft reports and customer advisories"],
+          // The client always approves and submits. Never move that line across.
+          client: ["Send firmware and build files for every version in scope", "Tell us about new releases", "Approve every report, and submit it on ENISA's platform", "Name a backup approver"],
         },
-        keyMessage: "[The one thing this work must get across]",
-        successCriteria: ["[How we will know it worked, measurably]"],
       },
     },
     {
@@ -126,7 +130,7 @@ export const templateClient: Client = {
         due: "2026-01-15",
         projectReference: "[Project name]",
         lines: [
-          { kind: "Build", description: "[What they are paying for]", quantity: 1, unitPrice: 0 },
+          { kind: "Onboarding", description: "[What they are paying for]", quantity: 1, unitPrice: 0 },
         ],
         // Deposit already received, if any. Drives the balance due.
         amountPaid: 0,
@@ -134,31 +138,31 @@ export const templateClient: Client = {
     },
     {
       slug: "delivery",
-      title: "Delivery Guide",
-      blurb: "What we built, where it lives, and what to check each week.",
-      // Release this one at handover.
+      title: "Onboarding Guide",
+      blurb: "What we set up, where it lives, and who does what when something turns up.",
+      // Release this one when monitoring goes live.
       status: "upcoming",
-      expected: "On handover",
+      expected: "When monitoring goes live",
       payload: {
         type: "delivery",
         deliveredOn: "2026-01-31",
         systems: [
           {
-            name: "[System name]",
+            name: "[Ingredients lists / Monitoring / Decision log / ENISA reporting account]",
             whatItDoes: "[In their words, not ours]",
-            platform: "[Telnyx / Cal.com / Airtable]",
+            platform: "[This portal / Fenwright / ENISA SRP]",
             // "Client" wherever possible, so they own it if you ever part ways.
             accountOwner: "Client",
           },
         ],
-        runbook: [{ title: "[Task they will do weekly]", body: "[Exactly what to click]" }],
-        clientActions: ["[What they must keep on top of, e.g. keeping a card on file]"],
+        runbook: [{ title: "[e.g. When we send you a draft]", body: "[Exactly what to do]" }],
+        clientActions: ["[What they must keep on top of, e.g. EU Login accounts active]"],
       },
     },
     {
       slug: "report-2026-01",
       title: "Monthly Report, January 2026",
-      blurb: "What actually happened to your enquiries last month.",
+      blurb: "What we watched, what matched, and what we decided last month.",
       // One of these per month. Add the next as report-2026-02, and so on.
       status: "upcoming",
       expected: "Start of each month",
@@ -167,11 +171,12 @@ export const templateClient: Client = {
         period: "2026-01",
         summary: "[Two or three sentences in plain English]",
         metrics: {
-          enquiriesReceived: 0,
-          enquiriesAnswered: 0,
-          medianResponseMinutes: 0,
-          bookingsMade: 0,
-          noShows: 0,
+          componentsMonitored: 0,
+          vulnerabilitiesMatched: 0,
+          assessedNotAffected: 0,
+          assessedAffected: 0,
+          reportableEvents: 0,
+          medianHoursToAssessment: 0,
           // Omit `previous` in the first month: with nothing to compare
           // against, the change indicators are hidden rather than invented.
         },

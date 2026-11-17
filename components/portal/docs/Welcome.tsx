@@ -29,7 +29,7 @@ export function Welcome({ client, payload }: { client: Client; payload: WelcomeD
         <FieldGrid>
           <Field label="Project" value={payload.projectName} />
           <Field label="Start date" value={formatDate(payload.startDate)} />
-          <Field label="Target delivery" value={formatDate(payload.targetDelivery)} />
+          <Field label="Monitoring live by" value={formatDate(payload.targetDelivery)} />
           <Field label="Your point of contact" value={payload.pointOfContact} />
           <Field label="Main contact at your end" value={client.business.contact.name} />
           <Field label="Reaching us" value={site.legal.contactEmail} />
@@ -57,10 +57,11 @@ export function Welcome({ client, payload }: { client: Client; payload: WelcomeD
 
       <DocSection title="What we need from you">
         <DocCallout>
-          The one thing that slows a build down is waiting on a decision or an account
-          login. If we ask for something, a reply the same day keeps your delivery date
-          where it is. If you go quiet for a week, the date moves. We would rather say that
-          now than explain it later.
+          Two things slow onboarding down: waiting for firmware images or build files, and
+          waiting for an hour with the engineer who knows how each product is built. If we
+          ask for something, a reply the same day keeps your start date where it is. Until
+          onboarding is finished we are not yet watching your products, so the sooner the
+          better.
         </DocCallout>
       </DocSection>
 
@@ -68,8 +69,8 @@ export function Welcome({ client, payload }: { client: Client; payload: WelcomeD
         <DocText>
           Email {site.legal.contactEmail} for anything that can wait until tomorrow. For
           anything that cannot, text or ring the mobile number we gave you on the call.
-          You are not going through a support desk. You are talking to the two people who
-          built your systems.
+          You are not going through a support desk. You are talking to the people who
+          check every decision about your products.
         </DocText>
       </DocSection>
     </DocShell>

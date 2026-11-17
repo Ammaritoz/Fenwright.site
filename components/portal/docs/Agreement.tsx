@@ -18,10 +18,10 @@ import { site } from "@/config/site";
  *    to send an unreviewed contract to a paying client, which is the failure
  *    this design is guarding against.
  *
- * 2. The data protection section. Fenwright's systems handle the client's
- *    customers' names, phone numbers and enquiry contents, which makes
- *    Fenwright a processor under GDPR Article 28. Those clauses are a legal
- *    requirement of that relationship, not boilerplate padding.
+ * 2. The data protection section. Firmware, build files and the client's
+ *    reporting contacts can contain personal data (staff names and emails),
+ *    which makes Fenwright a processor under GDPR Article 28. Those clauses are
+ *    a legal requirement of that relationship, not boilerplate padding.
  */
 
 /** Substitutes {tokens} in clause bodies from the client's own figures. */
@@ -138,9 +138,11 @@ export function Agreement({
         </div>
       </DocSection>
 
-      <DocSection title="Third party services you pay for directly">
-        <DocList items={payload.passThroughServices} />
-      </DocSection>
+      {payload.passThroughServices.length > 0 && (
+        <DocSection title="Third party services you pay for directly">
+          <DocList items={payload.passThroughServices} />
+        </DocSection>
+      )}
 
       <DocSection title="Terms and conditions">
         <ol className="space-y-5">

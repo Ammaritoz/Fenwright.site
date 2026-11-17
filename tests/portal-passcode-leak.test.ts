@@ -32,12 +32,12 @@ const CLIENTS_DIR = path.resolve(__dirname, "../content/clients");
 const PASSCODE_PATTERN = String.raw`\b[A-HJ-NP-Z2-9]{5}-[A-HJ-NP-Z2-9]{5}\b`;
 
 /**
- * The one deliberate exception. example-clinic.ts documents the passcode for
- * Bright Smile Dental, a fictional clinic. Its own header says nothing in that file is real
+ * The one deliberate exception. example-manufacturer.ts documents the passcode for
+ * Lowmoor Controls, a fictional manufacturer. Its own header says nothing in that file is real
  * business data, and the recorded passcode is what keeps the worked example
  * openable. A real client file must never be added here.
  */
-const FICTIONAL_EXAMPLE = "example-clinic.ts";
+const FICTIONAL_EXAMPLE = "example-manufacturer.ts";
 
 function clientFiles(): string[] {
   return readdirSync(CLIENTS_DIR)

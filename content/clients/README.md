@@ -6,7 +6,7 @@ Ten client-facing documents, rendered from one data file per client, at
 ## Adding a client
 
 ```bash
-npm run portal:passcode -- "Bright Smile Dental"
+npm run portal:passcode -- "Lowmoor Controls"
 ```
 
 Prints a slug, a passcode, and the salt/hash pair. The passcode is shown **once**

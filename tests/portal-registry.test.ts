@@ -130,7 +130,7 @@ describe("document staging", () => {
     ]);
     expect(upcoming.map((d) => d.slug)).toEqual([
       "delivery",
-      "report-2026-10",
+      "report-2027-02",
       "thank-you",
       "feedback",
     ]);

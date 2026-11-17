@@ -7,7 +7,7 @@ import { site } from "@/config/site";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "How Fenwright collects, uses, and protects personal data from this website, our business emails and our quote forms, and your rights under GDPR.",
+    "How Fenwright collects, uses, and protects personal data from this website, our business emails and the product files clients send us, and your rights under GDPR.",
   alternates: { canonical: "/privacy" },
   robots: { index: true, follow: true },
 };
@@ -46,12 +46,11 @@ export default function PrivacyPage() {
 
               <P>
                 This policy explains how {l.tradingName} (&ldquo;we&rdquo;,
-                &ldquo;us&rdquo;) collects and uses your personal data when you
-                use this website, when we email your business, when you buy
-                leads from us, and when you ask for a quote through one of our
-                quote forms. It also explains your rights under the EU General
-                Data Protection Regulation (GDPR) and, for UK visitors, the UK
-                GDPR.
+                &ldquo;us&rdquo;) collects and uses personal data when you use
+                this website, when we contact your business, and when your
+                company sends us product files for a first look or as a client.
+                It also explains your rights under the EU General Data
+                Protection Regulation (GDPR) and, for UK visitors, the UK GDPR.
               </P>
 
               <H2>Who we are</H2>
@@ -75,46 +74,33 @@ export default function PrivacyPage() {
               </P>
               <ul className="mt-4 list-disc space-y-2 pl-5 text-[0.98rem] leading-relaxed text-stone-600">
                 <li>
-                  <strong className="text-ink">Live demo (&ldquo;text this to my phone&rdquo;):</strong>{" "}
-                  the mobile number you enter, the industry you pick, and any
-                  enquiry text you type. We use these to send you one sample
-                  reply by SMS so you can experience the product. Lawful basis:{" "}
-                  <em>consent</em> (you tick a box before we text you).
-                </li>
-                <li>
-                  <strong className="text-ink">Contact form:</strong> your name,
-                  mobile number, and message. We use these to send you one reply
-                  by SMS and to follow up about your enquiry. Lawful basis:{" "}
-                  <em>consent</em> for the SMS reply, and our{" "}
+                  <strong className="text-ink">Booking a call:</strong> your
+                  name, email and anything you add to the booking. We use these
+                  to hold the call and follow up. Lawful basis: our{" "}
                   <em>legitimate interest</em> in responding to a business
-                  enquiry you initiated.
+                  enquiry you started.
                 </li>
                 <li>
-                  <strong className="text-ink">Voice demo (&ldquo;talk to the receptionist&rdquo;, or ringing our demo line):</strong>{" "}
-                  your voice, a recording and transcript of the call, and
-                  anything you say during it, such as a name or number. We use
-                  these to run the call and to review how the system performed.
-                  Calls last up to five minutes. Lawful basis:{" "}
-                  <em>consent</em> (you start the call after being told it is
-                  recorded).
+                  <strong className="text-ink">Emailing or messaging us:</strong>{" "}
+                  your contact details and whatever you write. We use these to
+                  reply. Lawful basis: <em>legitimate interest</em>.
                 </li>
               </ul>
               <P>
                 We do not use the data you give us on this site for unrelated
-                marketing, and we do not sell it. You can opt out of any further
-                texts at any time by replying STOP or emailing us.
+                marketing, and we do not sell it.
               </P>
 
-              <H2>If we emailed your business</H2>
+              <H2>If we contacted your business</H2>
               <P>
-                We find businesses that may want our services from their public
-                listings, such as Google Maps, and from their own websites. For
-                each one we keep the business name, website, phone number,
-                address, rating and review count shown on the listing, and the
-                business email address published on its website. We use these
-                to send a short business offer and, if there is no reply, one
-                follow-up. Lawful basis: our <em>legitimate interest</em> in
-                offering our services to businesses.
+                We find companies that may need our services from public
+                sources, such as company websites, trade association member
+                lists and professional networks. For each one we keep the
+                company name and website, and the work email address or phone
+                number of the person we contact. We use these to send a short
+                business message and, if there is no reply, one follow-up.
+                Lawful basis: our <em>legitimate interest</em> in offering our
+                services to businesses.
               </P>
               <P>
                 Every email says who we are and has a link to stop hearing from
@@ -123,32 +109,48 @@ export default function PrivacyPage() {
                 never email you again.
               </P>
 
-              <H2>If you buy leads from us</H2>
+              <H2>If you send us product files</H2>
               <P>
-                We keep your business name and contact details, the areas and
-                jobs you chose, the leads we send you, and your payments. We use
-                these to deliver your leads and run our agreement with you.
-                Lawful basis: <em>contract</em>, and <em>legal obligation</em>{" "}
-                for accounting records.
+                For a free first look, or as a client, your company may send us
+                firmware images, software parts lists (SBOMs) and product
+                details. These are mainly technical, not personal, data, but
+                they can contain names or email addresses of your staff. We
+                handle them under the non-disclosure agreement we sign with
+                you, and that agreement takes priority over this policy:
+              </P>
+              <ul className="mt-4 list-disc space-y-2 pl-5 text-[0.98rem] leading-relaxed text-stone-600">
+                <li>Files are stored encrypted and used only to produce your report or run your service.</li>
+                <li>
+                  For a first look, the files are deleted once the scan is
+                  done. We keep the report and the list of components found,
+                  so we can talk it through with you, unless you ask us to
+                  delete those too.
+                </li>
+                <li>
+                  For clients, we keep files and decision records for as long
+                  as the service runs, then return or delete them as the
+                  contract says.
+                </li>
+              </ul>
+              <P>
+                Lawful basis for any personal data in them: <em>contract</em>,
+                and our <em>legitimate interest</em> in delivering the work you
+                asked for.
               </P>
 
-              <H2>If you ask for a quote through one of our quote forms</H2>
+              <H2>Our earlier services</H2>
               <P>
-                Some of our quote forms help homeowners find a local
-                tradesperson, such as a roofer. If you fill one in, we collect
-                your name, phone number, email, the area of the property and
-                your answers about the job. We check the details, then pass
-                them to one local business that covers your area, which will
-                contact you about the job. That business pays us for the
-                enquiries we send it, and uses your details under its own
-                privacy terms. Lawful basis: <em>consent</em>, given on the
-                form. You can withdraw it at any time by emailing us.
+                Until November 2026 we also sold local leads to tradespeople
+                and ran quote forms for homeowners. Those services have closed.
+                Data collected through them is being deleted, except invoices
+                and records we must keep by law. To ask about data we hold from
+                that time, email us.
               </P>
 
               <H2>Who we share it with</H2>
               <P>
                 We use a small number of trusted service providers (processors)
-                to run the site. They only process your data on our instructions:
+                to run our business. They only process your data on our instructions:
               </P>
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-left text-sm text-stone-600">
@@ -162,37 +164,32 @@ export default function PrivacyPage() {
                   <tbody className="divide-y divide-stone-200">
                     <tr>
                       <td className="py-3 pr-4 font-medium text-ink">Anthropic (Claude)</td>
-                      <td className="py-3 pr-4">Generates the demo reply text</td>
+                      <td className="py-3 pr-4">Helps analyse security advisories against product component lists, and draft reports</td>
                       <td className="py-3">United States. Data Processing Agreement with EU Standard Contractual Clauses; inputs are not used to train models.</td>
                     </tr>
                     <tr>
-                      <td className="py-3 pr-4 font-medium text-ink">Telnyx</td>
-                      <td className="py-3 pr-4">Delivers the SMS</td>
-                      <td className="py-3">United States, with EU infrastructure for European messaging. Data Processing Addendum with Standard Contractual Clauses.</td>
+                      <td className="py-3 pr-4 font-medium text-ink">Vercel</td>
+                      <td className="py-3 pr-4">Hosts this website</td>
+                      <td className="py-3">United States, with EU regions. Data Processing Addendum with Standard Contractual Clauses.</td>
                     </tr>
                     <tr>
                       <td className="py-3 pr-4 font-medium text-ink">Airtable</td>
-                      <td className="py-3 pr-4">Stores your enquiry as a lead</td>
+                      <td className="py-3 pr-4">Stores business contacts and call notes</td>
                       <td className="py-3">United States by default. Data Processing Agreement with Standard Contractual Clauses.</td>
                     </tr>
                     <tr>
-                      <td className="py-3 pr-4 font-medium text-ink">Vapi</td>
-                      <td className="py-3 pr-4">Runs the voice demo call, its recording and transcript</td>
-                      <td className="py-3">United States. Data Processing Agreement with Standard Contractual Clauses.</td>
-                    </tr>
-                    <tr>
                       <td className="py-3 pr-4 font-medium text-ink">Zoho Mail</td>
-                      <td className="py-3 pr-4">Sends and stores our email, including the business emails described above</td>
-                      <td className="py-3">United States. Data Processing Agreement with Standard Contractual Clauses.</td>
-                    </tr>
-                    <tr>
-                      <td className="py-3 pr-4 font-medium text-ink">Base44</td>
-                      <td className="py-3 pr-4">Hosts our quote forms and stores the quote requests</td>
-                      <td className="py-3">United States. Data Processing Agreement with Standard Contractual Clauses.</td>
+                      <td className="py-3 pr-4">Sends and stores our email</td>
+                      <td className="py-3">Data Processing Agreement with Standard Contractual Clauses where data leaves the EEA.</td>
                     </tr>
                     <tr>
                       <td className="py-3 pr-4 font-medium text-ink">Cal.com</td>
                       <td className="py-3 pr-4">Powers the booking calendar</td>
+                      <td className="py-3">United States. Data Processing Agreement with Standard Contractual Clauses.</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 pr-4 font-medium text-ink">Base44</td>
+                      <td className="py-3 pr-4">Hosted our former quote forms; that data is being deleted</td>
                       <td className="py-3">United States. Data Processing Agreement with Standard Contractual Clauses.</td>
                     </tr>
                   </tbody>
@@ -210,7 +207,7 @@ export default function PrivacyPage() {
 
               <H2>How long we keep it</H2>
               <P>
-                We keep enquiry, lead and business contact data for{" "}
+                We keep enquiry and business contact data for{" "}
                 {l.dataRetention}, after which it is deleted, unless we need to
                 keep it longer to meet a legal obligation. Email addresses on
                 our do-not-contact list are kept for as long as we send business

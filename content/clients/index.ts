@@ -1,6 +1,6 @@
 import "server-only";
 import type { Client, DocRecord, DocStatus } from "./types";
-import { exampleClinic } from "./example-clinic";
+import { exampleManufacturer } from "./example-manufacturer";
 
 /**
  * The client registry.
@@ -13,7 +13,7 @@ import { exampleClinic } from "./example-clinic";
  *
  * To add a client: copy _template.ts, fill it in, import it here, add it below.
  */
-const clients: Client[] = [exampleClinic];
+const clients: Client[] = [exampleManufacturer];
 
 const bySlug = new Map(clients.map((c) => [c.slug, c]));
 

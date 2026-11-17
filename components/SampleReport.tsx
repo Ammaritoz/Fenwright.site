@@ -1,4 +1,4 @@
-import { roofing } from "@/config/roofing";
+import { sampleReport } from "@/config/sample-report";
 
 type Props = {
   className?: string;
@@ -7,12 +7,12 @@ type Props = {
 };
 
 /**
- * A made-up lead, drawn like the email a roofer receives: a white record on
- * whatever surface it sits on. The "Example" tag is part of the design, not a
- * footnote: it must never pass for a real lead.
+ * A made-up early-warning draft, drawn like the report a client receives: a
+ * white record on whatever surface it sits on. The "Example" tag is part of
+ * the design, not a footnote: it must never pass for a real report.
  */
-export function SampleLead({ className = "", tone = "light" }: Props) {
-  const s = roofing.sampleLead;
+export function SampleReport({ className = "", tone = "light" }: Props) {
+  const s = sampleReport;
   return (
     <figure className={`relative mx-auto w-full max-w-[30rem] ${className}`}>
       <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white text-ink shadow-lift">

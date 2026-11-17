@@ -20,7 +20,7 @@ export const site = {
   brand: {
     name: "Fenwright",
     wordmark: "Fenwright",
-    tagline: "Exclusive local leads, and the systems that win them.",
+    tagline: "CRA vulnerability response for makers of connected products.",
     email: "contact@fenwright.ie",
   },
 
@@ -30,7 +30,7 @@ export const site = {
     // works when you're already on the homepage.
     links: [
       { label: "What we do", href: "/#services" },
-      { label: "Leads", href: "/#leads" },
+      { label: "Free first look", href: "/#first-look" },
       { label: "How it works", href: "/#how-it-works" },
       { label: "About", href: "/#about" },
     ],
@@ -38,25 +38,26 @@ export const site = {
   },
 
   hero: {
-    // The headline renders `headline` then `headlineEmphasis` in italic.
-    headline: "More jobs in.",
-    headlineEmphasis: "Fewer let slip.",
+    // The headline renders `headline` then `headlineEmphasis` on a second line.
+    headline: "Never miss",
+    headlineEmphasis: "a CRA report.",
     // Short line under the hero headline.
-    lede: "Exclusive local leads, and the systems that win them.",
+    lede: "We watch, check and draft every Cyber Resilience Act vulnerability report for makers of connected products. You approve and submit.",
     // Longer statement: the page's opening paragraph and the meta description.
     subhead:
-      "Fenwright sends you exclusive enquiries from customers in your area, one business per area, then builds the systems that answer, follow up and win them. Use one, or both.",
-    primaryCta: { label: "Book a call", href: "#book" },
-    secondaryCta: { label: "How the leads work", href: "#leads" },
-    // The strip along the bottom of the hero. Terms of the offer only: no
-    // results or client numbers until there are real ones.
+      "Since September 2026, every maker of connected products sold in the EU has 24 hours to report an actively exploited security hole. Fenwright builds the ingredients list for each of your products, watches for exploited holes every day, checks whether each one really affects you, and drafts the report. You approve it and press submit.",
+    primaryCta: { label: "Get a free first look", href: "#first-look" },
+    secondaryCta: { label: "How it works", href: "#how-it-works" },
+    // The strip along the bottom of the hero. Facts about the law and who we
+    // serve only: no results or client numbers until there are real ones.
     facts: [
-      { value: "One business per area", label: "Every enquiry is yours alone" },
-      { value: "Live within 72 hours", label: "From payment to your first leads" },
-      { value: "Packs of 10, 30 or 50", label: "Prepaid. No retainer, no contract" },
+      { value: "24 hours", label: "To report an actively exploited vulnerability" },
+      { value: "11 Dec 2027", label: "No compliance, no CE mark, no EU sales" },
+      { value: "50 to 249 staff", label: "Built for mid-sized manufacturers" },
     ],
-    // The "example week" sheet beside the headline. Illustrative, not a client:
-    // keep the label saying so.
+    // The "example week" sheet. Illustrative, not a client: keep the label
+    // saying so. Weekdays only: no weekend or out-of-hours promises until an
+    // on-call rota exists (see cra-action-plan.md, "Claims to avoid").
     ledger: {
       label: "An example week",
       range: "Mon to Fri",
@@ -64,36 +65,36 @@ export const site = {
       entries: [
         {
           day: "Mon",
-          time: "07:50",
-          leak: "Crew free on Thursday, nothing booked",
-          fix: "New quote request from your area, sent to you only",
+          time: "09:10",
+          leak: "A hole in a common Linux component is added to the exploited list. Nobody checks",
+          fix: "Matched against every product and version you ship",
         },
         {
           day: "Tue",
-          time: "13:15",
-          leak: "Website enquiry left unread until Thursday",
-          fix: "Replied to straight away",
+          time: "11:30",
+          leak: "A scanner flags 40 known holes. Nobody knows which ones matter",
+          fix: "Each one marked affected or not, with a written reason",
         },
         {
           day: "Wed",
-          time: "10:20",
-          leak: "Bought a shared lead, lost the race to call",
-          fix: "Exclusive enquiry. Nobody else rang them",
+          time: "14:00",
+          leak: "An exploited hole is confirmed in your firmware. The 24-hour clock starts",
+          fix: "Early-warning draft in your hands, ready to submit",
         },
         {
           day: "Thu",
-          time: "18:30",
-          leak: "Last week's quote went quiet",
-          fix: "Followed up until they gave an answer",
+          time: "10:00",
+          leak: "The 72-hour notification is due. Nobody has written one before",
+          fix: "Notification drafted, with the notice for your customers",
         },
         {
           day: "Fri",
-          time: "16:00",
-          leak: "Happy customer, no review asked for",
-          fix: "Review request went out after the job",
+          time: "16:30",
+          leak: "A big customer asks for proof you handle vulnerabilities",
+          fix: "Decision log and ingredients lists, exported for them",
         },
       ],
-      footnote: "Two kinds of leak: too few enquiries, and enquiries let slip. We fix both.",
+      footnote: "Most weeks nothing is reportable. The work is knowing that, and proving it.",
     },
   },
 
@@ -103,184 +104,108 @@ export const site = {
 
   problem: {
     kicker: "Why it matters",
-    headline: "Shared leads start a race. Slow replies lose it.",
-    body: "Many lead sites send the same enquiry to several firms at once, so you pay for a job you then have to race for. Even an enquiry that is yours alone goes cold fast. Two things decide how much work you win: where your enquiries come from, and how quickly they get answered. Speed matters more than most people think:",
+    headline: "The clock starts when you find out. Not on Monday.",
+    body: "Under Article 14 of the Cyber Resilience Act, once you know a hole in your product is being actively exploited, you have 24 hours to send an early warning to ENISA. A typical device holds hundreds of third-party software parts, so someone has to know what is inside every product and watch for new holes every day. Tools need someone to run them. Consultants do one-off projects. Nobody does the daily work.",
     stats: [
       {
-        value: "21x",
-        label:
-          "more likely to qualify a lead when you respond within 5 minutes versus 30 minutes.",
+        value: "24 hrs",
+        label: "to send the early warning, then 72 hours for the full notification.",
       },
       {
-        value: "40+ hrs",
-        label: "the average business response time to a new online enquiry.",
+        value: "62%",
+        label: "of 200 German industrial firms surveyed called the 24-hour rule particularly problematic.",
       },
     ],
     source:
-      "Source: lead response research from MIT and InsideSales.com (Oldroyd, McElheran and Elkington). Figures reflect the widely cited findings; results vary by business.",
+      "Sources: Regulation (EU) 2024/2847, Article 14; ONEKEY IoT/OT Cybersecurity Report 2026 (vendor survey of 200 German industrial firms).",
   },
 
-  demo: {
-    kicker: "Proof, not promises",
-    headline: "Try one of our systems right now.",
-    subhead:
-      "This is a reception system we build for clinics, salons and trades, running live on this page. Pick an industry, send a mock enquiry, and watch the reply come back in seconds. Then have it text your actual phone.",
-    generateLabel: "Generate reply",
-    regenerateLabel: "Try another",
-    enquiryLabel: "What is the customer asking?",
-    // Stage two
-    sms: {
-      heading: "Want that text on your actual phone?",
-      body: "We will send this one reply to your number so you can feel the speed for yourself.",
-      consentLabel:
-        "Send one text message to this number. Standard message rates may apply.",
-      sendLabel: "Send this to my phone",
-      phoneLabel: "Your mobile number",
-      phonePlaceholder: "+353 87 123 4567",
-      successLabel: "Sent. Check your phone.",
-      metaSell:
-        "That text is exactly what your customers would get, in about the time it just took.",
-    },
-    // In-browser call to the voice receptionist (components/VoiceCall.tsx).
-    // Hidden unless NEXT_PUBLIC_VAPI_PUBLIC_KEY and _ASSISTANT_ID are set.
-    voice: {
-      heading: "Rather hear it than read it?",
-      body: "Talk to Erin, the phone receptionist we built for a sample electrician. Ring her the way a customer would: a fuse board that keeps tripping, a quote, a callout tonight.",
-      note: "Uses your microphone. Calls last up to five minutes and are recorded so we can improve the system.",
-      startLabel: "Talk to the receptionist",
-      connectingLabel: "Connecting...",
-      liveLabel: "Live with Erin",
-      endLabel: "End call",
-      endedLabel: "Call ended. That is what your callers would get.",
-      endedCta: { label: "Book a call", href: "/#book" },
-      micError: "We could not use a microphone. Check one is connected and allowed for this site, then try again.",
-      genericError: "The call could not connect. Please try again in a moment.",
-    },
-  },
-
+  // Used by the contact API's validation (lib/industry.ts). One generic entry
+  // now that the trade-specific demo is gone.
   industries: [
-    {
-      id: "dental",
-      label: "Dental clinic",
-      exampleEnquiry:
-        "Hi, do you have any appointments this week for a check up and clean?",
-      averageLine: "Most clinics take hours to reply to a web enquiry.",
-    },
-    {
-      id: "aesthetics",
-      label: "Aesthetic / beauty clinic",
-      exampleEnquiry:
-        "How much is lip filler and do you have anything on Saturday?",
-      averageLine: "The average clinic reply lands long after the moment has passed.",
-    },
-    {
-      id: "salon",
-      label: "Hair salon",
-      exampleEnquiry:
-        "Looking for a cut and full head of highlights, what are your prices?",
-      averageLine: "Most salons only see the message when the chair is already booked.",
-    },
-    {
-      id: "plumber",
-      label: "Plumber",
-      exampleEnquiry:
-        "I have a leak under the kitchen sink, can someone come out today?",
-      averageLine: "Tradespeople often reply hours later, once the job is gone.",
-    },
-    {
-      id: "electrician",
-      label: "Electrician",
-      exampleEnquiry:
-        "Fuse board keeps tripping, are you taking new jobs this week?",
-      averageLine: "Emergency jobs go to whoever answers first, not best.",
-    },
-    {
-      id: "trades",
-      label: "General trades",
-      exampleEnquiry:
-        "Can I get a quote to fit a new bathroom, roughly how long is the wait?",
-      averageLine: "Quote requests usually sit unanswered for a day or more.",
-    },
     {
       id: "other",
       label: "Other",
-      exampleEnquiry: "Hi, I saw your ad, can you tell me more and what it costs?",
-      averageLine: "Most small businesses reply far too late to win the lead.",
+      exampleEnquiry: "Hi, can you tell me more about how this works and what it costs?",
+      averageLine: "",
     },
   ] as Industry[],
 
   howItWorks: {
     kicker: "How it works",
-    headline: "One short call. A clear plan. Then we switch it on.",
+    headline: "Start with a free first look. Then we keep watch.",
     // Caption on the photo card that opens the steps deck.
-    photoCaption: "Built around how you already work.",
+    photoCaption: "Built around how your engineers already work.",
     steps: [
       {
-        title: "Book a call",
-        body: "A short call with one of us about where your work comes from and where it slips. No pitch, no jargon.",
+        title: "A free first look",
+        body: "Send us one product's firmware or its list of software parts. We send back a short report of what we found. Under NDA, files deleted afterwards.",
       },
       {
-        title: "Get a plain-English plan",
-        body: "Whether to start with more enquiries, faster replies or both, what each is worth to you, and a fixed price.",
+        title: "Onboarding",
+        body: "We build the ingredients list for each product and version, set up your ENISA reporting account with you, and run a timed practice exercise.",
       },
       {
-        title: "We switch it on",
-        body: "Leads go live for your area within 72 hours of payment. Systems are built around how you already work.",
+        title: "We watch, you approve",
+        body: "We match new exploited holes to your products every day, check each one, and send you a draft when one needs reporting. You submit.",
       },
     ],
   },
 
-  // The "Get" half of the offer on the homepage (components/Leads.tsx). The
-  // trade-specific detail lives on its own page (config/roofing.ts).
-  leads: {
-    headline: "How the leads work",
-    lead: "We run lead generation one trade at a time, so every ad and every question on the form is built for that trade. Right now, that trade is roofing.",
+  // The free first look (components/FirstLook.tsx): what they send, what they
+  // get, beside a made-up example report (config/sample-report.ts).
+  firstLook: {
+    headline: "See where you stand, free.",
+    lead: "Send us one product's firmware, or its list of software parts, and we will send back a short, plain-English report. It is a first look, not a compliance assessment.",
     steps: [
       {
-        title: "We agree your patch",
-        body: "The areas you cover, the jobs you want and how many more you can take on. One business per area, so nobody else gets your leads.",
+        title: "You send one product",
+        body: "A firmware image, or an SBOM if you already have one. One product is enough to start.",
       },
       {
-        title: "We run the ads",
-        body: "Our own ads send local customers to our own quote form, which checks every enquiry before it goes anywhere.",
+        title: "We list what is inside",
+        body: "Every software component we can find, with its version, as a draft ingredients list you can keep.",
       },
       {
-        title: "Leads land in seconds",
-        body: "Each one is emailed to you the moment it passes the checks, with everything you need to call them back.",
+        title: "We check it against known holes",
+        body: "Known security holes in those parts, and any on the actively exploited lists that would start the 24-hour clock.",
       },
       {
-        title: "You call, we keep count",
-        body: "Call within 10 minutes and they are far easier to win. We send a weekly update and remind you before a pack runs out.",
+        title: "You get a short report",
+        body: "What we found, and the gaps against the CRA, like a missing disclosure policy or security contact. Then 20 minutes to talk it through.",
       },
     ],
     // Caption on the photo card at the end of the steps deck.
-    photoCaption: "Every enquiry checked before it reaches you.",
-    cta: { label: "Roofer? See how it works for you", href: "/roofing-leads" },
-    note: "Another trade? Tell us what you do on a call and we will say honestly whether we can run it for you.",
+    photoCaption: "Under NDA. Your files are deleted after the scan.",
+    banner: {
+      headline: "Your products are already in the field. The 24-hour rule already applies.",
+      note: "It covers products already on the market, not just new ones. A first look tells you what you would be dealing with.",
+    },
+    cta: { label: "Get a free first look", href: "#book" },
   },
 
   about: {
     kicker: "Leadership",
     headline: "The people you will work with.",
     subhead:
-      "From the first call to the day your systems go live, you work directly with the people who design and build them.",
+      "From the first look to every draft report, you work directly with the people who build the pipeline and check each decision.",
     // Shared business WhatsApp in E.164. Empty string hides the buttons.
     whatsapp: "+353899406583",
-    whatsappPreset: "Hi Fenwright, I'd like to talk about my business.",
+    whatsappPreset: "Hi Fenwright, I'd like to talk about the CRA.",
     people: [
       {
         name: "Ammar Bakhet",
         role: "CTO",
         initials: "AB",
-        bio: "Ammar designs and builds the systems: the reply engines, booking flows and automations that do the work. If it runs on its own, he made it run.",
+        bio: "Ammar builds the pipeline: unpacking firmware, listing every component, matching it against exploited-vulnerability feeds and drafting the reports. He reviews the decisions it makes.",
         // Full profile URL. Empty string hides this person's LinkedIn button.
         linkedin: "https://www.linkedin.com/in/ammar-bakhet-b66b97364",
       },
       {
         name: "Billal Khan",
-        role: "Consulting & COO",
+        role: "COO",
         initials: "BK",
-        bio: "Billal leads the consulting. He sits down with you, works out where your week leaks time and money, and turns that into a plan worth building.",
+        bio: "Billal runs onboarding and every client relationship: your ENISA reporting setup, the playbook your team follows, and the call when something needs a decision.",
         linkedin: "https://www.linkedin.com/in/billal-khan-95b26544a/",
       },
     ],
@@ -288,48 +213,47 @@ export const site = {
 
   services: {
     kicker: "What we do",
-    headline: "We bring the enquiries in, then help you win them.",
-    // Two equal halves: the lead packs ("Get") and the systems ("Answer",
-    // "Convert", "Grow"). Keep them the same length so neither reads as the
-    // add-on.
+    headline: "We know what is inside your products, and we act when it matters.",
+    // Two halves: knowing (ingredients list, watching, checking) and acting
+    // (drafts, customer notice, paper trail).
     groups: [
       {
-        kicker: "Lead generation",
-        image: "enquiries",
-        title: "Get more enquiries",
-        lead: "Exclusive leads from our own ads and quote forms.",
+        kicker: "Watch",
+        image: "components",
+        title: "Know what is inside",
+        lead: "Every software part in every product, checked against new threats every day.",
         bullets: [
           {
-            title: "Yours alone",
-            body: "Each enquiry goes to one business in the area, the moment it comes in. Never shared, never resold.",
+            title: "An ingredients list for each product",
+            body: "We build the software bill of materials (SBOM) from your code or firmware, including products already shipped, in open formats you can take with you.",
           },
           {
-            title: "Checked before they reach you",
-            body: "A real person in your area, asking for the work you do, in the timeframe you set. A lead that fails the checks we agreed gets replaced.",
+            title: "Watching, every day",
+            body: "New entries on the exploited-vulnerability lists, like CISA KEV and the EU vulnerability database, matched against every product and version you sell.",
           },
           {
-            title: "Prepaid packs, no retainer",
-            body: "Packs of 10, 30 or 50 leads. No monthly contract, and you know the price before you pay.",
+            title: "Checked, with a written reason",
+            body: "Each match is marked affected or not affected in your shipped configuration, with the reason written down and signed off by one of us.",
           },
         ],
       },
       {
-        kicker: "Systems",
+        kicker: "Report",
         image: "systems",
-        title: "Win more of them",
-        lead: "Systems that answer, follow up and bring customers back.",
+        title: "Act when it matters",
+        lead: "Drafts ready to submit, and a record that stands up later.",
         bullets: [
           {
-            title: "Every enquiry answered",
-            body: "Missed calls, website forms and ad enquiries get a warm reply straight away, so the job is yours before anyone else picks up the phone.",
+            title: "Every report drafted",
+            body: "Paste-ready text for each field of ENISA's form: the 24-hour early warning, the 72-hour notification and the final report. You approve and submit.",
           },
           {
-            title: "Quotes followed up",
-            body: "Polite follow-ups go out until the customer gives you an answer, so work you have priced does not go quiet.",
+            title: "Your customer notice",
+            body: "The advisory you send your own customers: what is affected, how serious it is, and what to do.",
           },
           {
-            title: "Bookings, reviews and repeat work",
-            body: "Reminders before the visit, a review request after it, and a check-in with past customers when it is time again.",
+            title: "A paper trail for December 2027",
+            body: "A timestamped log of every signal, who checked it and why, including the ones that were not reportable. It becomes evidence for your technical file.",
           },
         ],
       },
@@ -338,27 +262,26 @@ export const site = {
 
   book: {
     kicker: "Book a call",
-    headline: "Tell us where your work comes from. We will tell you what we would do first.",
+    headline: "Tell us what you make. We will tell you where you stand on the 24-hour rule.",
     subhead:
       "A short, no-pressure call. If we cannot see something worth paying for, we will say so.",
   },
 
+  // Copy for components/ContactForm.tsx, which is no longer on the homepage.
   contact: {
     kicker: "Prefer to text?",
     headline: "Prefer we text you first?",
-    subhead:
-      "Leave your number and a line about what you need, and one of our systems will text you back the same way it would text your customers.",
-    note: "A real reply, from a real number, straight away.",
+    subhead: "Leave your number and a line about what you need.",
+    note: "A real reply, from a real number.",
     nameLabel: "Your name",
     phoneLabel: "Your mobile number",
     messageLabel: "What do you need?",
-    messagePlaceholder: "e.g. I run a roofing company and want more quote requests.",
+    messagePlaceholder: "e.g. We make connected sensors and want to understand the 24-hour rule.",
     submitLabel: "Text me back",
     consentLabel:
       "Text me one reply at this number. I can reply STOP to opt out. No spam, ever.",
     consentNote: "We only use your number to reply and follow up. See our Privacy Policy.",
-    success:
-      "Check your phone. That text is exactly what we build for your customers.",
+    success: "Check your phone.",
     // Shown when we captured the lead but the text could not be delivered.
     successNoText:
       "Got it. We have your details and will be in touch very soon.",
@@ -366,13 +289,10 @@ export const site = {
 
   footer: {
     blurb:
-      "Fenwright sends small businesses exclusive local enquiries, then builds the systems that answer, follow up and win them.",
+      "Fenwright helps makers of connected products meet the Cyber Resilience Act's reporting rules: we watch, check and draft, and you approve and submit.",
     email: "contact@fenwright.ie",
     // Extra footer links after the nav ones.
-    links: [
-      { label: "For roofers", href: "/roofing-leads" },
-      { label: "Live demo", href: "/demo" },
-    ],
+    links: [{ label: "Security", href: "/security" }],
     copyright: `© ${new Date().getFullYear()} Fenwright. All rights reserved.`,
   },
 
@@ -414,7 +334,7 @@ export const site = {
     contactEmail: "contact@fenwright.ie",
     // How long leads are kept in Airtable before deletion.
     dataRetention: "12 months",
-    privacyLastUpdated: "8 November 2026",
+    privacyLastUpdated: "17 November 2026",
   },
 } as const;
 

@@ -4,14 +4,12 @@ import { Statement } from "@/components/Statement";
 import { Services } from "@/components/Services";
 import { Problem } from "@/components/Problem";
 import { WeekLedger } from "@/components/WeekLedger";
-import { Leads } from "@/components/Leads";
+import { FirstLook } from "@/components/FirstLook";
 import { HowItWorks } from "@/components/HowItWorks";
 import { AboutUs } from "@/components/AboutUs";
 import { BookCall } from "@/components/BookCall";
-import { ContactForm } from "@/components/ContactForm";
 import { Footer } from "@/components/Footer";
 
-// The live demos moved to their own page (app/demo), linked from the footer.
 export default function Home() {
   return (
     <>
@@ -22,11 +20,10 @@ export default function Home() {
         <Services />
         <Problem />
         <WeekLedger />
-        <Leads />
+        <FirstLook />
         <HowItWorks />
         <AboutUs />
         <BookCall />
-        <ContactForm />
       </main>
       <Footer />
     </>

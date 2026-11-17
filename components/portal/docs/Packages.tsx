@@ -21,7 +21,7 @@ export function Packages({ client, payload }: { client: Client; payload: Package
     >
       <DocText>
         {payload.intro ??
-          "Once your systems are live, most clients move onto an ongoing arrangement so somebody is watching them. Here is what each level covers. If none of them fits how you work, say so and we will quote what does."}
+          "Prices are per product family, a group of products that share most of their software. Here is what each level covers. If none of them fits how you work, say so and we will quote what does."}
       </DocText>
 
       <DocSection title="Choose your package">
@@ -88,10 +88,10 @@ export function Packages({ client, payload }: { client: Client; payload: Package
 
       <DocSection title="The small print">
         <DocText>
-          Packages are month to month with 30 days notice, not annual lock-ins. Third party
-          costs such as your phone number, booking calendar and enquiry records are billed
-          to your own accounts, so you keep them if we ever part ways. Moving up or down a
-          level takes effect from your next billing month.
+          Packages are month to month with 30 days notice, not annual lock-ins. Your
+          ingredients lists and decision log are yours, in open formats, and we hand them
+          over in full if we ever part ways. Extra product families are priced lower than
+          the first. Moving up or down a level takes effect from your next billing month.
         </DocText>
       </DocSection>
     </DocShell>

@@ -113,10 +113,21 @@ export type BriefDoc = {
   deadline: IsoDate;
   /** The business outcome, not the feature list. */
   objective: string;
-  audience: { who: string; painPoint: string; cares: string };
-  /** The one thing this work must get across. */
-  keyMessage: string;
+  /**
+   * The products in scope. One row per product family; list the firmware
+   * versions still on the market, since Article 14 covers those too.
+   */
+  products: {
+    name: string;
+    /** e.g. "3.2 to 3.4.1". */
+    versions: string;
+    /** Where the ingredients list comes from, e.g. "Yocto build" or "Firmware image only". */
+    source: string;
+  }[];
+  /** Written success criteria, agreed up front. Pilots are judged against these. */
   successCriteria: string[];
+  /** Who does what. The client always approves and submits reports. */
+  responsibilities: { fenwright: string[]; client: string[] };
   constraints?: string[];
 };
 
@@ -141,12 +152,21 @@ export type DeliveryDoc = {
 };
 
 export type ReportMetrics = {
-  enquiriesReceived: number;
-  enquiriesAnswered: number;
-  /** Median, in minutes. The headline number for a speed-to-lead business. */
-  medianResponseMinutes: number;
-  bookingsMade: number;
-  noShows: number;
+  /** Software components across all the client's products and versions. */
+  componentsMonitored: number;
+  /** New vulnerabilities that matched one of those components this month. */
+  vulnerabilitiesMatched: number;
+  /** Matches checked and closed as not affecting the shipped product. */
+  assessedNotAffected: number;
+  /** Matches checked and confirmed as affecting the product. */
+  assessedAffected: number;
+  /** Events that met the Article 14 threshold and needed a report. */
+  reportableEvents: number;
+  /**
+   * Median hours from the signal arriving to a reviewed assessment. The
+   * headline number: it is the promise the service sells.
+   */
+  medianHoursToAssessment: number;
 };
 
 export type ReportDoc = {
@@ -266,7 +286,7 @@ export type DocRecord = {
 export type Client = {
   /**
    * URL segment. Include a random suffix so portal URLs cannot be guessed or
-   * enumerated, e.g. "bright-smile-dental-8f3a91c2".
+   * enumerated, e.g. "lowmoor-controls-8f3a91c2".
    */
   slug: string;
   business: {

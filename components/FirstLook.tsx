@@ -21,6 +21,15 @@ export function FirstLook() {
           <Reveal>
             <h2 className="h-section">{f.headline}</h2>
             <p className="mt-6 max-w-xl text-lg font-light leading-relaxed text-white/80">{f.lead}</p>
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <a href={f.sample.href} target="_blank" rel="noopener" className="btn-ghost-onink">
+                <Roll>
+                  {f.sample.label}
+                  <Arrow />
+                </Roll>
+              </a>
+              <span className="text-sm text-white/60">{f.sample.note}</span>
+            </div>
           </Reveal>
           <Reveal delay={120}>
             <SampleReport tone="dark" />

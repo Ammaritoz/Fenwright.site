@@ -182,6 +182,10 @@ export const site = {
       note: "It covers products already on the market, not just new ones. A first look tells you what you would be dealing with.",
     },
     cta: { label: "Get a free first look", href: "#book" },
+    // A real First Look made from open-source router firmware (OpenWrt), with
+    // the product unnamed. Only ever publish samples built from public,
+    // open-source firmware: never a client's or another company's product.
+    sample: { label: "See a sample report", note: "PDF, 2 pages", href: "/samples/first-look-sample.pdf" },
   },
 
   about: {

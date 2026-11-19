@@ -56,6 +56,12 @@ const connectSrc = [
   // were being blocked, so page views never reached Analytics.
   "https://*.analytics.google.com",
   "https://www.google.com",
+  // Firmware uploads (/upload/<token>) PUT encrypted files straight to the
+  // Cloudflare R2 bucket with a presigned URL. Exact host when the account is
+  // known at build time; the R2 wildcard otherwise.
+  process.env.R2_ACCOUNT_ID
+    ? `https://${process.env.R2_ACCOUNT_ID}.${process.env.R2_JURISDICTION ? `${process.env.R2_JURISDICTION.trim().toLowerCase()}.` : ""}r2.cloudflarestorage.com`
+    : "https://*.r2.cloudflarestorage.com",
   ...(isDev ? ["ws:"] : []),
 ];
 

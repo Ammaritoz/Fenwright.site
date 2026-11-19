@@ -10,7 +10,8 @@ import { AwsClient } from "aws4fetch";
  * objects after 7 days, as a backstop to the pipeline deleting each one when it
  * collects it.
  *
- * Env: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET.
+ * Env: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, and
+ * R2_JURISDICTION=eu for Fenwright's bucket (created in the EU jurisdiction).
  * Use an R2 API token scoped to this one bucket with Object Read & Write.
  */
 
@@ -32,9 +33,15 @@ function client(): AwsClient {
   });
 }
 
+/** EU-jurisdiction buckets (data kept in the EU) use their own endpoint: set R2_JURISDICTION=eu. */
+export function r2Host(): string {
+  const j = process.env.R2_JURISDICTION?.trim().toLowerCase();
+  return `${process.env.R2_ACCOUNT_ID}.${j ? `${j}.` : ""}r2.cloudflarestorage.com`;
+}
+
 export function objectUrl(key: string): string {
   const path = key.split("/").map(encodeURIComponent).join("/");
-  return `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${process.env.R2_BUCKET}/${path}`;
+  return `https://${r2Host()}/${process.env.R2_BUCKET}/${path}`;
 }
 
 /** A URL the browser can PUT one object to, valid for `expiresSeconds`. */

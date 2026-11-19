@@ -16,7 +16,7 @@
  * No em dashes in client-facing copy (matches config/site.ts).
  */
 
-import type { PackageTier } from "@/content/clients/types";
+import type { LineItem, Money, PackageTier } from "@/content/clients/types";
 
 export const documents = {
   /**
@@ -163,42 +163,49 @@ export const documents = {
   ],
 
   /**
-   * Default package tiers, per product family. Prices are placeholders until
-   * the founders settle them (cra-action-plan.md, "Starting prices to test on
-   * calls"): zero renders as a bracketed blank so an unpriced menu is obvious
-   * rather than accidentally quoting free. A client file can override with a
-   * priced quote.
+   * Default package menu: the first-client offer agreed 19 Nov 2026
+   * (cra-action-plan.md, "First-client offer"). Founding Core is the one ask;
+   * the Sprint is the fallback; Assured is not sold until there is evening and
+   * weekend cover. A zero price renders as a bracketed blank, never as free.
+   * Keep these in step with the Services Agreement draft.
    */
   packageTiers: [
     {
-      name: "Pilot",
-      monthlyPrice: 0,
-      suitedTo: "A first product family, for three months, with success criteria agreed in writing before we start.",
+      name: "Readiness Sprint",
+      price: 200000,
+      per: "one-off",
+      suitedTo: "A fixed-price project of about 2 to 3 days that gets you ready to report. No ongoing commitment, and the fee is credited against Core if you continue.",
       includes: [
-        "Ingredients list for one product family",
-        "Daily monitoring and working-day checks",
-        "Written decision for every match",
-        "Report drafts if anything is reportable",
-        "A timed practice run, with the result measured",
+        "Ingredients list (SBOM) for every firmware version in scope",
+        "Every known vulnerability checked, with a written reason",
+        "Your Article 14 playbook: who is alerted, who approves, who submits",
+        "Help setting up your ENISA reporting account",
+        "A timed practice run ending in a finished early-warning draft",
+        "A starter evidence pack for your technical file",
       ],
     },
     {
-      name: "Core",
-      monthlyPrice: 0,
-      suitedTo: "A maker who wants the daily work done and the evidence kept, without hiring for it.",
+      name: "Founding Core",
+      price: 75000,
+      per: "month",
+      badge: "Founding price",
+      suitedTo: "The full monthly service at a launch price for our first three clients. 12 months, billed quarterly, with a 90-day exit.",
       includes: [
         "Ingredients lists kept up to date for each release",
-        "Daily monitoring and working-day checks with a written reason",
+        "Exploited-vulnerability lists checked every hour",
+        "Every match checked, with a written reason",
         "Every Article 14 report drafted: 24-hour, 72-hour and final",
         "Customer advisory drafts",
-        "Decision log and quarterly evidence pack for your technical file",
+        "Timestamped decision log and a monthly report",
+        "Onboarding included (normally a separate fee)",
       ],
       highlighted: true,
     },
     {
       name: "Assured",
-      monthlyPrice: 0,
-      suitedTo: "Coming in 2027, for makers who need evening and weekend cover with a contractual response time.",
+      price: 0,
+      priceLabel: "Coming 2027",
+      suitedTo: "For makers who need evening and weekend cover with a contractual response time.",
       includes: [
         "Everything in Core",
         "Seven-day cover with a stated response time and service credits",
@@ -208,6 +215,42 @@ export const documents = {
       ],
     },
   ] as PackageTier[],
+
+  packagesSmallPrint:
+    "Founding Core runs for 12 months at the founding price, billed quarterly in advance, and you can leave within the first 90 days of monitoring. Monitoring and its fee start only once your onboarding is finished and we confirm the start date in writing. The Sprint is a one-off fixed price, credited against Core if you continue within 90 days. Your ingredients lists and decision log are yours, in open formats, and we hand them over in full if we ever part ways. Extra product families are quoted separately, at a lower price than the first.",
+
+  /**
+   * Ready-made invoice lines for the first-client offer. Copy into a client
+   * file's invoice `lines`. Amounts are minor units (cents). Not VAT
+   * registered, so no VAT is added (see components/portal/docs/Invoice.tsx).
+   *
+   *   Sprint:        [invoiceLines.sprint]
+   *   Core quarter:  [invoiceLines.coreQuarter("January to March 2027")]
+   *   Core quarter after a Sprint, with the credit (Services Agreement 4.4):
+   *                  [invoiceLines.coreQuarter("..."), invoiceLines.sprintCredit(200000)]
+   *   The credit line can't exceed the quarter: carry any remainder to the
+   *   next quarter's invoice.
+   */
+  invoiceLines: {
+    sprint: {
+      kind: "Sprint",
+      description: "Readiness Sprint: SBOMs, triage, Article 14 playbook, ENISA account setup, practice run and evidence pack (fixed price)",
+      quantity: 1,
+      unitPrice: 200000,
+    } as LineItem,
+    coreQuarter: (period: string): LineItem => ({
+      kind: "Core",
+      description: `Founding Core, ${period} (founding price, 3 months)`,
+      quantity: 3,
+      unitPrice: 75000,
+    }),
+    sprintCredit: (amount: Money): LineItem => ({
+      kind: "Credit",
+      description: "Readiness Sprint fee credited against Core",
+      quantity: 1,
+      unitPrice: -Math.abs(amount),
+    }),
+  },
 
   /**
    * Bank and card details for the payment document. Left blank deliberately:

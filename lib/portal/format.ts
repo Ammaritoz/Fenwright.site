@@ -100,7 +100,7 @@ export type InvoiceTotals = {
 /**
  * Invoice arithmetic in one place.
  *
- * `vatRate` is null unless site.legal.vatNumber is set. A sole trader who is
+ * `vatRate` is null unless site.legal.vatNumber is set. A business that is
  * not VAT registered must not show or charge VAT, so the caller passes null and
  * the VAT row does not render at all -- rather than rendering a zero-rated line
  * that implies registration.

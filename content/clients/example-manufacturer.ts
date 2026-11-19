@@ -1,4 +1,5 @@
 import type { Client } from "./types";
+import { documents } from "@/config/documents";
 
 /**
  * Worked example so every document renders on day one.
@@ -171,33 +172,14 @@ export const exampleManufacturer: Client = {
     {
       slug: "invoice-001",
       title: "Invoice INV-001",
-      blurb: "Onboarding invoice for the pilot.",
+      blurb: "Readiness Sprint invoice.",
       payload: {
         type: "invoice",
         number: "INV-001",
         issued: "2027-01-11",
         due: "2027-01-25",
-        projectReference: "CRA vulnerability response pilot",
-        lines: [
-          {
-            kind: "Onboarding",
-            description: "Ingredients lists (SBOMs) for LC-40 and LC-GW, all versions in scope",
-            quantity: 1,
-            unitPrice: 90000,
-          },
-          {
-            kind: "Onboarding",
-            description: "First pass: known vulnerabilities checked, with written decisions",
-            quantity: 1,
-            unitPrice: 40000,
-          },
-          {
-            kind: "Onboarding",
-            description: "Reporting platform setup, playbook and timed practice run",
-            quantity: 1,
-            unitPrice: 20000,
-          },
-        ],
+        projectReference: "CRA Readiness Sprint",
+        lines: [documents.invoiceLines.sprint],
       },
     },
 

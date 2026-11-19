@@ -10,8 +10,8 @@ import { site } from "@/config/site";
  * Invoice.
  *
  * The VAT rule here is not cosmetic. site.legal.vatNumber is currently "" --
- * Fenwright trades as a sole trader and is not VAT registered -- and a business
- * that is not registered must not show or charge VAT. So vatRate is null, the
+ * FEN WRIGHT OPERATIONS LIMITED is not VAT registered -- and a business that
+ * is not registered must not show or charge VAT. So vatRate is null, the
  * VAT row does not render at all, and a short note says why. Rendering a
  * zero-rated VAT line instead would wrongly imply registration. Set
  * legal.vatNumber in config/site.ts and the row appears automatically.

@@ -216,7 +216,13 @@ export type FeedbackDoc = {
 export type PackageTier = {
   name: string;
   /** Minor units. Zero renders as a bracketed placeholder. */
-  monthlyPrice: Money;
+  price: Money;
+  /** Shown instead of a price, e.g. "Coming 2027", for a tier not yet on sale. */
+  priceLabel?: string;
+  /** How the price is charged. Defaults to "month". */
+  per?: "month" | "one-off";
+  /** Short label on the highlighted tier, e.g. "Founding price". Never a claim we can't back up. */
+  badge?: string;
   /** Who it suits, one sentence. */
   suitedTo: string;
   includes: string[];

@@ -1,4 +1,5 @@
 import type { Client } from "./types";
+import { documents } from "@/config/documents";
 
 /**
  * Blank client. Copy this file to content/clients/<slug>.ts for each new
@@ -129,9 +130,12 @@ export const templateClient: Client = {
         issued: "2026-01-01",
         due: "2026-01-15",
         projectReference: "[Project name]",
-        lines: [
-          { kind: "Onboarding", description: "[What they are paying for]", quantity: 1, unitPrice: 0 },
-        ],
+        // Ready-made lines from config/documents.ts. Pick one:
+        //   Sprint:        [documents.invoiceLines.sprint]
+        //   Core quarter:  [documents.invoiceLines.coreQuarter("January to March 2027")]
+        //   Core after a Sprint, with the credit:
+        //     [documents.invoiceLines.coreQuarter("..."), documents.invoiceLines.sprintCredit(200000)]
+        lines: [documents.invoiceLines.sprint],
         // Deposit already received, if any. Drives the balance due.
         amountPaid: 0,
       },

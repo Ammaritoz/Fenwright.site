@@ -159,3 +159,15 @@ describe("isGoodChange", () => {
     expect(isGoodChange(null, "up-good")).toBeNull();
   });
 });
+
+describe("first-client offer invoice lines", () => {
+  it("prices a Core quarter at 3 x €750 and nets the Sprint credit off it", async () => {
+    const { documents } = await import("@/config/documents");
+    const q = documents.invoiceLines.coreQuarter("January to March 2027");
+    expect(lineTotal(q)).toBe(225000);
+    expect(lineTotal(documents.invoiceLines.sprint)).toBe(200000);
+    const t = invoiceTotals([q, documents.invoiceLines.sprintCredit(200000)], { vatRate: null });
+    expect(t.subtotal).toBe(25000);
+    expect(t.vat).toBeNull();
+  });
+});

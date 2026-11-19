@@ -11,7 +11,7 @@ import { formatPriceOrPlaceholder } from "@/lib/portal/format";
  */
 export function Packages({ client, payload }: { client: Client; payload: PackagesDoc }) {
   const tiers = payload.tiers ?? documents.packageTiers;
-  const unpriced = tiers.some((t) => t.monthlyPrice === 0);
+  const unpriced = tiers.some((t) => t.price === 0 && !t.priceLabel);
 
   return (
     <DocShell
@@ -21,7 +21,7 @@ export function Packages({ client, payload }: { client: Client; payload: Package
     >
       <DocText>
         {payload.intro ??
-          "Prices are per product family, a group of products that share most of their software. Here is what each level covers. If none of them fits how you work, say so and we will quote what does."}
+          "Prices are per product family, a group of products that share most of their software. Here is what each option covers. If none of them fits how you work, say so and we will quote what does."}
       </DocText>
 
       <DocSection title="Choose your package">
@@ -35,15 +35,21 @@ export function Packages({ client, payload }: { client: Client; payload: Package
                   : "border-stone-200 bg-white"
               }`}
             >
-              {tier.highlighted && (
+              {tier.highlighted && tier.badge && (
                 <p className="mb-2 text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-accent-700">
-                  Most popular
+                  {tier.badge}
                 </p>
               )}
               <h3 className="font-display text-lg font-bold text-ink">{tier.name}</h3>
               <p className="mt-2 font-display text-2xl font-bold text-ink">
-                {formatPriceOrPlaceholder(tier.monthlyPrice, client.currency)}
-                <span className="ml-1 text-xs font-medium text-stone-500">/month</span>
+                {tier.priceLabel ?? (
+                  <>
+                    {formatPriceOrPlaceholder(tier.price, client.currency)}
+                    <span className="ml-1 text-xs font-medium text-stone-500">
+                      {tier.per === "one-off" ? "one-off" : "/month"}
+                    </span>
+                  </>
+                )}
               </p>
               <p className="mt-3 text-[0.82rem] leading-relaxed text-stone-500">
                 {tier.suitedTo}
@@ -87,12 +93,7 @@ export function Packages({ client, payload }: { client: Client; payload: Package
       </DocSection>
 
       <DocSection title="The small print">
-        <DocText>
-          Packages are month to month with 30 days notice, not annual lock-ins. Your
-          ingredients lists and decision log are yours, in open formats, and we hand them
-          over in full if we ever part ways. Extra product families are priced lower than
-          the first. Moving up or down a level takes effect from your next billing month.
-        </DocText>
+        <DocText>{documents.packagesSmallPrint}</DocText>
       </DocSection>
     </DocShell>
   );

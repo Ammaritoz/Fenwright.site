@@ -21,7 +21,8 @@ import {
  */
 
 /** Hours with one decimal under ten, whole hours above: "3.5 hrs", "26 hrs". */
-function formatHours(hours: number): string {
+function formatHours(hours: number | null): string {
+  if (hours === null) return "None yet";
   const v = hours < 10 ? Math.round(hours * 10) / 10 : Math.round(hours);
   return `${v} ${v === 1 ? "hr" : "hrs"}`;
 }
@@ -101,7 +102,11 @@ export function Report({ client, payload }: { client: Client; payload: ReportDoc
           <Metric
             label="Median hours to assessment"
             value={formatHours(m.medianHoursToAssessment)}
-            change={percentChange(m.medianHoursToAssessment, prev?.medianHoursToAssessment)}
+            change={
+              m.medianHoursToAssessment === null
+                ? null
+                : percentChange(m.medianHoursToAssessment, prev?.medianHoursToAssessment ?? undefined)
+            }
             direction="down-good"
             emphasis
           />

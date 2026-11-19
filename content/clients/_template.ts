@@ -167,7 +167,9 @@ export const templateClient: Client = {
       slug: "report-2026-01",
       title: "Monthly Report, January 2026",
       blurb: "What we watched, what matched, and what we decided last month.",
-      // One of these per month. Add the next as report-2026-02, and so on.
+      // One of these per month. Generate it instead of typing the numbers:
+      //   fenwright-watch monthly -p <product> --client "<name>" --month 2026-01       //     --out ../fenwright-site/content/clients/reports/<client>-2026-01.ts
+      // then import the exported const and put it in place of this entry.
       status: "upcoming",
       expected: "Start of each month",
       payload: {
@@ -180,7 +182,7 @@ export const templateClient: Client = {
           assessedNotAffected: 0,
           assessedAffected: 0,
           reportableEvents: 0,
-          medianHoursToAssessment: 0,
+          medianHoursToAssessment: null,
           // Omit `previous` in the first month: with nothing to compare
           // against, the change indicators are hidden rather than invented.
         },

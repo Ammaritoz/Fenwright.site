@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "portal:passcode": "tsx scripts/portal-passcode.ts",
+    "intake:link": "tsx --env-file=.env.local scripts/intake-link.ts",
     "airtable:check": "tsx --env-file=.env.local scripts/airtable-check.ts"
   },
   "dependencies": {
@@ -21,6 +22,7 @@
     "@upstash/redis": "^1.34.3",
     "@vapi-ai/web": "3.0.1",
     "airtable": "^0.12.2",
+    "aws4fetch": "1.0.20",
     "next": "^14.2.35",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

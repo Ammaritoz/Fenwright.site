@@ -30,7 +30,8 @@ export function CookieConsent() {
   const [ready, setReady] = useState(false);
   const pathname = usePathname();
   const c = site.cookieConsent;
-  const isPortal = pathname?.startsWith("/portal") ?? false;
+  // Upload links carry a credential in the URL too, so they get the same treatment as the portal.
+  const isPortal = (pathname?.startsWith("/portal") || pathname?.startsWith("/upload")) ?? false;
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);

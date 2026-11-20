@@ -104,6 +104,11 @@ export type InvoiceDoc = {
   lines: LineItem[];
   /** Already-paid deposit to subtract from the total. Minor units. */
   amountPaid?: Money;
+  /**
+   * Stripe's hosted invoice page, printed by `npm run stripe:invoice`. Shows a
+   * "Pay online" button. Bank transfer details still show either way.
+   */
+  payUrl?: string;
   paid?: boolean;
 };
 

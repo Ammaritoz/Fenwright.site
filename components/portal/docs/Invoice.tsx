@@ -135,6 +135,19 @@ export function Invoice({ client, payload }: { client: Client; payload: InvoiceD
             you to change our bank details: if you receive a message like that, ring us
             before you send anything.
           </DocText>
+          {payload.payUrl?.startsWith("https://invoice.stripe.com/") && (
+            <p className="mt-4 print:hidden">
+              <a
+                href={payload.payUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold text-white hover:bg-ink/90"
+              >
+                Pay online by card or bank transfer
+              </a>
+              <span className="ml-3 text-xs text-stone-500">Opens Stripe&apos;s secure payment page.</span>
+            </p>
+          )}
         </DocSection>
       )}
     </DocShell>

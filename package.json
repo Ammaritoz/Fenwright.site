@@ -13,6 +13,7 @@
     "test:watch": "vitest",
     "portal:passcode": "tsx scripts/portal-passcode.ts",
     "intake:link": "tsx --env-file=.env.local scripts/intake-link.ts",
+    "stripe:invoice": "tsx --conditions=react-server --env-file=.env.local scripts/stripe-invoice.ts",
     "airtable:check": "tsx --env-file=.env.local scripts/airtable-check.ts"
   },
   "dependencies": {
@@ -38,6 +39,7 @@
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.35",
     "postcss": "^8.4.47",
+    "stripe": "^23.2.0",
     "tailwindcss": "^3.4.14",
     "tsx": "^4.23.12",
     "typescript": "^5.6.3",

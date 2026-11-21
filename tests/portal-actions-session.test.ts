@@ -43,7 +43,8 @@ const { createInvoiceCheckout } = vi.hoisted(() => ({
 vi.mock("@/lib/portal/checkout", () => ({ createInvoiceCheckout, returnBaseUrl: () => "https://www.fenwright.ie", stripePaidAmount: async () => 0 }));
 vi.mock("@/lib/ratelimit", () => ({ rateLimit: vi.fn(async () => ({ success: true })) }));
 
-import { acceptAgreement, markItemDone, startPayment, submitFeedback } from "@/app/portal/[client]/actions";
+import { acceptAgreement, markItemDone, startPayment, submitFeedback, unlockPortal } from "@/app/portal/[client]/actions";
+import { rateLimit } from "@/lib/ratelimit";
 import { questionItemId, reportItemId } from "@/lib/portal/action-items";
 import { redirect } from "next/navigation";
 import { sessionCookieName, signSession } from "@/lib/portal/cookie";
@@ -285,5 +286,68 @@ describe("markItemDone", () => {
     const r = await markItemDone({}, doneForm(REPORT));
     expect(r.ok).toBeUndefined();
     expect(r.error).toMatch(/could not save/i);
+  });
+});
+
+describe("unlockPortal", () => {
+  // The worked-example client's passcode is printed in its own file header.
+  const PASSCODE = "9XCR5-SY2D2";
+  const unlockForm = (passcode: string, next: string | null = null, slug = SLUG) => {
+    const f = new FormData();
+    f.set("slug", slug);
+    f.set("passcode", passcode);
+    if (next !== null) f.set("next", next);
+    return f;
+  };
+  const home = `/portal/${SLUG}`;
+
+  it("opens the portal with the right passcode however it is typed", async () => {
+    for (const typed of [PASSCODE, "9xcr5-sy2d2", "9XCR5SY2D2", "9xcr5 sy2d2", "  9XCR5 - SY2D2  "]) {
+      vi.mocked(redirect).mockClear();
+      // A successful unlock redirects (which throws in real Next), so it returns no state.
+      const r = await unlockPortal({}, unlockForm(typed));
+      expect(r?.error, typed).toBeUndefined();
+      expect(redirect, typed).toHaveBeenCalledWith(home);
+    }
+  });
+
+  it("refuses a wrong passcode and does not redirect", async () => {
+    const r = await unlockPortal({}, unlockForm("AAAAA-BBBBB"));
+    expect(r.error).toMatch(/not right/i);
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("refuses an unknown client with the same message as a wrong passcode", async () => {
+    const r = await unlockPortal({}, unlockForm(PASSCODE, null, "nobody-00000000"));
+    expect(r.error).toMatch(/not right/i);
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("sends the visitor back to the page they asked for, inside their own portal", async () => {
+    await unlockPortal({}, unlockForm(PASSCODE, `${home}/invoice-001`));
+    expect(redirect).toHaveBeenCalledWith(`${home}/invoice-001`);
+  });
+
+  it("never redirects anywhere outside the portal", async () => {
+    for (const next of ["//evil.example", "https://evil.example/x", "/", "/api/contact", "/portal/another-client-00000000/agreement", "javascript:alert(1)", `${home}x`]) {
+      vi.mocked(redirect).mockClear();
+      await unlockPortal({}, unlockForm(PASSCODE, next));
+      expect(redirect, next).toHaveBeenCalledWith(home);
+    }
+  });
+
+  it("checks nothing when the rate limit says stop", async () => {
+    vi.mocked(rateLimit).mockResolvedValueOnce({ success: false } as never);
+    const r = await unlockPortal({}, unlockForm(PASSCODE));
+    expect(r.error).toMatch(/too many attempts/i);
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed input without throwing", async () => {
+    const f = new FormData();
+    f.set("slug", SLUG);
+    const r = await unlockPortal({}, f);
+    expect(r.error).toBeTruthy();
+    expect(redirect).not.toHaveBeenCalled();
   });
 });

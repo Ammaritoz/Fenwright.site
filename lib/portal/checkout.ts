@@ -26,8 +26,30 @@ import { errMeta } from "@/lib/log";
  * (or by a future webhook); this only collects the money.
  */
 
+/**
+ * The Stripe secret key, cleaned. A key pasted into a dashboard often arrives
+ * with a trailing newline, a space or surrounding quotes, and Stripe answers any
+ * of those with a plain 401.
+ */
+export function stripeKey(): string | undefined {
+  const raw = process.env.STRIPE_SECRET_KEY;
+  if (!raw) return undefined;
+  const key = raw.trim().replace(/^["']+|["']+$/g, "").trim();
+  return key || undefined;
+}
+
+/**
+ * The non-secret part of a key ("sk_live", "sk_test", "rk_live", "pk_live"), for
+ * logs. It tells you at a glance whether a 401 is a wrong kind of key without
+ * ever writing the key itself anywhere.
+ */
+export function stripeKeyKind(key: string | undefined): string {
+  const m = /^([a-z]{2}_(?:live|test))_/.exec(key ?? "");
+  return m ? m[1] : "unrecognised";
+}
+
 export function onlinePaymentAvailable(): boolean {
-  return Boolean(process.env.STRIPE_SECRET_KEY);
+  return Boolean(stripeKey());
 }
 
 /** Where Stripe sends the client back to. Fixed in production, never request-derived there. */
@@ -76,7 +98,7 @@ const PAID_CACHE_MS = 15_000;
  * few seconds so the dashboard and the invoice do not each call Stripe.
  */
 export async function stripePaidAmount(client: Client, invoice: InvoiceDoc): Promise<number> {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = stripeKey();
   if (!key) return 0;
 
   const cacheKey = `${client.slug}:${invoice.number}`;
@@ -99,7 +121,7 @@ export async function stripePaidAmount(client: Client, invoice: InvoiceDoc): Pro
         cache: "no-store",
         signal: AbortSignal.timeout(5_000),
       });
-      if (!res.ok) throw new Error(`stripe list ${res.status}`);
+      if (!res.ok) throw new Error(`stripe list ${res.status} (${stripeKeyKind(key)})`);
       const body = (await res.json()) as { data?: StripeSession[]; has_more?: boolean };
       for (const s of body.data ?? []) {
         if (
@@ -116,7 +138,8 @@ export async function stripePaidAmount(client: Client, invoice: InvoiceDoc): Pro
       after = last.id;
     }
   } catch (err) {
-    console.error("[fenwright] stripe paid lookup failed:", errMeta(err));
+    // Our own message here is just a status and the key kind, never a secret.
+    console.error("[fenwright] stripe paid lookup failed:", err instanceof Error && err.message.startsWith("stripe list") ? err.message : errMeta(err));
     return 0;
   }
   paidCache.set(cacheKey, { at: Date.now(), amount: total });
@@ -133,7 +156,7 @@ export async function createInvoiceCheckout(input: {
   /** Already collected through Stripe for this invoice (see stripePaidAmount). */
   paidOnline?: number;
 }): Promise<CheckoutResult> {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = stripeKey();
   if (!key) return { ok: false, error: "Online payment is not set up yet. Please use the bank details instead." };
 
   const { client, docSlug, invoice, returnBase } = input;
@@ -173,7 +196,7 @@ export async function createInvoiceCheckout(input: {
     const data = (await res.json().catch(() => ({}))) as { url?: string; error?: { type?: string; code?: string } };
     if (!res.ok || !data.url || !data.url.startsWith("https://checkout.stripe.com/")) {
       // Log the error class only: Stripe messages can echo request fields.
-      console.error("[fenwright] stripe checkout failed:", res.status, data.error?.type, data.error?.code);
+      console.error("[fenwright] stripe checkout failed:", res.status, data.error?.type, data.error?.code, `key=${stripeKeyKind(key)}`);
       return { ok: false, error: "We could not open the payment page just now. Please try again, or email us." };
     }
     return { ok: true, url: data.url };

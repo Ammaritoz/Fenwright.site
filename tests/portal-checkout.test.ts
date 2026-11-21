@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createInvoiceCheckout, isSettled, returnBaseUrl, stripePaidAmount } from "@/lib/portal/checkout";
+import { createInvoiceCheckout, isSettled, onlinePaymentAvailable, returnBaseUrl, stripeKey, stripeKeyKind, stripePaidAmount } from "@/lib/portal/checkout";
 import type { Client, InvoiceDoc } from "@/content/clients/types";
 
 /**
@@ -175,5 +175,51 @@ describe("stripePaidAmount and isSettled", () => {
     const r = await createInvoiceCheckout({ client, docSlug: "invoice-007", invoice: invoice(), returnBase: "https://x", paidOnline: 200000 });
     expect(r.ok).toBe(false);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("the Stripe key as pasted into a dashboard", () => {
+  it("is cleaned of whitespace, newlines and quotes", () => {
+    for (const pasted of ["sk_test_abc123", "  sk_test_abc123\n", '"sk_test_abc123"', "'sk_test_abc123'\r\n", ' "sk_test_abc123" ']) {
+      vi.stubEnv("STRIPE_SECRET_KEY", pasted);
+      expect(stripeKey(), JSON.stringify(pasted)).toBe("sk_test_abc123");
+    }
+  });
+
+  it("counts as not set when it is empty or only whitespace", () => {
+    for (const blank of ["", "   ", "\n", '""']) {
+      vi.stubEnv("STRIPE_SECRET_KEY", blank);
+      expect(stripeKey(), JSON.stringify(blank)).toBeUndefined();
+      expect(onlinePaymentAvailable()).toBe(false);
+    }
+  });
+
+  it("is sent to Stripe cleaned, in the Authorization header", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", ' "sk_test_abc123"\n');
+    stripeReplies({ url: "https://checkout.stripe.com/c/pay/cs_test_1" });
+    await createInvoiceCheckout({ client, docSlug: "invoice-007", invoice: invoice(), returnBase: "https://www.fenwright.ie" });
+    expect((fetchMock.mock.calls[0][1] as { headers: Record<string, string> }).headers.Authorization).toBe("Bearer sk_test_abc123");
+  });
+
+  it("names only the kind of key for the logs, never the key", () => {
+    expect(stripeKeyKind("sk_live_abcdef")).toBe("sk_live");
+    expect(stripeKeyKind("sk_test_abcdef")).toBe("sk_test");
+    expect(stripeKeyKind("rk_live_abcdef")).toBe("rk_live");
+    expect(stripeKeyKind("pk_live_abcdef")).toBe("pk_live");
+    expect(stripeKeyKind("whsec_abcdef")).toBe("unrecognised");
+    expect(stripeKeyKind(undefined)).toBe("unrecognised");
+    expect(stripeKeyKind("sk_live_abcdef")).not.toContain("abcdef");
+  });
+
+  it("logs the key kind, and not the key, when Stripe refuses it", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "pk_live_SECRETSECRET");
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    stripeReplies({ error: { type: "invalid_request_error" } }, false);
+    const r = await createInvoiceCheckout({ client, docSlug: "invoice-007", invoice: invoice(), returnBase: "https://www.fenwright.ie" });
+    expect(r.ok).toBe(false);
+    const logged = JSON.stringify(log.mock.calls);
+    expect(logged).toContain("pk_live");
+    expect(logged).not.toContain("SECRETSECRET");
+    log.mockRestore();
   });
 });

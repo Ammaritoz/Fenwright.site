@@ -66,9 +66,23 @@ export const airtableExpectations: readonly TableExpectation[] = [
     ],
     writtenBy: "logClientFeedback()",
   },
+  {
+    base: "records",
+    table: "Completions",
+    fields: ["ItemId", "ClientSlug", "Kind", "Title", "CompletedAt", "Ip"],
+    writtenBy: "logCompletion()",
+  },
+  {
+    base: "records",
+    table: "Uploads",
+    fields: ["ClientSlug", "ObjectKey", "SizeBytes", "ReceivedAt"],
+    writtenBy: "logUpload()",
+  },
 ] as const;
 
 /** Named so the writers reference the same string the checker verifies. */
 export const SITE_LEADS_TABLE = "Site Leads";
 export const AGREEMENTS_TABLE = "Agreements";
 export const FEEDBACK_TABLE = "Feedback";
+export const UPLOADS_TABLE = "Uploads";
+export const COMPLETIONS_TABLE = "Completions";

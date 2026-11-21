@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { getClient, getDoc } from "@/content/clients";
-import { PortalNav } from "@/components/portal/PortalNav";
 import { Agreement } from "@/components/portal/docs/Agreement";
 import { Welcome } from "@/components/portal/docs/Welcome";
 import { Invoice } from "@/components/portal/docs/Invoice";
@@ -11,6 +10,8 @@ import { PaymentDetails } from "@/components/portal/docs/PaymentDetails";
 import { ThankYou } from "@/components/portal/docs/ThankYou";
 import { Feedback } from "@/components/portal/docs/Feedback";
 import { Packages } from "@/components/portal/docs/Packages";
+import { getAgreementAcceptance, getFeedbackSubmission } from "@/lib/airtable";
+import { stripePaidAmount } from "@/lib/portal/checkout";
 
 /**
  * One route for every document.
@@ -20,10 +21,12 @@ import { Packages } from "@/components/portal/docs/Packages";
  * a route per instance. The switch below is exhaustive over DocPayload, so
  * adding a document type is a type error here until it is handled.
  */
-export default function DocPage({
+export default async function DocPage({
   params,
+  searchParams,
 }: {
   params: { client: string; doc: string };
+  searchParams: { payment?: string };
 }) {
   const client = getClient(params.client);
   if (!client) notFound();
@@ -32,20 +35,25 @@ export default function DocPage({
   if (!doc) notFound();
 
   const payload = doc.payload;
+  // Whether this agreement is already signed lives in Airtable, not the client file.
+  const paidOnline = payload.type === "invoice" ? await stripePaidAmount(client, payload) : 0;
+  const submission = payload.type === "feedback" ? await getFeedbackSubmission(client.slug, doc.slug) : null;
+  const acceptance =
+    payload.type === "agreement" ? await getAgreementAcceptance(client.slug, doc.slug) : null;
 
   return (
     <>
-      <PortalNav clientName={client.business.name} clientSlug={client.slug} showBack />
-      <main id="main" className="flex-1 py-10 print:py-0 sm:py-14">
-        <div className="container-px print:px-0">
+      {/* The app shell (../layout.tsx) supplies the chrome and <main>. */}
+      <div className="py-2 print:py-0 sm:py-4">
+        <div>
           {(() => {
             switch (payload.type) {
               case "agreement":
-                return <Agreement client={client} doc={doc} payload={payload} />;
+                return <Agreement client={client} doc={doc} payload={payload} acceptance={acceptance} />;
               case "welcome":
                 return <Welcome client={client} payload={payload} />;
               case "invoice":
-                return <Invoice client={client} payload={payload} />;
+                return <Invoice client={client} doc={doc} payload={payload} payment={searchParams.payment} paidOnline={paidOnline} />;
               case "brief":
                 return <Brief client={client} payload={payload} />;
               case "delivery":
@@ -57,7 +65,7 @@ export default function DocPage({
               case "thank-you":
                 return <ThankYou client={client} payload={payload} />;
               case "feedback":
-                return <Feedback client={client} doc={doc} payload={payload} />;
+                return <Feedback client={client} doc={doc} payload={payload} submission={submission} />;
               case "packages":
                 return <Packages client={client} payload={payload} />;
               default: {
@@ -70,7 +78,7 @@ export default function DocPage({
             }
           })()}
         </div>
-      </main>
+      </div>
     </>
   );
 }

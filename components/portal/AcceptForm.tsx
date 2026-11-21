@@ -40,9 +40,8 @@ export function AcceptForm({
       <div className="mt-6 break-inside-avoid rounded-xl border border-accent/40 bg-accent-soft/60 px-5 py-4 print:bg-transparent">
         <p className="font-display text-base font-semibold text-ink">Agreement accepted.</p>
         <p className="mt-1 text-[0.94rem] leading-relaxed text-stone-600">
-          Thank you. We have recorded your acceptance and kept a timestamped copy. You will
-          get a confirmation by email, and we will be in touch to get started. Save this
-          page as a PDF if you would like your own copy.
+          Thank you. We have recorded your acceptance and kept a timestamped copy. We will
+          be in touch to get started. Save this page as a PDF if you would like your own copy.
         </p>
       </div>
     );
@@ -67,7 +66,7 @@ export function AcceptForm({
           placeholder={contactName}
           aria-describedby={state.error ? "accept-error" : undefined}
           aria-invalid={state.error ? true : undefined}
-          className="mt-2 w-full rounded-xl border border-stone-300 bg-white px-3.5 py-3 text-base text-ink outline-none transition placeholder:text-stone-400 focus:border-accent focus:ring-2 focus:ring-accent/30"
+          className="mt-2 w-full rounded-xl border border-stone-300 bg-white px-3.5 py-3 text-base text-ink outline-none transition-colors placeholder:text-stone-400 focus:border-accent focus:ring-2 focus:ring-accent/30"
         />
       </div>
 

@@ -98,6 +98,13 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  experimental: {
+    // Next keeps dynamic pages in the browser for 30 seconds between clicks.
+    // For the client portal that means the dashboard can show "unpaid" or
+    // "unsigned" for half a minute after the client has just paid or signed.
+    // Zero means every click on a portal link asks the server again.
+    staleTimes: { dynamic: 0, static: 30 },
+  },
   // Pages from the roofing and voice-receptionist business, closed in
   // November 2026. Old email signatures and links still point at them.
   async redirects() {

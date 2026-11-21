@@ -5,6 +5,7 @@ import { objectSize, r2Configured } from "@/lib/intake/r2";
 import { sendSms, smsConfigured } from "@/lib/sms";
 import { guardRequest } from "@/lib/request";
 import { errMeta } from "@/lib/log";
+import { logUpload } from "@/lib/airtable";
 
 /**
  * Confirms an encrypted upload reached R2 and tells Fenwright it is waiting.
@@ -37,8 +38,12 @@ export async function POST(req: NextRequest) {
   const size = await objectSize(parsed.data.key).catch(() => null);
   if (!size) return NextResponse.json({ error: "We could not find your upload. Please try again." }, { status: 404 });
 
+  // Record it first. A repeat of an upload already recorded is acknowledged but
+  // does not text the operator again.
+  const recorded = await logUpload({ clientSlug: link.prospect, objectKey: parsed.data.key, bytes: size });
+
   const notify = process.env.INTAKE_NOTIFY_PHONE;
-  if (notify && smsConfigured()) {
+  if (notify && smsConfigured() && recorded !== "exists") {
     try {
       await sendSms(notify, `Fenwright: encrypted firmware received from ${link.prospect} (${Math.round(size / 1048576)} MB). Run: fenwright-watch intake fetch`);
     } catch (err) {

@@ -25,7 +25,17 @@ export function PaymentDetails({ client, payload }: { client: Client; payload: P
       clientName={client.business.name}
       meta={[{ label: "Reference", value: payload.reference }]}
     >
-      {!anyMethod && (
+      {!anyMethod && process.env.NODE_ENV === "production" && (
+        <DocCallout>
+          <p className="font-semibold">Paying by bank transfer</p>
+          <p className="mt-1 text-stone-600">
+            Email {site.legal.contactEmail} and we will send our bank details straight back.
+            Please quote reference {payload.reference} when you pay. You can also pay by card
+            from your invoice.
+          </p>
+        </DocCallout>
+      )}
+      {!anyMethod && process.env.NODE_ENV !== "production" && (
         <div className="mb-7 break-inside-avoid rounded-xl border-2 border-amber-500/60 bg-amber-50 px-5 py-4">
           <p className="text-sm font-semibold text-amber-900">
             Payment details not filled in yet

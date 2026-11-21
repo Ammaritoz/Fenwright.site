@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { hashPasscode, verifyPasscode } from "@/lib/portal/auth";
+import { hashPasscode, normalisePasscode, verifyPasscode } from "@/lib/portal/auth";
 import {
   SESSION_MAX_AGE_SECONDS,
   sessionCookieName,
@@ -96,5 +96,28 @@ describe("session cookie", () => {
     await expect(signSession("acme-1234")).rejects.toThrow(/PORTAL_COOKIE_SECRET/);
     vi.stubEnv("PORTAL_COOKIE_SECRET", "too-short");
     await expect(signSession("acme-1234")).rejects.toThrow(/32 characters/);
+  });
+});
+
+describe("passcode normalisation", () => {
+  const salt = "977168e59bf35db473655c5a5f31f141";
+  const hash = hashPasscode("DCUPN-VMK8D", salt);
+  const accepts = (typed: string) => verifyPasscode(normalisePasscode(typed), hash, salt);
+
+  it("accepts the code with or without the dash, in any case, with stray whitespace", () => {
+    for (const typed of ["DCUPN-VMK8D", "DCUPNVMK8D", "dcupn-vmk8d", "dcupnvmk8d", " DCUPN VMK8D ", "DCUPN-VMK8D\n", "DCUPN--VMK8D-"]) {
+      expect(accepts(typed), typed).toBe(true);
+    }
+  });
+
+  it("still rejects anything that is not exactly the code", () => {
+    for (const typed of ["", "DCUPN", "DCUPN-VMK8", "DCUPN-VMK8DX", "DCUPN-VMK8E", "XXXXX-XXXXX"]) {
+      expect(accepts(typed), typed).toBe(false);
+    }
+  });
+
+  it("puts the dash back only for ten characters", () => {
+    expect(normalisePasscode("abcde12345")).toBe("ABCDE-12345");
+    expect(normalisePasscode("abcde1234")).toBe("ABCDE1234");
   });
 });

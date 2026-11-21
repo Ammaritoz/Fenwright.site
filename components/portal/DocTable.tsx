@@ -31,7 +31,7 @@ export function DocTable({
               <th
                 key={c.key}
                 scope="col"
-                className={`pb-2 text-[0.63rem] font-semibold uppercase tracking-[0.13em] text-stone-400 ${
+                className={`pb-2 text-sm font-medium text-stone-600 ${
                   c.align === "right" ? "text-right" : "text-left"
                 } ${c.width ?? ""}`}
               >
@@ -91,8 +91,8 @@ export function TotalsRow({
       <span
         className={
           emphasis
-            ? "text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-ink"
-            : "text-[0.7rem] uppercase tracking-[0.13em] text-stone-400"
+            ? "text-xs font-semibold text-ink"
+            : "text-xs text-stone-400"
         }
       >
         {label}
@@ -100,7 +100,7 @@ export function TotalsRow({
       <span
         className={
           emphasis
-            ? "font-display text-xl font-bold text-ink"
+            ? "font-display text-xl font-semibold text-ink"
             : "text-[0.94rem] text-stone-600"
         }
       >

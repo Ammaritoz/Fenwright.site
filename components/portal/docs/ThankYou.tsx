@@ -15,7 +15,7 @@ export function ThankYou({ client, payload }: { client: Client; payload: ThankYo
       clientName={client.business.name}
       meta={[{ label: "Completed", value: formatDate(payload.completedDate) }]}
     >
-      <h2 className="font-display text-2xl font-bold leading-snug text-ink sm:text-3xl">
+      <h2 className="font-display text-2xl font-semibold leading-snug text-ink sm:text-3xl">
         It has been a pleasure working with you.
       </h2>
       <DocText>{payload.note}</DocText>

@@ -4,6 +4,8 @@ import { errMeta } from "@/lib/log";
 import {
   AGREEMENTS_TABLE,
   FEEDBACK_TABLE,
+  UPLOADS_TABLE,
+  COMPLETIONS_TABLE,
   SITE_LEADS_TABLE,
 } from "@/lib/airtable-schema";
 
@@ -188,6 +190,60 @@ export async function logAgreementAcceptance(input: {
   }
 }
 
+/** Escape a value for use inside a single-quoted Airtable formula string. */
+function formulaString(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+export type AgreementAcceptance = { name: string; at: string };
+export type FeedbackSubmission = { name: string; at: string };
+
+/**
+ * The earliest record a client has left in an Airtable table for one document.
+ *
+ * What a client has signed or submitted is read from the record we actually
+ * saved, not from a flag someone has to remember to edit in the client file.
+ * Returns null when there is no record, and also when Airtable cannot be read
+ * (not configured, offline): the form then simply shows, and the write path
+ * still surfaces its own error.
+ */
+async function findClientRecord(
+  table: string,
+  clientSlug: string,
+  documentSlug: string,
+  nameField: string,
+  timeField: string
+): Promise<{ name: string; at: string } | null> {
+  const b = getRecordsBase();
+  if (!b) return null;
+  try {
+    const rows = await b(table)
+      .select({
+        maxRecords: 1,
+        fields: [nameField, timeField],
+        sort: [{ field: timeField, direction: "asc" }],
+        filterByFormula: `AND({ClientSlug}='${formulaString(clientSlug)}',{Document}='${formulaString(documentSlug)}')`,
+      })
+      .firstPage();
+    const f = rows[0]?.fields;
+    if (!f) return null;
+    return { name: String(f[nameField] ?? ""), at: String(f[timeField] ?? "") };
+  } catch (err) {
+    console.error("[fenwright] record lookup failed:", err instanceof Error ? err.message : errMeta(err));
+    return null;
+  }
+}
+
+/** Has this client already signed this agreement document? */
+export function getAgreementAcceptance(clientSlug: string, documentSlug: string): Promise<AgreementAcceptance | null> {
+  return findClientRecord(AGREEMENTS_TABLE, clientSlug, documentSlug, "SignatoryName", "AcceptedAt");
+}
+
+/** Has this client already sent this feedback form? */
+export function getFeedbackSubmission(clientSlug: string, documentSlug: string): Promise<FeedbackSubmission | null> {
+  return findClientRecord(FEEDBACK_TABLE, clientSlug, documentSlug, "RespondentName", "SubmittedAt");
+}
+
 /**
  * Store a completed client feedback form. Throws on failure so the client is
  * asked to resubmit rather than silently losing what they wrote.
@@ -225,5 +281,129 @@ export async function logClientFeedback(input: {
     ]);
   } catch (err) {
     throw recordsWriteError(err, "client feedback");
+  }
+}
+
+
+export type ReceivedUpload = { at: string; bytes: number };
+
+/**
+ * Record that an encrypted upload reached storage.
+ *
+ * The pipeline deletes each object from storage once it collects it, so storage
+ * cannot tell a client "we have your file" afterwards. This row can. It is
+ * written once per object (a repeat call finds the existing row), and it never
+ * throws: a missing Uploads table must not make a successful upload look failed.
+ *
+ * Returns "created" for a new upload, "exists" for one already recorded, and
+ * "unavailable" when Airtable could not be used. The caller texts the operator
+ * only when it is not "exists", so replaying the request cannot spam their phone.
+ */
+export async function logUpload(input: {
+  clientSlug: string;
+  objectKey: string;
+  bytes: number;
+}): Promise<"created" | "exists" | "unavailable"> {
+  const b = getRecordsBase();
+  if (!b) return "unavailable";
+  try {
+    const found = await b(UPLOADS_TABLE)
+      .select({ maxRecords: 1, fields: ["ObjectKey"], filterByFormula: `{ObjectKey}='${formulaString(input.objectKey)}'` })
+      .firstPage();
+    if (found.length > 0) return "exists";
+    await b(UPLOADS_TABLE).create([
+      {
+        fields: {
+          ClientSlug: deFormula(input.clientSlug),
+          ObjectKey: deFormula(input.objectKey),
+          SizeBytes: input.bytes,
+          ReceivedAt: new Date().toISOString(),
+        },
+      },
+    ]);
+    return "created";
+  } catch (err) {
+    console.error("[fenwright] upload record failed:", err instanceof Error ? err.message : errMeta(err));
+    return "unavailable";
+  }
+}
+
+/** Uploads this client has sent, newest first. Empty when none, or when Airtable cannot be read. */
+export async function listUploads(clientSlug: string): Promise<ReceivedUpload[]> {
+  const b = getRecordsBase();
+  if (!b) return [];
+  try {
+    const rows = await b(UPLOADS_TABLE)
+      .select({
+        maxRecords: 50,
+        fields: ["SizeBytes", "ReceivedAt"],
+        sort: [{ field: "ReceivedAt", direction: "desc" }],
+        filterByFormula: `{ClientSlug}='${formulaString(clientSlug)}'`,
+      })
+      .firstPage();
+    return rows.map((r) => ({ at: String(r.fields.ReceivedAt ?? ""), bytes: Number(r.fields.SizeBytes ?? 0) }));
+  } catch (err) {
+    console.error("[fenwright] upload list failed:", err instanceof Error ? err.message : errMeta(err));
+    return [];
+  }
+}
+
+
+/**
+ * Record that a client marked an attention item as done.
+ *
+ * It is the client's own statement ("I have approved and submitted this"), not
+ * proof of anything: for a report draft, the filing itself happens on ENISA's
+ * platform. Idempotent per client and item, so a double click stores one row.
+ * Throws on failure, so the client is told to try again instead of seeing the
+ * item disappear without a record.
+ */
+export async function logCompletion(input: {
+  clientSlug: string;
+  itemId: string;
+  kind: string;
+  title: string;
+  ip: string;
+}): Promise<void> {
+  const b = getRecordsBase();
+  if (!b) throw new Error("AIRTABLE_RECORDS_BASE_ID is not set; cannot record completion.");
+  try {
+    const found = await b(COMPLETIONS_TABLE)
+      .select({
+        maxRecords: 1,
+        fields: ["ItemId"],
+        filterByFormula: `AND({ClientSlug}='${formulaString(input.clientSlug)}',{ItemId}='${formulaString(input.itemId)}')`,
+      })
+      .firstPage();
+    if (found.length > 0) return;
+    await b(COMPLETIONS_TABLE).create([
+      {
+        fields: {
+          ItemId: deFormula(input.itemId),
+          ClientSlug: deFormula(input.clientSlug),
+          Kind: deFormula(input.kind),
+          Title: deFormula(input.title.slice(0, 300)),
+          CompletedAt: new Date().toISOString(),
+          Ip: deFormula(input.ip),
+        },
+      },
+    ]);
+  } catch (err) {
+    throw recordsWriteError(err, "completion");
+  }
+}
+
+/** Ids of the items this client has marked done. Empty when none, or when Airtable cannot be read. */
+export async function listCompletions(clientSlug: string): Promise<Set<string>> {
+  const b = getRecordsBase();
+  if (!b) return new Set();
+  try {
+    const rows = await b(COMPLETIONS_TABLE)
+      .select({ maxRecords: 200, fields: ["ItemId"], filterByFormula: `{ClientSlug}='${formulaString(clientSlug)}'` })
+      .firstPage();
+    return new Set(rows.map((r) => String(r.fields.ItemId ?? "")).filter(Boolean));
+  } catch (err) {
+    console.error("[fenwright] completion list failed:", err instanceof Error ? err.message : errMeta(err));
+    return new Set();
   }
 }

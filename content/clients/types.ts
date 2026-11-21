@@ -79,6 +79,11 @@ export type AgreementDoc = {
   noticeDays: number;
   /** Third-party services the client pays for on their own accounts. */
   passThroughServices: string[];
+  /**
+   * Set once acceptance is confirmed in Airtable (the accept form writes
+   * there, not here). While unset, the dashboard asks the client to sign.
+   */
+  acceptedOn?: IsoDate;
 };
 
 export type WelcomeDoc = {
@@ -318,4 +323,92 @@ export type Client = {
   passcodeHash: string;
   passcodeSalt: string;
   docs: DocRecord[];
+  /**
+   * How far onboarding has got: the number of documents.onboardingSteps that
+   * are done. Drives the progress tracker on the dashboard. Once the pipeline
+   * reports monitoring as live, every step shows as done regardless.
+   */
+  engagement?: { completedSteps: number };
+  /**
+   * Whether this client should be asked for firmware. On by default: the portal
+   * has its own Upload page that makes a short-lived link for the signed-in
+   * client, so nothing needs running per client. Set `firmwareUpload: false`
+   * once their files have arrived to stop asking.
+   */
+  firmwareUpload?: boolean;
+  /**
+   * Legacy: a one-off link from `npm run intake:link`. Only needed to point a
+   * client at somewhere other than the built-in Upload page.
+   */
+  uploadUrl?: string;
+};
+
+// --- Live dashboard data (fenwright-watch -> Neon) --------------------------
+
+/**
+ * The payload `fenwright-watch sync` writes to Neon's portal_snapshot table,
+ * produced by gather() in fenwright-watch's dashboard.py. Validated at runtime
+ * by lib/portal/dashboard-schema.ts, so a pipeline change that drifts from
+ * this shape shows the client "data unavailable" rather than a broken page.
+ * All timestamps are full ISO 8601 with a timezone.
+ */
+export type FindingStatus = "affected" | "not_affected" | "under_investigation" | "unassessed";
+
+export type DashboardData = {
+  generatedAt: string;
+  /** True once every product in scope is under continuous monitoring. */
+  monitoring: boolean;
+  products: {
+    name: string;
+    version: string;
+    components: number;
+    lastScanned: string;
+    monitoredSince?: string;
+  }[];
+  totals: {
+    components: number;
+    matches: number;
+    exploited: number;
+    affected: number;
+    notAffected: number;
+    underInvestigation: number;
+    unassessed: number;
+    awaitingReview: number;
+  };
+  findings: {
+    cve: string;
+    product: string;
+    component: string;
+    cvss: number | null;
+    exploited: boolean;
+    status: FindingStatus;
+    reviewed: boolean;
+    justification?: string;
+    reasoning?: string;
+    decidedAt?: string;
+  }[];
+  /** Article 14 drafts. `dueAt` is the reporting deadline the draft serves. */
+  reports: { cve: string; stage: string; createdAt: string | null; dueAt?: string }[];
+  log: {
+    at: string;
+    event: string;
+    by: string | null;
+    detail: string;
+    product?: string;
+    cve?: string;
+  }[];
+  /** Questions for the client's engineer that block an assessment. */
+  questions?: {
+    cve: string;
+    product: string;
+    component: string;
+    question: string;
+    askedAt?: string;
+  }[];
+  /** The monthly report numbers for the current month and the one before. */
+  monthly?: {
+    period: string;
+    current: ReportMetrics;
+    previous: ReportMetrics | null;
+  };
 };

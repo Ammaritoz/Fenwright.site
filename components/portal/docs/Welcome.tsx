@@ -16,7 +16,7 @@ export function Welcome({ client, payload }: { client: Client; payload: WelcomeD
       clientName={client.business.name}
       meta={[{ label: "Start", value: formatDate(payload.startDate) }]}
     >
-      <h2 className="font-display text-2xl font-bold leading-snug text-ink sm:text-3xl">
+      <h2 className="font-display text-2xl font-semibold leading-snug text-ink sm:text-3xl">
         Welcome to Fenwright, {client.business.name}.
       </h2>
       <DocText>

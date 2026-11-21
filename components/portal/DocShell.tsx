@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { WaveRule } from "@/components/Logo";
+import { SignatureRule } from "@/components/Logo";
 import { PrintButton } from "@/components/portal/PrintButton";
 import { site } from "@/config/site";
 
@@ -43,32 +43,33 @@ export function DocShell({ docType, subtitle, clientName, meta = [], children }:
         <header>
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div>
-              <p className="font-display text-2xl font-bold leading-none text-ink">
+              <p className="font-display text-2xl font-semibold leading-none text-ink">
                 {site.brand.wordmark}
               </p>
-              <p className="mt-2 text-[0.7rem] uppercase tracking-[0.18em] text-stone-400">
+              <p className="mt-2 text-xs text-stone-400">
                 CRA vulnerability response
               </p>
             </div>
             <div className="text-right">
-              <h1 className="font-display text-xl font-bold uppercase tracking-wide text-ink sm:text-2xl">
+              <h1 className="font-display text-xl font-semibold text-ink sm:text-2xl">
                 {docType}
               </h1>
               {subtitle && (
-                <p className="mt-1 text-[0.7rem] uppercase tracking-[0.14em] text-stone-400">
+                <p className="mt-1 text-xs text-stone-400">
                   {subtitle}
                 </p>
               )}
               {meta.map((m) => (
                 <p key={m.label} className="mt-1 text-xs text-stone-500">
-                  <span className="uppercase tracking-[0.1em] text-stone-400">{m.label}</span>{" "}
+                  <span className="text-stone-400">{m.label}</span>{" "}
                   <span className="font-medium text-stone-600">{m.value}</span>
                 </p>
               ))}
             </div>
           </div>
 
-          <WaveRule className="mt-7 h-2 w-full object-fill opacity-70" />
+          {/* Full letterhead width: the hairlines stretch, the W keeps its shape. */}
+          <SignatureRule className="mt-7 opacity-80" height={40} />
 
           <p className="mt-6 text-sm text-stone-500">
             Prepared for <span className="font-semibold text-ink">{clientName}</span>
@@ -101,7 +102,7 @@ export function DocSection({
 }) {
   return (
     <section className={`mt-9 break-inside-avoid ${className}`}>
-      <h2 className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-stone-400">
+      <h2 className="text-sm font-medium text-stone-600">
         {title}
       </h2>
       <div className="mt-3">{children}</div>

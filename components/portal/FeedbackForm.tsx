@@ -89,7 +89,7 @@ export function FeedbackForm({
       <input type="hidden" name="answers" defaultValue="" />
 
       <fieldset>
-        <legend className="text-[0.65rem] uppercase tracking-[0.14em] text-stone-400">
+        <legend className="text-xs text-stone-400">
           Overall ratings
         </legend>
         <div className="mt-4 space-y-4">
@@ -112,7 +112,7 @@ export function FeedbackForm({
                       value={score}
                       className="peer sr-only"
                     />
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-300 text-sm text-stone-500 transition peer-checked:border-accent peer-checked:bg-accent peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-accent/40 group-hover:border-stone-400">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-300 text-sm text-stone-500 transition-colors peer-checked:border-accent peer-checked:bg-accent peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-accent/40 group-hover:border-stone-400">
                       {score}
                     </span>
                   </label>
@@ -124,7 +124,7 @@ export function FeedbackForm({
       </fieldset>
 
       <fieldset className="mt-8">
-        <legend className="text-[0.65rem] uppercase tracking-[0.14em] text-stone-400">
+        <legend className="text-xs text-stone-400">
           In your own words
         </legend>
         <div className="mt-4 space-y-5">
@@ -140,7 +140,7 @@ export function FeedbackForm({
                 id={`question_${q.id}`}
                 name={`question_${q.id}`}
                 rows={3}
-                className="mt-2 w-full rounded-xl border border-stone-300 bg-white px-3.5 py-3 text-[0.94rem] text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30"
+                className="mt-2 w-full rounded-xl border border-stone-300 bg-white px-3.5 py-3 text-[0.94rem] text-ink outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/30"
               />
             </div>
           ))}
@@ -148,7 +148,7 @@ export function FeedbackForm({
       </fieldset>
 
       <fieldset className="mt-8">
-        <legend className="text-[0.65rem] uppercase tracking-[0.14em] text-stone-400">
+        <legend className="text-xs text-stone-400">
           Happy to be quoted?
         </legend>
         <label htmlFor="testimonial" className="mt-4 block text-[0.94rem] text-stone-600">
@@ -158,7 +158,7 @@ export function FeedbackForm({
           id="testimonial"
           name="testimonial"
           rows={3}
-          className="mt-2 w-full rounded-xl border border-stone-300 bg-white px-3.5 py-3 text-[0.94rem] text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30"
+          className="mt-2 w-full rounded-xl border border-stone-300 bg-white px-3.5 py-3 text-[0.94rem] text-ink outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/30"
         />
         <div className="mt-4 max-w-sm">
           <label htmlFor="name" className="block text-sm font-medium text-ink">
@@ -169,7 +169,7 @@ export function FeedbackForm({
             name="name"
             type="text"
             autoComplete="name"
-            className="mt-2 w-full rounded-xl border border-stone-300 bg-white px-3.5 py-3 text-base text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30"
+            className="mt-2 w-full rounded-xl border border-stone-300 bg-white px-3.5 py-3 text-base text-ink outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/30"
           />
         </div>
         <p className="mt-3 text-xs leading-relaxed text-stone-500">

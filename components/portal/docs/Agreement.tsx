@@ -4,7 +4,8 @@ import { Field, FieldGrid } from "@/components/portal/Field";
 import { DocTable, DocRow, DocCell } from "@/components/portal/DocTable";
 import { AcceptForm } from "@/components/portal/AcceptForm";
 import { documents } from "@/config/documents";
-import { formatMoney } from "@/lib/portal/format";
+import { formatDateTime, formatMoney } from "@/lib/portal/format";
+import type { AgreementAcceptance } from "@/lib/airtable";
 import { site } from "@/config/site";
 
 /**
@@ -33,10 +34,13 @@ export function Agreement({
   client,
   doc,
   payload,
+  acceptance = null,
 }: {
   client: Client;
   doc: DocRecord;
   payload: AgreementDoc;
+  /** Set when this agreement has already been signed; replaces the form. */
+  acceptance?: AgreementAcceptance | null;
 }) {
   const a = documents.agreement;
   const tokens = {
@@ -53,7 +57,7 @@ export function Agreement({
     >
       {!payload.solicitorReviewed && (
         <div className="mb-8 break-inside-avoid rounded-xl border-2 border-amber-500/60 bg-amber-50 px-5 py-4">
-          <p className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-amber-700">
+          <p className="text-xs font-semibold text-amber-700">
             Internal notice, not for the client
           </p>
           <p className="mt-1.5 text-sm font-semibold text-amber-900">
@@ -102,10 +106,10 @@ export function Agreement({
 
       <DocSection title="Fees and payment schedule">
         <div className="break-inside-avoid rounded-xl border border-stone-300 bg-paper/60 px-5 py-4 print:bg-transparent">
-          <p className="text-[0.65rem] uppercase tracking-[0.14em] text-stone-400">
+          <p className="text-xs text-stone-400">
             Total project fee
           </p>
-          <p className="mt-1 font-display text-3xl font-bold text-ink">
+          <p className="mt-1 font-display text-3xl font-semibold text-ink">
             {formatMoney(payload.totalFee, client.currency)}
           </p>
           {!site.legal.vatNumber && (
@@ -187,7 +191,7 @@ export function Agreement({
         </ol>
 
         <div className="mt-6">
-          <h3 className="text-[0.65rem] uppercase tracking-[0.14em] text-stone-400">
+          <h3 className="text-xs text-stone-400">
             Approved sub-processors
           </h3>
           <div className="mt-2">
@@ -217,12 +221,23 @@ export function Agreement({
 
       <DocSection title="Acceptance">
         <p className="text-[0.92rem] leading-relaxed text-stone-600">{a.signatureNote}</p>
-        <AcceptForm
-          slug={client.slug}
-          docSlug={doc.slug}
-          businessName={client.business.name}
-          contactName={client.business.contact.name}
-        />
+        {acceptance ? (
+          <div className="mt-6 break-inside-avoid rounded-xl border border-accent/40 bg-accent-soft/60 px-5 py-4 print:bg-transparent">
+            <p className="font-display text-base font-semibold text-ink">Agreement signed</p>
+            <p className="mt-1 text-[0.94rem] leading-relaxed text-stone-600">
+              Accepted by <span className="font-semibold text-ink">{acceptance.name}</span>
+              {acceptance.at && <> on {formatDateTime(acceptance.at)}</>}. We hold a
+              timestamped record. Save this page as a PDF if you would like your own copy.
+            </p>
+          </div>
+        ) : (
+          <AcceptForm
+            slug={client.slug}
+            docSlug={doc.slug}
+            businessName={client.business.name}
+            contactName={client.business.contact.name}
+          />
+        )}
       </DocSection>
     </DocShell>
   );

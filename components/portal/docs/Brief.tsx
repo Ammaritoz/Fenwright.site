@@ -62,7 +62,7 @@ export function Brief({ client, payload }: { client: Client; payload: BriefDoc }
               key={side.label}
               className="break-inside-avoid rounded-xl border border-stone-200 bg-paper/60 p-4 print:bg-transparent"
             >
-              <p className="text-[0.63rem] uppercase tracking-[0.13em] text-stone-400">{side.label}</p>
+              <p className="text-xs text-stone-400">{side.label}</p>
               <div className="mt-3">
                 <DocList items={side.items} />
               </div>

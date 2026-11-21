@@ -14,6 +14,9 @@
 
 import type { Currency, IsoDate, LineItem, Money } from "@/content/clients/types";
 
+/** Irish standard VAT rate, applied only once site.legal.vatNumber is set (see Invoice). */
+export const VAT_RATE = 0.23;
+
 /** en-IE gives DD Month YYYY, which is how an Irish or UK client reads a date. */
 const DATE_LOCALE = "en-IE";
 
@@ -145,4 +148,53 @@ export function isGoodChange(
 ): boolean | null {
   if (change === null || change === 0) return null;
   return direction === "up-good" ? change > 0 : change < 0;
+}
+
+// --- Timestamps for the live dashboard -------------------------------------
+//
+// Dashboard data carries full ISO timestamps, not bare dates. These take `now`
+// explicitly so a server render is deterministic and testable.
+
+const MIN = 60_000;
+const HOUR = 60 * MIN;
+const DAY_MS = 24 * HOUR;
+
+/** "20 Nov, 09:14", in Irish time, which is the clock the service runs on. */
+export function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) throw new Error(`Invalid timestamp in dashboard data: ${iso}`);
+  return new Intl.DateTimeFormat(DATE_LOCALE, {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Europe/Dublin",
+  }).format(d);
+}
+
+/** "just now", "4 min ago", "3 hr ago", "2 days ago". */
+export function formatAgo(iso: string, now: Date): string {
+  const ms = now.getTime() - new Date(iso).getTime();
+  if (ms < MIN) return "just now";
+  if (ms < HOUR) return `${Math.floor(ms / MIN)} min ago`;
+  if (ms < DAY_MS) return `${Math.floor(ms / HOUR)} hr ago`;
+  const days = Math.floor(ms / DAY_MS);
+  return days === 1 ? "yesterday" : `${days} days ago`;
+}
+
+/** "in 5 hr", "in 2 days", "overdue". For deadlines. */
+export function formatDueIn(iso: string, now: Date): string {
+  const ms = new Date(iso).getTime() - now.getTime();
+  if (ms < 0) return "overdue";
+  if (ms < HOUR) return `in ${Math.max(1, Math.floor(ms / MIN))} min`;
+  if (ms < DAY_MS) return `in ${Math.floor(ms / HOUR)} hr`;
+  const days = Math.floor(ms / DAY_MS);
+  return days === 1 ? "tomorrow" : `in ${days} days`;
+}
+
+/** "6.5 hr" or an en dash when there is nothing honest to show. Never "0". */
+export function formatHours(hours: number | null): string {
+  if (hours === null) return "–";
+  return `${Number.isInteger(hours) ? hours : hours.toFixed(1)} hr`;
 }

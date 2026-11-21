@@ -26,6 +26,35 @@ export function WaveRule({
 }
 
 /**
+ * The same rule at any width: hairline, the W flourish, hairline.
+ *
+ * Stretching the whole image distorts the W, and clamping its height squashes
+ * it. So the rule is cut into pieces (scripts/extract-logo.py): a thin slice of
+ * the hairline that is safe to stretch sideways, and the flourish, which keeps
+ * its natural proportions. All three are the same height, so the hairlines meet
+ * the W exactly. `height` is the height of the W in pixels.
+ */
+export function SignatureRule({
+  className = "",
+  variant = "ink",
+  height = 44,
+}: {
+  className?: string;
+  variant?: Variant;
+  height?: number;
+}) {
+  const tone = variant === "paper" ? "paper" : "ink";
+  const line = `/brand/rule-line-${tone}.png`;
+  return (
+    <div aria-hidden="true" className={`flex w-full items-center ${className}`} style={{ height }}>
+      <img src={line} alt="" className="h-full min-w-0 flex-1 object-fill" style={{ width: 0 }} />
+      <img src={`/brand/rule-center-${tone}.png`} alt="" className="h-full w-auto shrink-0" />
+      <img src={line} alt="" className="h-full min-w-0 flex-1 object-fill" style={{ width: 0 }} />
+    </div>
+  );
+}
+
+/**
  * Fenwright lockup: the official logo artwork (public/logo.JPG), cropped and
  * keyed to a transparent background. The `paper` variant is the same
  * artwork recolored for the dark ink surface (footer), not a redraw.

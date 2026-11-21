@@ -24,7 +24,7 @@ export default function UnlockPage({
         </div>
 
         <div className="mt-8 rounded-xl2 border border-stone-200 bg-white p-7 shadow-card">
-          <h1 className="font-display text-xl font-bold text-ink">Client documents</h1>
+          <h1 className="font-display text-xl font-semibold text-ink">Client documents</h1>
           <p className="mt-2 text-sm leading-relaxed text-stone-600">
             Enter the passcode we sent you. It keeps your agreement, invoices and reports
             private to your business.

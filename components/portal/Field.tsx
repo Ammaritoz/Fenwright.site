@@ -9,7 +9,7 @@ export function Field({ label, value }: { label: string; value?: ReactNode }) {
   if (value === undefined || value === null || value === "") return null;
   return (
     <div>
-      <dt className="text-[0.65rem] uppercase tracking-[0.14em] text-stone-400">{label}</dt>
+      <dt className="text-xs text-stone-400">{label}</dt>
       <dd className="mt-1 text-[0.94rem] leading-snug text-ink">{value}</dd>
     </div>
   );

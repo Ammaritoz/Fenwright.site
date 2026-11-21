@@ -51,8 +51,8 @@ function Metric({
           : "border-stone-200 bg-white"
       }`}
     >
-      <p className="font-display text-[2rem] font-bold leading-none text-ink">{value}</p>
-      <p className="mt-2 text-[0.68rem] uppercase leading-tight tracking-[0.12em] text-stone-400">
+      <p className="font-display text-[2rem] font-semibold leading-none text-ink">{value}</p>
+      <p className="mt-2 text-xs leading-tight text-stone-400">
         {label}
       </p>
       {change !== null && (

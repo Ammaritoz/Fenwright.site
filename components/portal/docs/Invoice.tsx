@@ -1,9 +1,11 @@
-import type { Client, InvoiceDoc } from "@/content/clients/types";
+import type { Client, DocRecord, InvoiceDoc } from "@/content/clients/types";
 import { DocShell, DocSection, DocText } from "@/components/portal/DocShell";
 import { Field, FieldGrid } from "@/components/portal/Field";
 import { DocTable, DocRow, DocCell, TotalsRow } from "@/components/portal/DocTable";
 import { documents } from "@/config/documents";
-import { formatDate, formatMoney, invoiceTotals, lineTotal } from "@/lib/portal/format";
+import { VAT_RATE, formatDate, formatMoney, invoiceTotals, lineTotal } from "@/lib/portal/format";
+import { PayNowForm } from "@/components/portal/PayNowForm";
+import { onlinePaymentAvailable } from "@/lib/portal/checkout";
 import { site } from "@/config/site";
 
 /**
@@ -16,15 +18,28 @@ import { site } from "@/config/site";
  * zero-rated VAT line instead would wrongly imply registration. Set
  * legal.vatNumber in config/site.ts and the row appears automatically.
  */
-const VAT_RATE = 0.23; // Irish standard rate, applied only once registered.
 
-export function Invoice({ client, payload }: { client: Client; payload: InvoiceDoc }) {
+export function Invoice({
+  client,
+  doc,
+  payload,
+  payment,
+  paidOnline = 0,
+}: {
+  client: Client;
+  doc: DocRecord;
+  payload: InvoiceDoc;
+  /** `success` or `cancelled`, from Stripe's return redirect. */
+  payment?: string;
+  /** Already collected through Stripe for this invoice. */
+  paidOnline?: number;
+}) {
   const l = site.legal;
   const vatRegistered = Boolean(l.vatNumber);
 
   const totals = invoiceTotals(payload.lines, {
     vatRate: vatRegistered ? VAT_RATE : null,
-    amountPaid: payload.amountPaid,
+    amountPaid: (payload.amountPaid ?? 0) + paidOnline,
   });
 
   const settled = payload.paid || totals.balanceDue <= 0;
@@ -41,7 +56,7 @@ export function Invoice({ client, payload }: { client: Client; payload: InvoiceD
     >
       <div className="grid gap-8 sm:grid-cols-2">
         <div>
-          <h2 className="text-[0.65rem] uppercase tracking-[0.14em] text-stone-400">From</h2>
+          <h2 className="text-xs text-stone-400">From</h2>
           <div className="mt-2 text-[0.94rem] leading-relaxed text-stone-600">
             <p className="font-semibold text-ink">{site.brand.name}</p>
             <p>{l.entityName}</p>
@@ -52,7 +67,7 @@ export function Invoice({ client, payload }: { client: Client; payload: InvoiceD
           </div>
         </div>
         <div>
-          <h2 className="text-[0.65rem] uppercase tracking-[0.14em] text-stone-400">Bill to</h2>
+          <h2 className="text-xs text-stone-400">Bill to</h2>
           <div className="mt-2 text-[0.94rem] leading-relaxed text-stone-600">
             <p className="font-semibold text-ink">{client.business.name}</p>
             <p>{client.business.contact.name}</p>
@@ -135,6 +150,25 @@ export function Invoice({ client, payload }: { client: Client; payload: InvoiceD
             you to change our bank details: if you receive a message like that, ring us
             before you send anything.
           </DocText>
+          {payment === "success" && (
+            <p className="mt-4 rounded-lg border border-accent/40 bg-accent-soft/60 px-4 py-3 text-sm text-ink print:hidden">
+              Thank you. Your payment has gone through to Stripe. We mark an invoice paid once
+              the money reaches us, so this page may show it as unpaid until then.
+            </p>
+          )}
+          {payment === "cancelled" && (
+            <p className="mt-4 rounded-lg border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-700 print:hidden">
+              No payment was taken. You can try again whenever you are ready.
+            </p>
+          )}
+          {!payload.payUrl && onlinePaymentAvailable() && (
+            <div className="mt-4">
+              <PayNowForm slug={client.slug} docSlug={doc.slug} label={`Pay ${formatMoney(totals.balanceDue, client.currency)} online`} />
+              <p className="mt-2 text-xs text-stone-500 print:hidden">
+                Opens Stripe&apos;s secure payment page. Card or bank transfer.
+              </p>
+            </div>
+          )}
           {payload.payUrl?.startsWith("https://invoice.stripe.com/") && (
             <p className="mt-4 print:hidden">
               <a

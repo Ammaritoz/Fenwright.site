@@ -36,12 +36,12 @@ export function Packages({ client, payload }: { client: Client; payload: Package
               }`}
             >
               {tier.highlighted && tier.badge && (
-                <p className="mb-2 text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-accent-700">
+                <p className="mb-2 text-xs font-semibold text-accent-700">
                   {tier.badge}
                 </p>
               )}
-              <h3 className="font-display text-lg font-bold text-ink">{tier.name}</h3>
-              <p className="mt-2 font-display text-2xl font-bold text-ink">
+              <h3 className="font-display text-lg font-semibold text-ink">{tier.name}</h3>
+              <p className="mt-2 font-display text-2xl font-semibold text-ink">
                 {tier.priceLabel ?? (
                   <>
                     {formatPriceOrPlaceholder(tier.price, client.currency)}

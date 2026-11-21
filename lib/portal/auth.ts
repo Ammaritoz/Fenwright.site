@@ -10,6 +10,22 @@ import { createHash, timingSafeEqual } from "node:crypto";
  * ship every client's passcode hash to every visitor's browser.
  */
 
+/**
+ * Bring whatever a person typed or pasted into the stored passcode shape.
+ *
+ * Passcodes are ten characters shown as `XXXXX-XXXXX`. The dash is formatting,
+ * not part of the secret, so nobody should have to type it: drop everything that
+ * is not a letter or digit, upper-case, and put the dash back. Spaces, a missing
+ * dash, lower case and a pasted trailing newline all resolve to the same code.
+ * Anything that is not ten characters is returned without a dash, so it simply
+ * fails verification. No hash comparison is weakened: the stored hash still has
+ * to match the normalised ten characters exactly.
+ */
+export function normalisePasscode(raw: string): string {
+  const core = raw.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  return core.length === 10 ? `${core.slice(0, 5)}-${core.slice(5)}` : core;
+}
+
 export function hashPasscode(passcode: string, salt: string): string {
   return createHash("sha256").update(`${passcode}${salt}`).digest("hex");
 }

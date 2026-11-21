@@ -26,6 +26,12 @@ export const dynamic = "force-dynamic";
 
 const TOKEN_LIFETIME_SECONDS = 6 * 60 * 60;
 
+/** Small files in KB, so a 5 KB test file is not shown as "0.0 MB". */
+function formatSize(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / 1048576).toFixed(1)} MB`;
+}
+
 function mintToken(slug: string): string | null {
   if (!intake.publicKeyPem || !r2Configured()) return null;
   try {
@@ -66,7 +72,7 @@ export default async function PortalUploadPage({ params }: { params: { client: s
             {received.slice(0, 5).map((u, i) => (
               <li key={`${u.at}-${i}`} className="tabular-nums">
                 {u.at ? formatDateTime(u.at) : "Received"}
-                {u.bytes > 0 && <span className="text-stone-400">{" · "}{(u.bytes / 1048576).toFixed(1)} MB</span>}
+                {u.bytes > 0 && <span className="text-stone-400">{" · "}{formatSize(u.bytes)}</span>}
               </li>
             ))}
           </ul>

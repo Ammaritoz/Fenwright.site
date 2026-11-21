@@ -76,7 +76,7 @@ export function Report({ client, payload }: { client: Client; payload: ReportDoc
 
   return (
     <DocShell
-      docType="Monthly Report"
+      docType="Monthly report"
       subtitle="Vulnerability handling"
       clientName={client.business.name}
       meta={[{ label: "Period", value: formatPeriod(payload.period) }]}

@@ -10,7 +10,7 @@ export function ThankYou({ client, payload }: { client: Client; payload: ThankYo
 
   return (
     <DocShell
-      docType="Thank You"
+      docType="Thank you"
       subtitle="Project complete"
       clientName={client.business.name}
       meta={[{ label: "Completed", value: formatDate(payload.completedDate) }]}

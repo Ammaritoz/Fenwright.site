@@ -12,7 +12,7 @@ import { formatDate } from "@/lib/portal/format";
 export function Brief({ client, payload }: { client: Client; payload: BriefDoc }) {
   return (
     <DocShell
-      docType="Service Brief"
+      docType="Service brief"
       subtitle="Scope document"
       clientName={client.business.name}
       meta={[{ label: "Deadline", value: formatDate(payload.deadline) }]}

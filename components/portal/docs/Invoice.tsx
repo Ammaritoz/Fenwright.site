@@ -141,12 +141,21 @@ export function Invoice({
         )}
       </DocSection>
 
+      {settled && payment === "success" && (
+        <p
+          role="status"
+          className="mt-6 rounded-lg border border-accent/40 bg-accent-soft/60 px-4 py-3 text-sm text-ink print:hidden"
+        >
+          Thank you. Your payment has been received and this invoice is paid in full.
+        </p>
+      )}
+
       {!settled && (
         <DocSection title="How to pay">
           <DocText>
             Payable by {formatDate(payload.due)}, quoting reference{" "}
             <span className="font-semibold text-ink">{payload.number}</span>. Full bank
-            details are in your Payment Details document. We will never email you asking
+            details are in your payment details document. We will never email you asking
             you to change our bank details: if you receive a message like that, ring us
             before you send anything.
           </DocText>

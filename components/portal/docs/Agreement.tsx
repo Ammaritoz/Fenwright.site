@@ -51,7 +51,7 @@ export function Agreement({
 
   return (
     <DocShell
-      docType="Client Agreement"
+      docType="Client agreement"
       subtitle="Service agreement"
       clientName={client.business.name}
     >

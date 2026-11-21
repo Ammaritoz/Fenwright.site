@@ -20,7 +20,7 @@ export function PaymentDetails({ client, payload }: { client: Client; payload: P
 
   return (
     <DocShell
-      docType="Payment Details"
+      docType="Payment details"
       subtitle="How to pay"
       clientName={client.business.name}
       meta={[{ label: "Reference", value: payload.reference }]}

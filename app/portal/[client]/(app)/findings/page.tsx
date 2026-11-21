@@ -66,6 +66,19 @@ function Products({ data }: { data: DashboardData }) {
   );
 }
 
+/** Matches that are not closed as "not affected". */
+function openCount(data: DashboardData): number {
+  return Math.max(0, data.totals.matches - data.totals.notAffected);
+}
+
+/**
+ * The pipeline caps the findings list (most serious first). Say so, rather than
+ * let a client think the list is everything that is open.
+ */
+function hiddenCount(data: DashboardData): number {
+  return Math.max(0, openCount(data) - data.findings.length);
+}
+
 export default async function FindingsPage({ params }: { params: { client: string } }) {
   const client = getClient(params.client);
   if (!client) notFound();
@@ -88,11 +101,21 @@ export default async function FindingsPage({ params }: { params: { client: strin
       ) : (
         <div className="space-y-5">
           <Products data={result.data} />
-          <Card title={`Open and notable (${result.data.findings.length})`}>
+          <Card
+            title={`Open and notable (${result.data.findings.length.toLocaleString("en-IE")}${
+              hiddenCount(result.data) > 0 ? ` of ${openCount(result.data).toLocaleString("en-IE")}` : ""
+            })`}
+          >
             <p className="-mt-1 mb-4 text-sm text-stone-500">
               {result.data.totals.notAffected.toLocaleString("en-IE")} further matches were checked and closed as not
               affecting your products.
             </p>
+            {hiddenCount(result.data) > 0 && (
+              <p className="-mt-2 mb-4 text-sm text-stone-500">
+                This list shows the {result.data.findings.length.toLocaleString("en-IE")} most serious.{" "}
+                {hiddenCount(result.data).toLocaleString("en-IE")} more are open and appear here as we work through them.
+              </p>
+            )}
             {result.data.findings.length === 0 ? (
               <p className="text-sm text-stone-500">No open findings.</p>
             ) : (

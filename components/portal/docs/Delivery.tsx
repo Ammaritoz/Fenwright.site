@@ -16,7 +16,7 @@ import { site } from "@/config/site";
 export function Delivery({ client, payload }: { client: Client; payload: DeliveryDoc }) {
   return (
     <DocShell
-      docType="Onboarding Guide"
+      docType="Onboarding guide"
       subtitle="Service handover"
       clientName={client.business.name}
       meta={[{ label: "Delivered", value: formatDate(payload.deliveredOn) }]}

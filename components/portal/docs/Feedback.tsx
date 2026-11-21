@@ -19,7 +19,7 @@ export function Feedback({
 }) {
   return (
     <DocShell
-      docType="Feedback Request"
+      docType="Feedback request"
       subtitle="Client experience"
       clientName={client.business.name}
     >

@@ -58,7 +58,7 @@ export const templateClient: Client = {
   docs: [
     {
       slug: "agreement",
-      title: "Client Agreement",
+      title: "Client agreement",
       blurb: "What we are building, what it costs, and how we each end it.",
       payload: {
         type: "agreement",
@@ -78,7 +78,7 @@ export const templateClient: Client = {
     },
     {
       slug: "welcome",
-      title: "Welcome Pack",
+      title: "Welcome pack",
       blurb: "Everything you need to know about how the next few weeks run.",
       payload: {
         type: "welcome",
@@ -90,7 +90,7 @@ export const templateClient: Client = {
     },
     {
       slug: "brief",
-      title: "Service Brief",
+      title: "Service brief",
       blurb: "The products we watch and how we will judge the work. Read it, correct it.",
       payload: {
         type: "brief",
@@ -112,7 +112,7 @@ export const templateClient: Client = {
     },
     {
       slug: "payment",
-      title: "Payment Details",
+      title: "Payment details",
       blurb: "How to pay us, and the reference to use so it gets matched.",
       payload: {
         type: "payment",
@@ -142,7 +142,7 @@ export const templateClient: Client = {
     },
     {
       slug: "delivery",
-      title: "Onboarding Guide",
+      title: "Onboarding guide",
       blurb: "What we set up, where it lives, and who does what when something turns up.",
       // Release this one when monitoring goes live.
       status: "upcoming",
@@ -165,7 +165,7 @@ export const templateClient: Client = {
     },
     {
       slug: "report-2026-01",
-      title: "Monthly Report, January 2026",
+      title: "Monthly report, January 2026",
       blurb: "What we watched, what matched, and what we decided last month.",
       // One of these per month. Generate it instead of typing the numbers:
       //   fenwright-watch monthly -p <product> --client "<name>" --month 2026-01       //     --out ../fenwright-site/content/clients/reports/<client>-2026-01.ts
@@ -192,7 +192,7 @@ export const templateClient: Client = {
     },
     {
       slug: "thank-you",
-      title: "Thank You",
+      title: "Thank you",
       blurb: "The project is complete. Here is where things stand.",
       status: "upcoming",
       expected: "When we finish",
@@ -216,7 +216,7 @@ export const templateClient: Client = {
     },
     {
       slug: "packages",
-      title: "Services and Packages",
+      title: "Services and packages",
       blurb: "What ongoing support looks like, and what each level includes.",
       // Uses the standard tiers from config/documents.ts. Add a `tiers` array
       // here only to override them for a bespoke quote.

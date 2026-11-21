@@ -40,7 +40,7 @@ export const exampleManufacturer: Client = {
     // ---- 1. Client agreement -------------------------------------------
     {
       slug: "agreement",
-      title: "Client Agreement",
+      title: "Client agreement",
       blurb: "What we do, what it costs, who is responsible for what, and how we each end it.",
       payload: {
         type: "agreement",
@@ -95,7 +95,7 @@ export const exampleManufacturer: Client = {
     // ---- 2. Welcome doc -------------------------------------------------
     {
       slug: "welcome",
-      title: "Welcome Pack",
+      title: "Welcome pack",
       blurb: "How onboarding runs, and what we need from you.",
       payload: {
         type: "welcome",
@@ -109,7 +109,7 @@ export const exampleManufacturer: Client = {
     // ---- 3. Service brief -----------------------------------------------
     {
       slug: "brief",
-      title: "Service Brief",
+      title: "Service brief",
       blurb: "The products we watch and how we will judge the pilot. Read it, correct it.",
       payload: {
         type: "brief",
@@ -160,7 +160,7 @@ export const exampleManufacturer: Client = {
     // ---- 4. Payment details ---------------------------------------------
     {
       slug: "payment",
-      title: "Payment Details",
+      title: "Payment details",
       blurb: "How to pay us, and the reference to use so it gets matched.",
       payload: {
         type: "payment",
@@ -186,7 +186,7 @@ export const exampleManufacturer: Client = {
     // ---- 6. Onboarding guide --------------------------------------------
     {
       slug: "delivery",
-      title: "Onboarding Guide",
+      title: "Onboarding guide",
       blurb: "What we set up, where it lives, and who does what when something turns up.",
       status: "upcoming",
       expected: "When monitoring goes live",
@@ -254,7 +254,7 @@ export const exampleManufacturer: Client = {
     // ---- 7. Monthly report ----------------------------------------------
     {
       slug: "report-2027-02",
-      title: "Monthly Report, February 2027",
+      title: "Monthly report, February 2027",
       blurb: "What we watched, what matched, and what we decided last month.",
       status: "upcoming",
       expected: "Start of each month",
@@ -286,7 +286,7 @@ export const exampleManufacturer: Client = {
     // ---- 8. Thank you ---------------------------------------------------
     {
       slug: "thank-you",
-      title: "Pilot Review",
+      title: "Pilot review",
       blurb: "How the pilot went against what we agreed, and what comes next.",
       status: "upcoming",
       expected: "End of the pilot",
@@ -320,7 +320,7 @@ export const exampleManufacturer: Client = {
     // ---- 10. Package menu -----------------------------------------------
     {
       slug: "packages",
-      title: "Services and Packages",
+      title: "Services and packages",
       blurb: "What each level of service includes.",
       payload: {
         type: "packages",

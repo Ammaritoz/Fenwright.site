@@ -11,7 +11,7 @@ export function Welcome({ client, payload }: { client: Client; payload: WelcomeD
 
   return (
     <DocShell
-      docType="Welcome Pack"
+      docType="Welcome pack"
       subtitle="Onboarding"
       clientName={client.business.name}
       meta={[{ label: "Start", value: formatDate(payload.startDate) }]}

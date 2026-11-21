@@ -15,7 +15,7 @@ export function Packages({ client, payload }: { client: Client; payload: Package
 
   return (
     <DocShell
-      docType="Services & Packages"
+      docType="Services and packages"
       subtitle="Ongoing support"
       clientName={client.business.name}
     >

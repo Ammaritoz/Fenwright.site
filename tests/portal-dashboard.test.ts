@@ -5,7 +5,7 @@ import { parseDashboard } from "@/lib/portal/dashboard-schema";
 import { dashboardFixture } from "@/lib/portal/dashboard-fixture";
 import { deriveActionItems, questionItemId, reportItemId } from "@/lib/portal/action-items";
 import { formatAgo, formatDueIn, formatHours } from "@/lib/portal/format";
-import { buildOpenChart } from "@/lib/portal/chart";
+import { buildOpenChart, smoothPath } from "@/lib/portal/chart";
 import { allClientSlugs, getClient } from "@/content/clients";
 import type { Client } from "@/content/clients/types";
 
@@ -50,6 +50,17 @@ describe("dashboard payload validation", () => {
 });
 
 describe("open matches chart", () => {
+  it("never draws the line past the real values, even across a sudden jump", () => {
+    // 0 open for days, then 405 at once: a plain spline would dip below 0 and spike above 405.
+    const pts = [0, 0, 0, 405, 405, 405].map((v, i) => [i * 10, 200 - v * 0.4] as const);
+    const ys = smoothPath(pts)
+      .match(/-?\d+(\.\d+)?/g)!
+      .map(Number)
+      .filter((_, i) => i % 2 === 1);
+    expect(Math.min(...ys)).toBeGreaterThanOrEqual(200 - 405 * 0.4);
+    expect(Math.max(...ys)).toBeLessThanOrEqual(200);
+  });
+
   it("needs at least two days to draw a line", () => {
     expect(buildOpenChart([])).toBeNull();
     expect(buildOpenChart([{ date: "2027-02-10", matched: 1, open: 1 }])).toBeNull();

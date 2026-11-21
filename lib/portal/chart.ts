@@ -20,21 +20,35 @@ export type OpenChart = {
   yFor: (v: number) => number;
 };
 
-/** Catmull-Rom through every point, as cubic Béziers: smooth, and it never overshoots far. */
+/**
+ * A smooth line through every point that never overshoots them (monotone cubic,
+ * the same idea as d3's curveMonotoneX). A plain spline would dip below zero
+ * before a sudden jump and spike above the peak after it, drawing counts that
+ * never happened.
+ */
 export function smoothPath(points: readonly (readonly [number, number])[]): string {
   if (points.length === 0) return "";
   const r = (n: number) => Math.round(n * 10) / 10;
+  const n = points.length;
   let d = `M${r(points[0][0])},${r(points[0][1])}`;
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[i - 1] ?? points[i];
-    const p1 = points[i];
-    const p2 = points[i + 1];
-    const p3 = points[i + 2] ?? p2;
-    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
-    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
-    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
-    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
-    d += ` C${r(c1x)},${r(c1y)} ${r(c2x)},${r(c2y)} ${r(p2[0])},${r(p2[1])}`;
+  if (n === 1) return d;
+
+  const slope = (i: number) => (points[i + 1][1] - points[i][1]) / (points[i + 1][0] - points[i][0]);
+  const tangents = points.map((_, i) => {
+    if (i === 0) return slope(0);
+    if (i === n - 1) return slope(n - 2);
+    const s0 = slope(i - 1);
+    const s1 = slope(i);
+    // A local peak, trough or flat run gets a flat tangent: no overshoot.
+    if (s0 * s1 <= 0) return 0;
+    return Math.sign(s0) * Math.min(Math.abs(s0), Math.abs(s1), Math.abs((s0 + s1) / 2));
+  });
+
+  for (let i = 0; i < n - 1; i++) {
+    const [x0, y0] = points[i];
+    const [x1, y1] = points[i + 1];
+    const h = (x1 - x0) / 3;
+    d += ` C${r(x0 + h)},${r(y0 + tangents[i] * h)} ${r(x1 - h)},${r(y1 - tangents[i + 1] * h)} ${r(x1)},${r(y1)}`;
   }
   return d;
 }

@@ -36,7 +36,10 @@ export const getDashboard = cache(async function getDashboard(clientSlug: string
   if (!url) return { ok: false, reason: "not-configured" };
 
   try {
-    const sql = neon(url);
+    // no-store: Next.js otherwise caches this fetch in its data cache (even
+    // under force-dynamic), and the portal keeps showing an old snapshot
+    // after `fenwright-watch sync` has written a new one.
+    const sql = neon(url, { fetchOptions: { cache: "no-store" } });
     const rows = await sql`SELECT payload FROM portal_snapshot WHERE client_slug = ${clientSlug} LIMIT 1`;
     const result = parseDashboard(rows[0]?.payload);
     if (!result.ok && result.reason === "invalid") {

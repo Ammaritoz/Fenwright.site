@@ -337,6 +337,13 @@ export type Client = {
    */
   firmwareUpload?: boolean;
   /**
+   * Whether this client may pay invoices by card through the portal. On by
+   * default. Set `onlinePayment: false` for a demo or test client, so a real
+   * card cannot be charged from it. It is enforced on the server as well as
+   * hidden in the page.
+   */
+  onlinePayment?: boolean;
+  /**
    * Legacy: a one-off link from `npm run intake:link`. Only needed to point a
    * client at somewhere other than the built-in Upload page.
    */

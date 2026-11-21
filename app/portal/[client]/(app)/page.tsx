@@ -6,7 +6,7 @@ import { site } from "@/config/site";
 import { getDashboard } from "@/lib/portal/dashboard";
 import { getAgreementAcceptance, listCompletions, listUploads } from "@/lib/airtable";
 import { questionItemId, reportItemId } from "@/lib/portal/action-items";
-import { invoiceBalance, isSettled, onlinePaymentAvailable, stripePaidAmount } from "@/lib/portal/checkout";
+import { clientCanPayOnline, invoiceBalance, isSettled, stripePaidAmount } from "@/lib/portal/checkout";
 import { deriveActionItems } from "@/lib/portal/action-items";
 import { formatMoney } from "@/lib/portal/format";
 import {
@@ -131,6 +131,6 @@ function billingSummary(client: Client, paidOnline: ReadonlyMap<string, number>)
     payUrl: pick.inv.payUrl,
     slug: client.slug,
     docSlug: pick.slug,
-    canPayOnline: onlinePaymentAvailable(),
+    canPayOnline: clientCanPayOnline(client),
   };
 }

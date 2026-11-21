@@ -24,6 +24,9 @@ export const exampleManufacturer: Client = {
   currency: "EUR",
   passcodeSalt: "a4756d609d1821b7982ad5578602106f",
   passcodeHash: "0d01733f11afcc0bd6008630e280cdb6bb23237d2d6d7d5d20312677a5ec642d",
+  // A fictional client, and the production Stripe key is live: never let a real
+  // card be charged from this demo.
+  onlinePayment: false,
 
   business: {
     name: "Lowmoor Controls",

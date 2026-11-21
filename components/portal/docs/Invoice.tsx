@@ -5,7 +5,7 @@ import { DocTable, DocRow, DocCell, TotalsRow } from "@/components/portal/DocTab
 import { documents } from "@/config/documents";
 import { VAT_RATE, formatDate, formatMoney, invoiceTotals, lineTotal } from "@/lib/portal/format";
 import { PayNowForm } from "@/components/portal/PayNowForm";
-import { onlinePaymentAvailable } from "@/lib/portal/checkout";
+import { clientCanPayOnline } from "@/lib/portal/checkout";
 import { site } from "@/config/site";
 
 /**
@@ -170,7 +170,7 @@ export function Invoice({
               No payment was taken. You can try again whenever you are ready.
             </p>
           )}
-          {!payload.payUrl && onlinePaymentAvailable() && (
+          {!payload.payUrl && clientCanPayOnline(client) && (
             <div className="mt-4">
               <PayNowForm slug={client.slug} docSlug={doc.slug} label={`Pay ${formatMoney(totals.balanceDue, client.currency)} online`} />
               <p className="mt-2 text-xs text-stone-500 print:hidden">

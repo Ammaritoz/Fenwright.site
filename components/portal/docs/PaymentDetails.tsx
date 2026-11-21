@@ -30,8 +30,8 @@ export function PaymentDetails({ client, payload }: { client: Client; payload: P
           <p className="font-semibold">Paying by bank transfer</p>
           <p className="mt-1 text-stone-600">
             Email {site.legal.contactEmail} and we will send our bank details straight back.
-            Please quote reference {payload.reference} when you pay. You can also pay by card
-            from your invoice.
+            Please quote reference {payload.reference} when you pay.
+            {client.onlinePayment === false ? "" : " You can also pay by card from your invoice."}
           </p>
         </DocCallout>
       )}
@@ -81,7 +81,7 @@ export function PaymentDetails({ client, payload }: { client: Client; payload: P
         </DocSection>
       )}
 
-      {p.stripeLink && (
+      {p.stripeLink && client.onlinePayment !== false && (
         <DocSection title="Card">
           <DocText>
             Prefer to pay by card? Use the secure Stripe link below. Card payments clear

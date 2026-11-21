@@ -52,6 +52,11 @@ export function onlinePaymentAvailable(): boolean {
   return Boolean(stripeKey());
 }
 
+/** Online payment is set up AND this client is allowed to use it (see Client.onlinePayment). */
+export function clientCanPayOnline(client: Pick<Client, "onlinePayment">): boolean {
+  return client.onlinePayment !== false && onlinePaymentAvailable();
+}
+
 /** Where Stripe sends the client back to. Fixed in production, never request-derived there. */
 export function returnBaseUrl(requestHost: string | null): string {
   if (process.env.SITE_URL) return process.env.SITE_URL.replace(/\/+$/, "");
@@ -160,6 +165,9 @@ export async function createInvoiceCheckout(input: {
   if (!key) return { ok: false, error: "Online payment is not set up yet. Please use the bank details instead." };
 
   const { client, docSlug, invoice, returnBase } = input;
+  if (client.onlinePayment === false) {
+    return { ok: false, error: "Online payment is not available for this account. Please use the bank details instead." };
+  }
   const totals = invoiceBalance(invoice, input.paidOnline ?? 0);
   if (invoice.paid || totals.balanceDue <= 0) {
     return { ok: false, error: "This invoice has already been paid." };

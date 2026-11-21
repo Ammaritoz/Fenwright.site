@@ -106,7 +106,10 @@ export function deriveActionItems(
         id: `invoice:${doc.slug}`,
         kind: "invoice",
         title: `Pay invoice ${inv.number}`,
-        detail: "Pay online by card or bank transfer, or use the details on the invoice.",
+        detail:
+          client.onlinePayment === false
+            ? "Pay by bank transfer using the details on the invoice."
+            : "Pay online by card or bank transfer, or use the details on the invoice.",
         href: inv.payUrl ?? `${base}/${doc.slug}`,
         external: Boolean(inv.payUrl),
         due: inv.due,

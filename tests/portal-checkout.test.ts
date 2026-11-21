@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createInvoiceCheckout, isSettled, onlinePaymentAvailable, returnBaseUrl, stripeKey, stripeKeyKind, stripePaidAmount } from "@/lib/portal/checkout";
+import { clientCanPayOnline, createInvoiceCheckout, isSettled, onlinePaymentAvailable, returnBaseUrl, stripeKey, stripeKeyKind, stripePaidAmount } from "@/lib/portal/checkout";
 import type { Client, InvoiceDoc } from "@/content/clients/types";
 
 /**
@@ -221,5 +221,29 @@ describe("the Stripe key as pasted into a dashboard", () => {
     expect(logged).toContain("pk_live");
     expect(logged).not.toContain("SECRETSECRET");
     log.mockRestore();
+  });
+});
+
+describe("a client with online payment turned off", () => {
+  const demo = { ...client, onlinePayment: false } as unknown as Client;
+
+  it("is refused by the server without ever calling Stripe", async () => {
+    stripeReplies({ url: "https://checkout.stripe.com/c/pay/cs_live_1" });
+    const r = await createInvoiceCheckout({ client: demo, docSlug: "invoice-007", invoice: invoice(), returnBase: "https://www.fenwright.ie" });
+    expect(r.ok).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("is not offered the Pay button even though Stripe is set up", () => {
+    expect(onlinePaymentAvailable()).toBe(true);
+    expect(clientCanPayOnline(demo)).toBe(false);
+    expect(clientCanPayOnline(client)).toBe(true);
+    expect(clientCanPayOnline({ onlinePayment: true } as Client)).toBe(true);
+  });
+
+  it("everyone else still pays online as before", async () => {
+    stripeReplies({ url: "https://checkout.stripe.com/c/pay/cs_test_1" });
+    const r = await createInvoiceCheckout({ client, docSlug: "invoice-007", invoice: invoice(), returnBase: "https://www.fenwright.ie" });
+    expect(r.ok).toBe(true);
   });
 });

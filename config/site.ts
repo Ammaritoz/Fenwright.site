@@ -84,7 +84,7 @@ export const site = {
         {
           day: "Thu",
           time: "10:00",
-          leak: "The 72-hour notification is due. Nobody has written one before",
+          leak: "The 72-hour notification is due, and your team has never written one",
           fix: "Notification drafted, with the notice for your customers",
         },
         {
@@ -94,7 +94,7 @@ export const site = {
           fix: "Decision log and ingredients lists, exported for them",
         },
       ],
-      footnote: "Most weeks nothing is reportable. The work is knowing that, and proving it.",
+      footnote: "Most weeks nothing needs reporting. We still check every signal and write down why.",
     },
   },
 
@@ -104,8 +104,8 @@ export const site = {
 
   problem: {
     kicker: "Why it matters",
-    headline: "The clock starts when you find out. Not on Monday.",
-    body: "Under Article 14 of the Cyber Resilience Act, once you know a hole in your product is being actively exploited, you have 24 hours to send an early warning to ENISA. A typical device holds hundreds of third-party software parts, so someone has to know what is inside every product and watch for new holes every day. Tools need someone to run them. Consultants do one-off projects. Nobody does the daily work.",
+    headline: "The 24-hour clock starts when you find out, even on a Friday evening.",
+    body: "Under Article 14 of the Cyber Resilience Act, once you know a hole in your product is being actively exploited, you have 24 hours to send an early warning to ENISA. A typical device holds hundreds of third-party software parts, so someone has to know what is inside every product and watch for new holes every day. Scanning tools need someone to run them and consultants work in one-off projects, so nobody ends up doing the daily watching.",
     stats: [
       {
         value: "24 hrs",
@@ -178,7 +178,7 @@ export const site = {
     // Caption on the photo card at the end of the steps deck.
     photoCaption: "Under NDA. Your files are deleted after the scan.",
     banner: {
-      headline: "Your products are already in the field. The 24-hour rule already applies.",
+      headline: "The 24-hour rule already applies to the products you have in the field.",
       note: "It covers products already on the market, not just new ones. A first look tells you what you would be dealing with.",
     },
     cta: { label: "Get a free first look", href: "#book" },
@@ -217,7 +217,7 @@ export const site = {
 
   services: {
     kicker: "What we do",
-    headline: "We know what is inside your products, and we act when it matters.",
+    headline: "We know what is inside your products, and we draft the report when one is due.",
     // Two halves: knowing (ingredients list, watching, checking) and acting
     // (drafts, customer notice, paper trail).
     groups: [
@@ -244,7 +244,7 @@ export const site = {
       {
         kicker: "Report",
         image: "systems",
-        title: "Act when it matters",
+        title: "Report on time",
         lead: "Drafts ready to submit, and a record that stands up later.",
         bullets: [
           {

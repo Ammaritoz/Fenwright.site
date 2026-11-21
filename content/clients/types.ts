@@ -412,6 +412,12 @@ export type DashboardData = {
     question: string;
     askedAt?: string;
   }[];
+  /**
+   * One entry per day, oldest first, for the dashboard's 30-day chart:
+   * `matched` is new matches that day, `open` is matches still without a
+   * decision at the end of it. Optional: the chart is left out without it.
+   */
+  daily?: { date: string; matched: number; open: number }[];
   /** The monthly report numbers for the current month and the one before. */
   monthly?: {
     period: string;

@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { neon } from "@neondatabase/serverless";
 import { errMeta } from "@/lib/log";
 import { parseDashboard, type DashboardResult } from "./dashboard-schema";
@@ -19,8 +20,11 @@ import { parseDashboard, type DashboardResult } from "./dashboard-schema";
  *
  * Never throws: a Neon outage shows the client a calm "unavailable" card
  * while the documents keep working.
+ *
+ * Wrapped in React cache() so the app shell (sidebar product list) and the
+ * page share one Neon read per request instead of making two.
  */
-export async function getDashboard(clientSlug: string): Promise<DashboardResult> {
+export const getDashboard = cache(async function getDashboard(clientSlug: string): Promise<DashboardResult> {
   // Development only: a sample payload, to work on the UI without Neon.
   // Hard-gated on NODE_ENV so it can never reach a client in production.
   if (process.env.NODE_ENV !== "production" && process.env.PORTAL_DASHBOARD_FIXTURE === "1") {
@@ -47,4 +51,4 @@ export async function getDashboard(clientSlug: string): Promise<DashboardResult>
     );
     return { ok: false, reason: "unreachable" };
   }
-}
+});

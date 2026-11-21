@@ -7,6 +7,7 @@ import { intake } from "@/config/intake";
 import { site } from "@/config/site";
 import { listUploads } from "@/lib/airtable";
 import { formatDateTime } from "@/lib/portal/format";
+import { night } from "@/components/portal/night";
 
 /**
  * Firmware upload, from inside the client's own portal.
@@ -51,56 +52,65 @@ export default async function PortalUploadPage({ params }: { params: { client: s
   const email = site.legal.contactEmail;
 
   return (
-    <div className="mx-auto max-w-2xl py-2 sm:py-4">
-      <header className="mb-8">
-        <p className="text-sm text-stone-500">{client.business.name}</p>
-        <h1 className="mt-2 font-display text-[2rem] font-semibold leading-[1.05] text-ink sm:text-[2.4rem]">
-          Send your firmware
-        </h1>
-        <p className="mt-3 text-stone-600">
-          Upload the firmware image or build files for each product and version we are watching.
-          We need them to build your ingredients lists.
+    <div className="mx-auto max-w-[44rem]">
+      <header className="mb-7">
+        <h1 className={night.h1}>Send your firmware</h1>
+        <p className="mt-3 text-[0.86rem] leading-relaxed text-night-dim">
+          Upload the firmware image or build files for each product and version we are watching. We need them to
+          build your ingredients lists.
         </p>
       </header>
 
-      {received.length > 0 && (
-        <section className="mb-5 rounded-2xl border border-accent/40 bg-accent-soft/60 p-5 sm:p-6">
-          <p className="font-display text-base font-semibold text-ink">
-            We have received {received.length} {received.length === 1 ? "file" : "files"} from you
-          </p>
-          <ul className="mt-2 space-y-1 text-sm text-stone-600">
-            {received.slice(0, 5).map((u, i) => (
-              <li key={`${u.at}-${i}`} className="tabular-nums">
-                {u.at ? formatDateTime(u.at) : "Received"}
-                {u.bytes > 0 && <span className="text-stone-400">{" · "}{formatSize(u.bytes)}</span>}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2 text-sm text-stone-600">
-            Send more below if you have other products or firmware versions for us to watch.
-          </p>
-        </section>
-      )}
-
-      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-card sm:p-7">
+      <section className={`${night.panel} px-5 py-5 sm:px-6`} aria-labelledby="upload-title">
+        <h2 id="upload-title" className={night.h2}>
+          New upload
+        </h2>
         {token ? (
           <>
-            <p className="text-sm leading-relaxed text-stone-600">
-              Your file is encrypted in this browser before it is sent. Only Fenwright can open it,
-              and we handle it as set out in your agreement.
+            <p className="mt-2 text-[0.84rem] leading-relaxed text-night-mute">
+              Your file is encrypted in this browser before it is sent. Only Fenwright can open it, and we handle it as
+              set out in your agreement.
             </p>
-            <UploadForm token={token} publicKeyPem={intake.publicKeyPem} maxBytes={intake.maxFileBytes} />
+            <UploadForm token={token} publicKeyPem={intake.publicKeyPem} maxBytes={intake.maxFileBytes} tone="night" />
           </>
         ) : (
-          <p className="text-sm leading-relaxed text-stone-600">
+          <p className="mt-2 text-[0.84rem] leading-relaxed text-night-dim">
             Uploads are not available just now. Email{" "}
-            <a href={`mailto:${email}`} className="font-medium text-accent-700 hover:underline">
+            <a href={`mailto:${email}`} className="text-night-text underline-offset-4 hover:underline">
               {email}
             </a>{" "}
             and we will arrange another way to send it.
           </p>
         )}
       </section>
+
+      {received.length > 0 && (
+        <section className={`${night.panel} mt-4 overflow-hidden`} aria-labelledby="received-title">
+          <div className="flex items-baseline justify-between px-5 pb-3 pt-4 sm:px-6">
+            <h2 id="received-title" className={night.h2}>
+              Received from you
+            </h2>
+            <span className="font-mono text-[0.75rem] text-night-mute">{received.length}</span>
+          </div>
+          <ul>
+            {received.slice(0, 5).map((u, i) => (
+              <li
+                key={`${u.at}-${i}`}
+                className="flex items-center justify-between gap-4 border-t border-night-rule px-5 py-3 font-mono text-[0.78rem] sm:px-6"
+              >
+                <span className="inline-flex items-center gap-2 text-night-text">
+                  <span aria-hidden="true" className="h-[7px] w-[7px] rounded-full bg-signal-mint" />
+                  {u.at ? formatDateTime(u.at) : "Received"}
+                </span>
+                {u.bytes > 0 && <span className="text-night-mute">{formatSize(u.bytes)}</span>}
+              </li>
+            ))}
+          </ul>
+          <p className="border-t border-night-rule px-5 py-3 text-[0.8rem] text-night-mute sm:px-6">
+            Send more above if you have other products or firmware versions for us to watch.
+          </p>
+        </section>
+      )}
     </div>
   );
 }

@@ -46,10 +46,39 @@ const config: Config = {
           700: "#344054",
           800: "#1F2A3C",
         },
+        // Client portal ("night shift"): a near-black workspace. Surfaces step
+        // up in small increments; hairlines carry the structure, not shadows.
+        night: {
+          DEFAULT: "#0E0F11", // page
+          side: "#0B0C0E", // sidebar
+          panel: "#141518", // panels
+          raised: "#18191D", // buttons, inputs
+          hover: "#1E2024",
+          line: "#222429", // panel borders
+          rule: "#1D1F23", // rows inside a panel
+          edge: "#2A2C32", // control borders
+          text: "#ECEDEE",
+          dim: "#A9ADB5", // secondary text
+          mute: "#8D919A", // labels, meta (passes 4.5:1 on panel)
+          faint: "#6F747D", // axis ticks and icons only, never body text
+        },
+        // Portal signal colours: each means one thing, always with a word beside it.
+        signal: {
+          mint: "#6FD6A8", // live, improving, the open-matches line
+          amber: "#F2B35B", // a deadline running
+          orange: "#FF8A5B", // affected
+          blue: "#7AA7FF", // being checked
+          violet: "#C3A6FF", // queued
+          clear: "#7C9A8D", // not affected
+        },
       },
       fontFamily: {
         display: ["var(--font-display)", "system-ui", "sans-serif"],
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        // Portal only: Geist is loaded in app/portal/[client]/layout.tsx, so
+        // the marketing site never downloads it and falls back cleanly.
+        ui: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
+        mono: ["var(--font-geist-mono)", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       // Flat by design: hairlines and tone carry depth, not drop shadows.
       boxShadow: {

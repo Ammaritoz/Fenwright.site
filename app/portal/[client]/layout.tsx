@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { getClient } from "@/content/clients";
 
 /**
@@ -40,5 +42,13 @@ export default function PortalLayout({
 }) {
   if (!getClient(params.client)) notFound();
 
-  return <div className="flex min-h-screen flex-col bg-paper-alt print:bg-white">{children}</div>;
+  // The portal's own type and dark workspace. Geist loads here, not in the
+  // root layout, so the marketing site never pays for it.
+  return (
+    <div
+      className={`${GeistSans.variable} ${GeistMono.variable} portal-night flex min-h-screen flex-col bg-night font-ui text-night-text antialiased print:bg-white print:text-black`}
+    >
+      {children}
+    </div>
+  );
 }

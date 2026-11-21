@@ -73,6 +73,15 @@
     outline-color: #7FD1AE;
   }
 
+  /* Client portal: mint focus ring on the dark workspace; documents keep the
+     paper rule because they render on a white sheet inside it. */
+  .portal-night :focus-visible {
+    outline-color: #6FD6A8;
+  }
+  .portal-night .portal-paper :focus-visible {
+    outline-color: #1F6B4E;
+  }
+
   ::selection {
     background: #7FD1AE;
     color: #07182A;

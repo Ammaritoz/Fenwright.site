@@ -90,6 +90,15 @@ export const dashboardSchema = z.object({
       })
     )
     .optional(),
+  daily: z
+    .array(
+      z.object({
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        matched: count,
+        open: count,
+      })
+    )
+    .optional(),
   monthly: z
     .object({
       period: z.string().regex(/^\d{4}-\d{2}$/),

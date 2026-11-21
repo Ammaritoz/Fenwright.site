@@ -2,31 +2,34 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { PayNowForm } from "@/components/portal/PayNowForm";
 import { MarkDoneForm } from "@/components/portal/MarkDoneForm";
+import { night } from "@/components/portal/night";
 import type { ActionItem } from "@/lib/portal/action-items";
-import { stageLabel } from "@/lib/portal/action-items";
 import type { DashboardData } from "@/content/clients/types";
+import { buildOpenChart } from "@/lib/portal/chart";
 import {
-  formatAgo,
+  formatAgoShort,
+  formatCountdown,
   formatDate,
   formatDateTime,
   formatDueIn,
-  formatHours,
   isGoodChange,
   percentChange,
   type MetricDirection,
 } from "@/lib/portal/format";
 
 /**
- * Dashboard building blocks. All server components: they render once on the
- * server from data the page has already loaded, so nothing here ships client
- * data into the browser bundle.
+ * Dashboard building blocks ("night shift"). All server components: they
+ * render once on the server from data the page has already loaded, so nothing
+ * here ships client data into the browser bundle. The one chart is plain SVG
+ * drawn here, not a chart library.
  *
- * Visual rule: content cards are flat white with a hairline, as everywhere on
- * the site. Glass belongs to the shell only. Values use text ink; a status
- * colour always comes with an icon and a word, never on its own.
+ * Visual rules: panels are a step up from the page with a hairline, never a
+ * shadow. Figures and IDs are monospaced. Colour carries meaning only (amber
+ * = a deadline running, orange = affected, blue = being checked, violet =
+ * queued, mint = live or improving) and always comes with a word.
  */
 
-export function Card({
+export function Panel({
   title,
   action,
   children,
@@ -38,12 +41,10 @@ export function Card({
   className?: string;
 }) {
   return (
-    <section className={`rounded-2xl border border-stone-200 bg-white p-5 shadow-card sm:p-6 ${className}`}>
+    <section className={`${night.panel} min-w-0 px-5 py-5 sm:px-6 ${className}`}>
       {(title || action) && (
-        <div className="mb-4 flex items-center justify-between gap-3">
-          {title && (
-            <h2 className="text-sm font-medium text-stone-600">{title}</h2>
-          )}
+        <div className="mb-3 flex items-center justify-between gap-3">
+          {title && <h2 className={night.h2}>{title}</h2>}
           {action}
         </div>
       )}
@@ -52,30 +53,101 @@ export function Card({
   );
 }
 
-// --- Status line under the page title ---------------------------------------
+// --- Reporting deadline: the CRA clock --------------------------------------
 
-export function LiveStatus({ data, now }: { data: DashboardData | null; now: Date }) {
-  if (!data) return null;
+/** The Article 14 windows, in hours, measured from when the clock started. */
+const STAGES = [
+  { key: "early_warning", label: "Early warning", window: 24, note: "24 h" },
+  { key: "notification", label: "Notification", window: 72, note: "72 h" },
+  { key: "final", label: "Final report", window: 14 * 24, note: "14 d after fix" },
+] as const;
+
+const STAGE_HEADLINE: Record<string, string> = {
+  early_warning: "Early warning due",
+  notification: "Notification due",
+  final: "Final report due",
+  advisory: "Customer advisory due",
+};
+
+export type Deadline = {
+  cve: string;
+  stage: string;
+  dueAt: string;
+  itemId: string;
+  component?: string;
+  product?: string;
+  exploited: boolean;
+};
+
+export function DeadlinePanel({ deadline, now, slug }: { deadline: Deadline; now: Date; slug: string }) {
+  const left = formatCountdown(deadline.dueAt, now);
+  const current = STAGES.findIndex((s) => s.key === deadline.stage);
+  const msLeft = new Date(deadline.dueAt).getTime() - now.getTime();
+  const meta = [deadline.cve, deadline.component, deadline.product].filter(Boolean).join(" · ");
+
   return (
-    <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-stone-500">
-      <span className="inline-flex items-center gap-2 font-medium text-ink">
-        <span className="relative flex h-2.5 w-2.5" aria-hidden="true">
-          {data.monitoring && (
-            <span className="absolute inset-0 animate-pulse-ring rounded-full bg-accent motion-reduce:hidden" />
-          )}
-          <span className={`relative h-2.5 w-2.5 rounded-full ${data.monitoring ? "bg-accent" : "bg-stone-300"}`} />
-        </span>
-        {data.monitoring ? "Monitoring live" : "Onboarding"}
-      </span>
-      <span aria-hidden="true" className="text-stone-300">
-        ·
-      </span>
-      <span title={formatDateTime(data.generatedAt)}>Updated {formatAgo(data.generatedAt, now)}</span>
-    </p>
+    <section className={`${night.panel} flex min-w-0 flex-col gap-5 px-5 py-5 sm:px-6 lg:col-span-2`} aria-labelledby="deadline-title">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <h2 id="deadline-title" className="inline-flex items-center gap-2 font-ui text-[0.84rem] font-normal text-signal-amber">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="13" r="7.5" stroke="currentColor" strokeWidth="1.8" />
+            <path d="M12 9.5V13l2.5 1.5M9.5 3h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+          {STAGE_HEADLINE[deadline.stage] ?? "Report due"}
+        </h2>
+        <span className="font-mono text-[0.75rem] text-night-mute">{meta}</span>
+      </div>
+
+      <div className="flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <p className="font-mono text-[3.1rem] font-light leading-none tracking-[-0.03em] text-night-text">
+            {left ?? "Overdue"}
+            {left && <span className="ml-2 font-ui text-[1.3rem] tracking-normal text-night-mute">left</span>}
+          </p>
+          <p className="mt-2.5 max-w-md text-[0.86rem] leading-relaxed text-night-dim">
+            {deadline.exploited ? "On an exploited list. " : ""}
+            The draft is with you. Approve it, then submit it on ENISA&apos;s Single Reporting Platform; we never file for you.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-start gap-2">
+          <MarkDoneForm slug={slug} itemId={deadline.itemId} />
+          <Link href={`/portal/${slug}/findings#${deadline.cve}`} className={night.btnPrimary}>
+            Open finding
+          </Link>
+        </div>
+      </div>
+
+      {current !== -1 && (
+        <ol className="grid grid-cols-3 gap-1 sm:grid-cols-[1fr_2fr_3fr]" aria-label="Reporting stages">
+          {STAGES.map((s, i) => {
+            const usedFraction = i === current ? Math.min(1, Math.max(0, 1 - msLeft / (s.window * 3_600_000))) : i < current ? 1 : 0;
+            const usedHours = Math.round(usedFraction * s.window);
+            return (
+              <li key={s.key}>
+                <div className="h-1 overflow-hidden rounded-full bg-night-edge" aria-hidden="true">
+                  <div
+                    className={`h-full ${i === current ? "bg-signal-amber" : "bg-night-faint"}`}
+                    style={{ width: `${usedFraction * 100}%` }}
+                  />
+                </div>
+                <p className={`mt-2 text-xs ${i === current ? "text-night-text" : "text-night-dim"}`}>
+                  {s.label}
+                  <span className="sr-only">{i < current ? " (done)" : i === current ? " (current)" : " (to come)"}</span>
+                </p>
+                <p className="mt-0.5 font-mono text-[0.72rem] text-night-mute">
+                  {s.note}
+                  {i === current && s.window <= 72 ? ` · ${usedHours} h used` : ""}
+                </p>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </section>
   );
 }
 
-// --- Needs your attention ---------------------------------------------------
+// --- Needs you ----------------------------------------------------------------
 
 const KIND_ICON: Record<ActionItem["kind"], string> = {
   agreement: "M8 4h8l3 3v13H5V4h3zM8 12h8M8 16h5",
@@ -85,272 +157,407 @@ const KIND_ICON: Record<ActionItem["kind"], string> = {
   question: "M9.5 9a2.5 2.5 0 115 .5c0 1.5-2.5 2-2.5 3.5M12 17v.01M12 21a9 9 0 110-18 9 9 0 010 18z",
 };
 
-function UrgencyBadge({ item, now }: { item: ActionItem; now: Date }) {
+function DueLabel({ item, now }: { item: ActionItem; now: Date }) {
   if (!item.due) return null;
   const isDate = /^\d{4}-\d{2}-\d{2}$/.test(item.due);
-  const label =
-    item.urgency === "overdue"
-      ? "Overdue"
-      : isDate
-        ? `Due ${formatDate(item.due)}`
-        : `Due ${formatDueIn(item.due, now)}`;
-  const tone =
-    item.urgency === "overdue"
-      ? "bg-red-50 text-red-800 ring-red-200"
-      : item.urgency === "soon"
-        ? "bg-amber-50 text-amber-900 ring-amber-200"
-        : "bg-stone-100 text-stone-600 ring-stone-200";
-  return (
-    <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.72rem] font-semibold ring-1 ${tone}`}>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="2" />
-        <path d="M12 7.5V12l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      </svg>
-      {label}
-    </span>
-  );
+  const label = item.urgency === "overdue" ? "Overdue" : isDate ? `Due ${formatDate(item.due)}` : `Due ${formatDueIn(item.due, now)}`;
+  const tone = item.urgency === "overdue" ? "text-signal-orange" : item.urgency === "soon" ? "text-signal-amber" : "text-night-mute";
+  return <span className={`font-mono text-[0.72rem] ${tone}`}>{label}</span>;
 }
 
-export function ActionItems({ items, now, slug }: { items: ActionItem[]; now: Date; slug: string }) {
+export function NeedsYou({ items, now, slug, wide }: { items: ActionItem[]; now: Date; slug: string; wide: boolean }) {
   return (
-    <Card title="Needs your attention">
-      {items.length === 0 ? (
-        <div className="flex items-center gap-3 rounded-xl bg-accent-soft/60 px-4 py-3.5 text-sm text-ink">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0 text-accent">
-            <path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Nothing needs you right now. We will email you when something does.
-        </div>
-      ) : (
-        <ul className="divide-y divide-stone-100">
-          {items.map((item) => {
-            const inner = (
-              <>
-                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-paper-alt text-ink ring-1 ring-stone-200">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d={KIND_ICON[item.kind]} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+    <section
+      className={`${night.panel} flex min-w-0 flex-col px-5 py-5 sm:px-6 ${wide ? "lg:col-span-3" : ""}`}
+      aria-labelledby="needs-title"
+    >
+      <div className="mb-1 flex items-center justify-between gap-3">
+        <h2 id="needs-title" className={night.h2}>
+          Needs you
+        </h2>
+        <span className="font-mono text-[0.75rem] text-night-mute">{items.length}</span>
+      </div>
+      <ul className={wide ? "grid gap-x-8 md:grid-cols-2" : ""}>
+        {items.map((item) => {
+          const body = (
+            <>
+              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-night-edge bg-night-raised text-night-dim">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d={KIND_ICON[item.kind]} stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[0.9rem] text-night-text group-hover:underline group-hover:underline-offset-4">
+                  {item.title}
+                  {item.external && <span className="sr-only"> (opens in a new tab)</span>}
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block font-semibold text-ink group-hover:text-accent-700">
-                    {item.title}
-                    {item.external && <span className="sr-only"> (opens in a new tab)</span>}
+                <span className="mt-0.5 block text-[0.8rem] leading-relaxed text-night-dim">{item.detail}</span>
+                {item.due && (
+                  <span className="mt-1.5 block">
+                    <DueLabel item={item} now={now} />
                   </span>
-                  <span className="mt-0.5 block text-sm leading-relaxed text-stone-500">{item.detail}</span>
-                  {/* On a phone the badge sits under the text rather than squeezing it. */}
-                  {item.due && (
-                    <span className="mt-2 block sm:hidden">
-                      <UrgencyBadge item={item} now={now} />
-                    </span>
-                  )}
-                </span>
-                <span aria-hidden="true" className="hidden shrink-0 items-center gap-2 sm:flex">
-                  <UrgencyBadge item={item} now={now} />
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="text-stone-300 transition-[color,transform] group-hover:translate-x-0.5 group-hover:text-accent">
-                    <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </span>
-              </>
-            );
-            const cls = "group -mx-2 flex items-start gap-4 rounded-xl px-2 py-3.5 transition-colors hover:bg-paper-alt/70";
-            if (item.completable) {
-              // The row is a link, and a button cannot live inside a link, so the
-              // link and the "Mark as done" button sit side by side.
-              return (
-                <li key={item.id} className="-mx-2 flex flex-wrap items-start gap-x-3 gap-y-2 rounded-xl px-2 py-3.5 transition-colors hover:bg-paper-alt/70">
-                  <Link href={item.href} className="group flex min-w-0 flex-1 basis-72 items-start gap-4">
-                    {inner}
-                  </Link>
-                  <div className="pl-[3.25rem] sm:pl-0 sm:pt-0.5">
-                    <MarkDoneForm slug={slug} itemId={item.id} />
-                  </div>
-                </li>
-              );
-            }
-            return (
-              <li key={item.id}>
-                {item.external ? (
-                  <a href={item.href} target="_blank" rel="noopener noreferrer" className={cls}>
-                    {inner}
-                  </a>
-                ) : (
-                  <Link href={item.href} className={cls}>
-                    {inner}
-                  </Link>
                 )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </Card>
+              </span>
+            </>
+          );
+          const linkCls = "group flex min-w-0 flex-1 items-start gap-3.5";
+          return (
+            <li
+              key={item.id}
+              className={`flex flex-col gap-2.5 border-t border-night-rule py-3.5 first:border-t-0 ${wide ? "md:[&:nth-child(2)]:border-t-0" : ""}`}
+            >
+              {item.external ? (
+                <a href={item.href} target="_blank" rel="noopener noreferrer" className={linkCls}>
+                  {body}
+                </a>
+              ) : (
+                <Link href={item.href} className={linkCls}>
+                  {body}
+                </Link>
+              )}
+              {item.completable && (
+                <div className="pl-[2.875rem]">
+                  <MarkDoneForm slug={slug} itemId={item.id} />
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 
-// --- KPI tiles --------------------------------------------------------------
+// --- Figures strip -----------------------------------------------------------
+
+function monthShort(period: string, offset: number): string {
+  const [y, m] = period.split("-").map(Number);
+  const d = new Date(Date.UTC(y, m - 1 + offset, 1));
+  return new Intl.DateTimeFormat("en-IE", { month: "short", timeZone: "UTC" }).format(d);
+}
 
 function Change({
   current,
   previous,
   direction,
+  vs,
+  format = (n: number) => `${Math.abs(n)}%`,
 }: {
   current: number | null;
   previous: number | null | undefined;
-  direction: MetricDirection | "neutral";
+  direction: MetricDirection;
+  vs: string;
+  format?: (n: number) => string;
 }) {
-  if (current === null || previous === null || previous === undefined) {
-    return <span className="text-xs text-stone-400">No earlier month to compare</span>;
-  }
+  if (current === null || previous === null || previous === undefined) return null;
   const change = percentChange(current, previous);
-  if (change === null || change === 0) {
-    return <span className="text-xs text-stone-500">{change === 0 ? "Same as last month" : "New this month"}</span>;
-  }
-  const good = direction === "neutral" ? null : isGoodChange(change, direction);
-  const tone = good === null ? "text-stone-500" : good ? "text-accent-700" : "text-red-700";
+  if (change === null || change === 0) return <span className="text-night-mute">same as {vs}</span>;
+  const good = isGoodChange(change, direction);
   return (
-    <span className={`inline-flex items-center gap-1 text-xs font-medium ${tone}`}>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path
-          d={change > 0 ? "M12 19V5m0 0l-6 6m6-6l6 6" : "M12 5v14m0 0l-6-6m6 6l6-6"}
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-      {Math.abs(change)}% {change > 0 ? "up" : "down"} on last month
+    <span className={good ? "text-signal-mint" : "text-signal-orange"}>
+      {change > 0 ? "+" : "−"}
+      {format(change)} vs {vs}
     </span>
   );
 }
 
-function Tile({ label, value, sub, foot }: { label: string; value: string; sub?: string; foot: ReactNode }) {
+function Figure({ label, value, unit, foot }: { label: string; value: string; unit?: string; foot: ReactNode }) {
   return (
-    <div className="flex flex-col rounded-2xl border border-stone-200 bg-white p-5 shadow-card">
-      <p className="text-sm font-medium text-stone-600">{label}</p>
-      <p className="mt-3 font-display text-[2rem] font-semibold leading-none tabular-nums text-ink">{value}</p>
-      {sub && <p className="mt-1.5 text-xs text-stone-500">{sub}</p>}
-      <div className="mt-auto pt-4">{foot}</div>
+    <div className="border-night-line px-5 py-5 sm:px-6 [&:not(:last-child)]:border-b sm:[&:nth-child(odd)]:border-r xl:border-b-0 xl:[&:not(:last-child)]:border-r">
+      <p className={night.label}>{label}</p>
+      <p className="mt-3 font-mono text-[2rem] leading-none tracking-[-0.02em] text-night-text">
+        {value}
+        {unit && <span className="ml-1 text-[0.95rem] tracking-normal text-night-mute">{unit}</span>}
+      </p>
+      <p className="mt-2 font-mono text-[0.72rem] text-night-mute">{foot}</p>
     </div>
   );
 }
 
-export function KpiRow({ data }: { data: DashboardData }) {
+export function Figures({ data }: { data: DashboardData }) {
   const m = data.monthly;
-  const prev = m?.previous ?? null;
   const cur = m?.current;
+  const prev = m?.previous ?? null;
+  const vs = m ? monthShort(m.period, -1) : "";
+  const median = cur?.medianHoursToAssessment ?? null;
+  const decided = cur ? cur.assessedAffected + cur.assessedNotAffected : data.totals.affected + data.totals.notAffected;
+  const componentsNow = cur?.componentsMonitored ?? data.totals.components;
+  const componentDelta = cur && prev ? cur.componentsMonitored - prev.componentsMonitored : null;
+  const products = `${data.products.length} ${data.products.length === 1 ? "product" : "products"}`;
 
   return (
-    // Headline on its own row until there is room for all four side by side,
-    // so the three supporting tiles never leave an orphan.
-    <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-4">
-      {/* The headline: the promise the service sells. Ink surface, mint figure. */}
-      <div className="flex flex-col rounded-2xl bg-ink p-5 text-white sm:col-span-3 xl:col-span-1">
-        <p className="text-sm font-medium text-white/70">
-          Median time to assessment
-        </p>
-        <p className="mt-3 font-display text-[2.6rem] font-semibold leading-none tabular-nums text-accent-300">
-          {formatHours(cur?.medianHoursToAssessment ?? null)}
-        </p>
-        <p className="mt-1.5 text-xs text-white/60">
-          From a match appearing to a reviewed decision{m ? ", this month" : ""}
-        </p>
-        <div className="mt-auto pt-4 [&_span]:!text-white/70">
-          <Change
-            current={cur?.medianHoursToAssessment ?? null}
-            previous={prev?.medianHoursToAssessment}
-            direction="down-good"
-          />
+    <section className={`${night.panel} grid sm:grid-cols-2 xl:grid-cols-4`} aria-label={m ? "This month" : "To date"}>
+      <Figure
+        label="Median time to assessment"
+        value={median === null ? "–" : Number.isInteger(median) ? String(median) : median.toFixed(1)}
+        unit={median === null ? undefined : "h"}
+        foot={
+          prev ? (
+            <Change current={median} previous={prev.medianHoursToAssessment} direction="down-good" vs={vs} />
+          ) : (
+            <span>from match to reviewed decision</span>
+          )
+        }
+      />
+      <Figure
+        label={m ? "New matches" : "Matches to date"}
+        value={(cur?.vulnerabilitiesMatched ?? data.totals.matches).toLocaleString("en-IE")}
+        foot={
+          <>
+            {prev ? `${prev.vulnerabilitiesMatched.toLocaleString("en-IE")} in ${vs} · ` : ""}
+            {data.totals.exploited} exploited
+          </>
+        }
+      />
+      <Figure
+        label="Decided"
+        value={decided.toLocaleString("en-IE")}
+        foot={
+          <>
+            {(cur?.assessedNotAffected ?? data.totals.notAffected).toLocaleString("en-IE")} clear ·{" "}
+            {(cur?.assessedAffected ?? data.totals.affected).toLocaleString("en-IE")} affected
+          </>
+        }
+      />
+      <Figure
+        label="Components watched"
+        value={componentsNow.toLocaleString("en-IE")}
+        foot={
+          <>
+            {componentDelta ? `${componentDelta > 0 ? "+" : "−"}${Math.abs(componentDelta)} since ${vs} · ` : ""}
+            {products}
+          </>
+        }
+      />
+    </section>
+  );
+}
+
+// --- Open matches over time --------------------------------------------------
+
+function shortDate(iso: string): string {
+  return new Intl.DateTimeFormat("en-IE", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
+}
+
+export function OpenMatchesChart({ data }: { data: DashboardData }) {
+  const daily = data.daily ?? [];
+  const chart = buildOpenChart(daily);
+  if (!chart) return null;
+  const open = data.totals.underInvestigation + data.totals.unassessed;
+  const n = daily.length;
+  // Five evenly spaced date labels, the last one "Today".
+  const labels = [0, 0.25, 0.5, 0.75, 1].map((f, i, all) => {
+    const idx = Math.round(f * (n - 1));
+    return i === all.length - 1 ? "Today" : shortDate(daily[idx].date);
+  });
+
+  return (
+    <section className={`${night.panel} min-w-0 px-5 py-5 sm:px-6 lg:col-span-2`} aria-labelledby="open-title">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 id="open-title" className={night.label}>
+            Open matches
+          </h2>
+          <p className="mt-2 font-mono text-[1.6rem] leading-none tracking-[-0.02em] text-night-text">
+            {open}
+            <span className="ml-2.5 text-[0.75rem] tracking-normal text-night-mute">
+              {data.totals.underInvestigation} being checked · {data.totals.unassessed} queued
+            </span>
+          </p>
+        </div>
+        <div className="flex gap-4 text-xs text-night-dim" aria-hidden="true">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-0.5 w-3 rounded-full bg-signal-mint" />
+            Open
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-1 rounded-sm bg-[#4A4E57]" />
+            New per day
+          </span>
         </div>
       </div>
 
-      <Tile
-        label="Components monitored"
-        value={(cur?.componentsMonitored ?? data.totals.components).toLocaleString("en-IE")}
-        sub={`Across ${data.products.length} product ${data.products.length === 1 ? "version" : "versions"}`}
-        foot={<Change current={cur?.componentsMonitored ?? null} previous={prev?.componentsMonitored} direction="neutral" />}
-      />
-      <Tile
-        label={m ? "New matches this month" : "Matches to date"}
-        value={(cur?.vulnerabilitiesMatched ?? data.totals.matches).toLocaleString("en-IE")}
-        sub={`${data.totals.exploited} on an exploited list, all time`}
-        foot={<Change current={cur?.vulnerabilitiesMatched ?? null} previous={prev?.vulnerabilitiesMatched} direction="neutral" />}
-      />
-      <Tile
-        label="Decisions"
-        value={`${cur?.assessedAffected ?? data.totals.affected} affected`}
-        sub={`${cur?.assessedNotAffected ?? data.totals.notAffected} not affected${m ? ", this month" : ""}`}
-        foot={
-          <span className="text-xs text-stone-500">
-            {data.totals.underInvestigation + data.totals.unassessed > 0
-              ? `${data.totals.underInvestigation + data.totals.unassessed} still being checked`
-              : "Every match has a decision"}
-          </span>
-        }
-      />
-    </div>
+      <div className="mt-5 grid grid-cols-[1.5rem_minmax(0,1fr)] gap-2.5">
+        <div aria-hidden="true" className="relative h-44 font-mono text-[0.66rem] text-night-faint">
+          {chart.ticks.map((t) => (
+            <span key={t} className="absolute right-0 -translate-y-1/2" style={{ top: `${(chart.yFor(t) / chart.height) * 100}%` }}>
+              {t}
+            </span>
+          ))}
+        </div>
+        <div className="min-w-0">
+          <svg
+            viewBox={`0 0 ${chart.width} ${chart.height}`}
+            preserveAspectRatio="none"
+            role="img"
+            aria-label={`Open matches over the last ${n} days, now ${open}.`}
+            className="block h-44 w-full overflow-visible"
+          >
+            <defs>
+              <linearGradient id="open-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#6FD6A8" stopOpacity="0.2" />
+                <stop offset="1" stopColor="#6FD6A8" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {chart.ticks.map((t) => (
+              <line
+                key={t}
+                x1="0"
+                x2={chart.width}
+                y1={chart.yFor(t)}
+                y2={chart.yFor(t)}
+                stroke={t === 0 ? "#2A2C32" : "#1F2125"}
+                strokeWidth="1"
+                vectorEffect="non-scaling-stroke"
+              />
+            ))}
+            <g fill="#3A3D44">
+              {chart.bars.map((b) => (
+                <rect key={b.x} x={b.x} y={b.y} width="4" height={b.h} rx="1" />
+              ))}
+            </g>
+            <path d={chart.area} fill="url(#open-fill)" />
+            <path d={chart.line} fill="none" stroke="#6FD6A8" strokeWidth="1.75" vectorEffect="non-scaling-stroke" />
+          </svg>
+          <div aria-hidden="true" className="mt-2 flex justify-between font-mono text-[0.66rem] text-night-faint">
+            {labels.map((l, i) => (
+              <span key={`${l}-${i}`}>{l}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
-// --- Engagement progress ----------------------------------------------------
+// --- Where every match ended up ------------------------------------------------
 
-export function EngagementProgress({
-  steps,
-  completed,
-  live,
-}: {
-  steps: readonly { title: string }[];
-  completed: number;
-  live: boolean;
-}) {
-  const done = live ? steps.length : Math.max(0, Math.min(completed, steps.length));
+export function Outcomes({ data }: { data: DashboardData }) {
+  const t = data.totals;
+  const rows = [
+    { label: "Not affected", n: t.notAffected, color: "bg-signal-clear" },
+    { label: "Affected", n: t.affected, color: "bg-signal-orange" },
+    { label: "Being checked", n: t.underInvestigation, color: "bg-signal-blue" },
+    { label: "Queued", n: t.unassessed, color: "bg-signal-violet" },
+  ];
   return (
-    <Card title="Onboarding">
-      <p className="mb-4 text-sm text-stone-500">
-        {done >= steps.length ? "All done. Monitoring is live." : `Step ${done + 1} of ${steps.length}`}
-      </p>
-      <ol className="space-y-0">
+    <section className={`${night.panel} flex min-w-0 flex-col gap-4 px-5 py-5 sm:px-6`} aria-labelledby="outcomes-title">
+      <div>
+        <h2 id="outcomes-title" className={night.label}>
+          Every match so far
+        </h2>
+        <p className="mt-2 font-mono text-[1.6rem] leading-none tracking-[-0.02em] text-night-text">{t.matches.toLocaleString("en-IE")}</p>
+      </div>
+      {t.matches > 0 && (
+        <div aria-hidden="true" className="flex h-2.5 gap-0.5 overflow-hidden rounded-[3px]">
+          {rows
+            .filter((r) => r.n > 0)
+            .map((r) => (
+              <div key={r.label} className={`${r.color} min-w-[6px] ${r.label === "Not affected" ? "opacity-60" : ""}`} style={{ flex: r.n }} />
+            ))}
+        </div>
+      )}
+      <ul className="text-[0.84rem]">
+        {rows.map((r) => (
+          <li key={r.label} className="flex items-center gap-2.5 border-t border-night-rule py-2.5">
+            <span aria-hidden="true" className={`h-[7px] w-[7px] rounded-sm ${r.color}`} />
+            <span className="flex-1 text-night-dim">{r.label}</span>
+            <span className="font-mono text-night-text">{r.n.toLocaleString("en-IE")}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+// --- Activity ----------------------------------------------------------------
+
+/** Client-facing wording for decision_log events. Unknown events fall back to the raw name. */
+const EVENT_LABELS: Record<string, string> = {
+  drafted: "Assessment drafted",
+  approved: "Decision reviewed and confirmed",
+  rejected: "Assessment sent back for another look",
+  possible_reportable: "Flagged as possibly reportable",
+  matched: "New match found",
+  scanned: "Ingredients list updated",
+  report_drafted: "Report draft prepared",
+  dry_run: "Practice run",
+};
+
+export function ActivityFeed({ data, now, limit = 7 }: { data: DashboardData; now: Date; limit?: number }) {
+  const entries = data.log.slice(0, limit);
+  return (
+    <Panel title="Activity" className="lg:col-span-2">
+      {entries.length === 0 ? (
+        <p className="text-[0.84rem] text-night-mute">Nothing yet. Activity appears here as we work.</p>
+      ) : (
+        <ol>
+          {entries.map((e, i) => (
+            <li
+              key={`${e.at}-${i}`}
+              className="grid grid-cols-[3.25rem_minmax(0,1fr)] items-baseline gap-x-4 border-t border-night-rule py-3 first:border-t-0 sm:grid-cols-[3.25rem_minmax(0,1fr)_auto]"
+            >
+              <time dateTime={e.at} title={formatDateTime(e.at)} className="font-mono text-[0.72rem] text-night-mute">
+                {formatAgoShort(e.at, now)}
+              </time>
+              <div className="min-w-0">
+                <p className="text-[0.86rem] text-night-text">
+                  {EVENT_LABELS[e.event] ?? e.event.replace(/_/g, " ")}
+                  {e.cve && <span className="ml-2 font-mono text-[0.75rem] text-night-mute">{e.cve}</span>}
+                </p>
+                {e.detail && <p className="mt-0.5 line-clamp-1 text-[0.78rem] text-night-mute">{e.detail}</p>}
+              </div>
+              {e.product && <span className="col-start-2 text-[0.78rem] text-night-mute sm:col-start-3 sm:text-right">{e.product}</span>}
+            </li>
+          ))}
+        </ol>
+      )}
+    </Panel>
+  );
+}
+
+// --- Onboarding (only until monitoring is live) ------------------------------
+
+export function EngagementProgress({ steps, completed }: { steps: readonly { title: string }[]; completed: number }) {
+  const done = Math.max(0, Math.min(completed, steps.length));
+  return (
+    <Panel title="Onboarding" action={<span className="font-mono text-[0.75rem] text-night-mute">{`${done}/${steps.length}`}</span>}>
+      <ol>
         {steps.map((s, i) => {
           const state = i < done ? "done" : i === done ? "current" : "todo";
           return (
-            <li key={s.title} className="relative flex gap-3 pb-4 last:pb-0">
-              {i < steps.length - 1 && (
-                <span
-                  aria-hidden="true"
-                  className={`absolute bottom-1 left-[11.5px] top-7 w-px ${i < done ? "bg-accent/50" : "bg-stone-200"}`}
-                />
-              )}
+            <li key={s.title} className="flex items-center gap-3 border-t border-night-rule py-2.5 first:border-t-0">
               <span
-                className={`relative z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-semibold ${
+                aria-hidden="true"
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-[0.62rem] ${
                   state === "done"
-                    ? "bg-accent text-white"
+                    ? "bg-signal-mint text-night"
                     : state === "current"
-                      ? "bg-white text-accent-700 ring-2 ring-accent"
-                      : "bg-white text-stone-400 ring-1 ring-stone-300"
+                      ? "text-signal-mint ring-1 ring-signal-mint"
+                      : "text-night-mute ring-1 ring-night-edge"
                 }`}
               >
                 {state === "done" ? (
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
                     <path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 ) : (
                   i + 1
                 )}
               </span>
-              <span className={`text-sm leading-6 ${state === "todo" ? "text-stone-400" : "font-medium text-ink"}`}>
+              <span className={`text-[0.84rem] ${state === "todo" ? "text-night-mute" : "text-night-text"}`}>
                 {s.title}
-                <span className="sr-only">
-                  {state === "done" ? " (done)" : state === "current" ? " (in progress)" : " (to come)"}
-                </span>
+                <span className="sr-only">{state === "done" ? " (done)" : state === "current" ? " (in progress)" : " (to come)"}</span>
               </span>
             </li>
           );
         })}
       </ol>
-    </Card>
+    </Panel>
   );
 }
 
-// --- Billing ----------------------------------------------------------------
+// --- Billing -----------------------------------------------------------------
 
 export type BillingSummary = {
   number: string;
@@ -367,130 +574,55 @@ export type BillingSummary = {
 
 export function BillingCard({ invoice, documentsHref }: { invoice: BillingSummary; documentsHref: string }) {
   return (
-    <Card
+    <Panel
       title="Billing"
       action={
-        <Link href={documentsHref} className="text-xs font-semibold text-accent-700 hover:underline">
-          All documents
-        </Link>
+        invoice ? (
+          <span className="font-mono text-[0.75rem] text-night-mute">{invoice.number}</span>
+        ) : (
+          <Link href={documentsHref} className="text-[0.8rem] text-night-dim hover:text-night-text">
+            Documents
+          </Link>
+        )
       }
     >
       {!invoice ? (
-        <p className="text-sm text-stone-500">No invoices yet.</p>
+        <p className="text-[0.84rem] text-night-mute">No invoices yet.</p>
       ) : (
-        <div>
-          <div className="flex items-baseline justify-between gap-3">
-            <Link href={invoice.href} className="font-semibold text-ink hover:text-accent-700">
-              {invoice.number}
-            </Link>
-            <span className="font-display text-xl font-semibold tabular-nums text-ink">{invoice.amount}</span>
-          </div>
-          <p className="mt-1 flex items-center gap-2 text-sm text-stone-500">
+        <div className="flex flex-col gap-3">
+          <p className="font-mono text-[1.6rem] leading-none tracking-[-0.02em] text-night-text">{invoice.amount}</p>
+          <p className="flex items-center gap-2 text-[0.84rem] text-night-dim">
             {invoice.paid ? (
               <>
-                <span aria-hidden="true" className="h-2 w-2 rounded-full bg-accent" />
+                <span aria-hidden="true" className="h-[7px] w-[7px] rounded-full bg-signal-mint" />
                 Paid, thank you
               </>
             ) : (
               <>Due {formatDate(invoice.due)}</>
             )}
           </p>
-          {!invoice.paid && !invoice.payUrl && invoice.canPayOnline && (
-            <div className="mt-4">
-              <PayNowForm slug={invoice.slug} docSlug={invoice.docSlug} label="Pay online" />
-            </div>
-          )}
-          {!invoice.paid && !invoice.payUrl && !invoice.canPayOnline && (
-            <Link href={invoice.href} className="mt-4 inline-flex text-sm font-semibold text-accent-700 hover:underline">
-              How to pay
+          <div className="mt-1 flex flex-wrap gap-2">
+            <Link href={invoice.href} className={`${night.btn} flex-1`}>
+              View invoice
             </Link>
-          )}
-          {!invoice.paid && invoice.payUrl && (
-            <a
-              href={invoice.payUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ink-700"
-            >
-              Pay online<span className="sr-only"> (opens in a new tab)</span>
-            </a>
-          )}
+            {!invoice.paid && invoice.payUrl && (
+              <a href={invoice.payUrl} target="_blank" rel="noopener noreferrer" className={`${night.btnPrimary} flex-1`}>
+                Pay online<span className="sr-only"> (opens in a new tab)</span>
+              </a>
+            )}
+            {!invoice.paid && !invoice.payUrl && invoice.canPayOnline && (
+              <div className="flex-1 [&_button]:w-full">
+                <PayNowForm slug={invoice.slug} docSlug={invoice.docSlug} label="Pay online" tone="night" />
+              </div>
+            )}
+          </div>
         </div>
       )}
-    </Card>
+    </Panel>
   );
 }
 
-// --- Activity ---------------------------------------------------------------
-
-/** Client-facing wording for decision_log events. Unknown events fall back to the raw name. */
-const EVENT_LABELS: Record<string, string> = {
-  drafted: "Assessment drafted",
-  approved: "Decision reviewed and confirmed",
-  rejected: "Assessment sent back for another look",
-  possible_reportable: "Flagged as possibly reportable",
-  matched: "New match found",
-  scanned: "Ingredients list updated",
-  report_drafted: "Report draft prepared",
-  dry_run: "Practice run",
-};
-
-export function ActivityFeed({ data, now, limit = 8 }: { data: DashboardData; now: Date; limit?: number }) {
-  const entries = data.log.slice(0, limit);
-  return (
-    <Card title="Recent activity">
-      {entries.length === 0 ? (
-        <p className="text-sm text-stone-500">Nothing yet. Activity appears here as we work.</p>
-      ) : (
-        <ol className="space-y-4">
-          {entries.map((e, i) => (
-            <li key={`${e.at}-${i}`} className="flex gap-3">
-              <span aria-hidden="true" className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-stone-300" />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm text-ink">
-                  <span className="font-medium">{EVENT_LABELS[e.event] ?? e.event.replace(/_/g, " ")}</span>
-                  {e.cve && <span className="font-mono text-[0.8rem] text-stone-500"> · {e.cve}</span>}
-                </p>
-                {(e.product || e.detail) && (
-                  <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-stone-500">
-                    {[e.product, e.detail].filter(Boolean).join(" · ")}
-                  </p>
-                )}
-              </div>
-              <time dateTime={e.at} title={formatDateTime(e.at)} className="shrink-0 text-xs tabular-nums text-stone-400">
-                {formatAgo(e.at, now)}
-              </time>
-            </li>
-          ))}
-        </ol>
-      )}
-    </Card>
-  );
-}
-
-// --- Open report drafts -----------------------------------------------------
-
-export function OpenReports({ data, now }: { data: DashboardData; now: Date }) {
-  const open = data.reports.filter((r) => r.dueAt && new Date(r.dueAt).getTime() >= now.getTime());
-  if (open.length === 0) return null;
-  return (
-    <Card title="Report deadlines">
-      <ul className="space-y-3">
-        {open.map((r) => (
-          <li key={`${r.cve}-${r.stage}`} className="flex items-center justify-between gap-3 text-sm">
-            <span className="min-w-0">
-              <span className="block font-medium text-ink first-letter:uppercase">{stageLabel(r.stage)}</span>
-              <span className="font-mono text-xs text-stone-500">{r.cve}</span>
-            </span>
-            <span className="shrink-0 text-xs font-semibold text-amber-900">{formatDueIn(r.dueAt!, now)}</span>
-          </li>
-        ))}
-      </ul>
-    </Card>
-  );
-}
-
-// --- When Neon cannot be read -----------------------------------------------
+// --- When Neon cannot be read ------------------------------------------------
 
 export function DataUnavailable({ reason }: { reason: "not-configured" | "no-data" | "invalid" | "unreachable" }) {
   const body =
@@ -498,20 +630,20 @@ export function DataUnavailable({ reason }: { reason: "not-configured" | "no-dat
       ? "Your monitoring figures appear here once onboarding reaches your first scan. Your documents are all available now."
       : "This page could not load your latest monitoring figures just now. Your documents are still available. If this persists, email us and we will send you the figures directly.";
   return (
-    <Card>
+    <Panel>
       <div className="flex gap-4">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-paper-alt text-stone-500 ring-1 ring-stone-200">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-night-edge bg-night-raised text-night-dim">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M4 15a4 4 0 014-4 5 5 0 019.6-1.5A3.5 3.5 0 0117.5 17H8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </span>
         <div>
-          <p className="font-semibold text-ink">
+          <p className="text-[0.9rem] text-night-text">
             {reason === "no-data" ? "Monitoring figures are on their way" : "Figures temporarily unavailable"}
           </p>
-          <p className="mt-1 text-sm leading-relaxed text-stone-500">{body}</p>
+          <p className="mt-1 text-[0.84rem] leading-relaxed text-night-dim">{body}</p>
         </div>
       </div>
-    </Card>
+    </Panel>
   );
 }

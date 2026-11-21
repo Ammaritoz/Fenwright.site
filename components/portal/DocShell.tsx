@@ -17,7 +17,7 @@ type Props = {
 /**
  * The letterhead every portal document shares.
  *
- * Deliberately the paper surface rather than the dark ink one: these are
+ * Deliberately a white paper sheet even inside the dark portal: these are
  * documents that get printed and filed, and a full-bleed dark page is both a
  * toner crime and harder to read at length. The ink is reserved for the
  * wordmark and headings, matching the marketing site's own hierarchy.
@@ -39,7 +39,9 @@ export function DocShell({ docType, subtitle, clientName, meta = [], children }:
 
   return (
     <article className="mx-auto w-full max-w-3xl">
-      <div className="rounded-xl2 border border-stone-200 bg-white px-7 py-9 shadow-card print:rounded-none print:border-0 print:px-0 print:py-0 print:shadow-none sm:px-12 sm:py-12">
+      {/* A white sheet on the portal's dark workspace. It sets its own ink and
+          font so nothing inherits the workspace's light text. */}
+      <div className="portal-paper rounded-xl border border-black/10 bg-white px-7 py-9 font-sans text-ink shadow-[0_30px_80px_-40px_rgba(0,0,0,0.9)] print:rounded-none print:border-0 print:px-0 print:py-0 print:shadow-none sm:px-12 sm:py-12">
         <header>
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div>

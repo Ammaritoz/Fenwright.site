@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useFormState, useFormStatus } from "react-dom";
 import { markItemDone, type ActionState } from "@/app/portal/[client]/actions";
+import { night } from "@/components/portal/night";
 
 const initialState: ActionState = {};
 
@@ -13,7 +14,7 @@ function DoneButton() {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-full border border-stone-300 bg-white px-4 text-sm font-semibold text-ink transition-colors hover:border-accent hover:text-accent-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-60"
+      className={night.btn}
     >
       {pending ? "Saving..." : "Mark as done"}
     </button>
@@ -42,7 +43,7 @@ export function MarkDoneForm({ slug, itemId }: { slug: string; itemId: string })
       <input type="hidden" name="itemId" value={itemId} />
       <DoneButton />
       {state.error && (
-        <p role="alert" className="mt-1.5 max-w-[16rem] text-xs text-red-600">
+        <p role="alert" className="mt-1.5 max-w-[16rem] text-xs text-signal-orange">
           {state.error}
         </p>
       )}

@@ -94,6 +94,12 @@ export function dashboardFixture(now: Date = new Date()): DashboardData {
         askedAt: at(9),
       },
     ],
+    // 30 days, oldest first, ending today with the 5 matches still open.
+    daily: [0, 1, 0, 2, 0, 0, 1, 3, 0, 1, 0, 0, 2, 1, 0, 0, 1, 0, 4, 1, 0, 0, 1, 0, 2, 0, 1, 0, 1, 2].map((matched, i) => ({
+      date: new Date(now.getTime() - (29 - i) * 86_400_000).toISOString().slice(0, 10),
+      matched,
+      open: [3, 4, 2, 3, 2, 1, 1, 3, 2, 2, 1, 0, 2, 2, 1, 0, 1, 1, 4, 3, 2, 1, 1, 1, 2, 1, 1, 1, 3, 5][i],
+    })),
     monthly: {
       period: now.toISOString().slice(0, 7),
       current: {

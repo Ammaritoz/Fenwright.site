@@ -6,6 +6,13 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "fenwright-dev-fixture",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "-p", "3001"],
+      "env": { "PORTAL_DASHBOARD_FIXTURE": "1" },
+      "port": 3001
     }
   ]
 }

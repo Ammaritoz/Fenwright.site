@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { unlockPortal, type ActionState } from "@/app/portal/[client]/actions";
+import { night } from "@/components/portal/night";
 
 const initialState: ActionState = {};
 
@@ -15,7 +16,7 @@ function formatPasscode(raw: string): string {
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" disabled={pending} className="btn-primary mt-5 w-full disabled:opacity-60">
+    <button type="submit" disabled={pending} className={`${night.btnPrimary} mt-5 h-11 w-full`}>
       {pending ? "Checking..." : "Open my documents"}
     </button>
   );
@@ -35,7 +36,7 @@ export function UnlockForm({ slug, next }: { slug: string; next: string | null }
       <input type="hidden" name="slug" value={slug} />
       {next && <input type="hidden" name="next" value={next} />}
 
-      <label htmlFor="passcode" className="block text-sm font-medium text-ink">
+      <label htmlFor="passcode" className="block text-[0.8rem] text-night-dim">
         Passcode
       </label>
       <input
@@ -54,15 +55,15 @@ export function UnlockForm({ slug, next }: { slug: string; next: string | null }
         placeholder="XXXXX-XXXXX"
         aria-describedby={state.error ? "passcode-error" : undefined}
         aria-invalid={state.error ? true : undefined}
-        className={`mt-2 w-full rounded-xl border bg-white px-3.5 py-3 font-mono text-base tracking-[0.12em] text-ink outline-none transition-colors placeholder:font-sans placeholder:tracking-normal placeholder:text-stone-400 focus:ring-2 ${
+        className={`mt-2 w-full rounded-lg border bg-night-raised px-3.5 py-3 font-mono text-base tracking-[0.12em] text-night-text outline-none transition-colors placeholder:tracking-normal placeholder:text-night-faint focus:ring-2 ${
           state.error
-            ? "border-red-500 focus:border-red-500 focus:ring-red-500/30"
-            : "border-stone-300 focus:border-accent focus:ring-accent/30"
+            ? "border-signal-orange focus:border-signal-orange focus:ring-signal-orange/30"
+            : "border-night-edge focus:border-signal-mint focus:ring-signal-mint/25"
         }`}
       />
 
       {state.error && (
-        <p id="passcode-error" role="alert" className="mt-2 text-sm text-red-600">
+        <p id="passcode-error" role="alert" className="mt-2 text-sm text-signal-orange">
           {state.error}
         </p>
       )}

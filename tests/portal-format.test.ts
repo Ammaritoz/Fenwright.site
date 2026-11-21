@@ -171,3 +171,25 @@ describe("first-client offer invoice lines", () => {
     expect(t.vat).toBeNull();
   });
 });
+
+describe("formatAgoShort and formatCountdown", () => {
+  const now = new Date("2026-11-21T12:00:00Z");
+  const at = (msFromNow: number) => new Date(now.getTime() + msFromNow).toISOString();
+  const H = 3_600_000;
+
+  it("compacts elapsed time for a timestamp column", async () => {
+    const { formatAgoShort } = await import("@/lib/portal/format");
+    expect(formatAgoShort(at(-20_000), now)).toBe("now");
+    expect(formatAgoShort(at(-12 * 60_000), now)).toBe("12 min");
+    expect(formatAgoShort(at(-4.5 * H), now)).toBe("4 h");
+    expect(formatAgoShort(at(-50 * H), now)).toBe("2 d");
+  });
+
+  it("counts down hours and minutes inside two days, days beyond, null once passed", async () => {
+    const { formatCountdown } = await import("@/lib/portal/format");
+    expect(formatCountdown(at(14 * H + 52 * 60_000 + 30_000), now)).toBe("14:52");
+    expect(formatCountdown(at(5 * 60_000), now)).toBe("0:05");
+    expect(formatCountdown(at(76 * H), now)).toBe("3 d 4 h");
+    expect(formatCountdown(at(-1), now)).toBeNull();
+  });
+});

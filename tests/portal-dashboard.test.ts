@@ -5,6 +5,7 @@ import { parseDashboard } from "@/lib/portal/dashboard-schema";
 import { dashboardFixture } from "@/lib/portal/dashboard-fixture";
 import { deriveActionItems, questionItemId, reportItemId } from "@/lib/portal/action-items";
 import { formatAgo, formatDueIn, formatHours } from "@/lib/portal/format";
+import { buildOpenChart } from "@/lib/portal/chart";
 import { allClientSlugs, getClient } from "@/content/clients";
 import type { Client } from "@/content/clients/types";
 
@@ -34,6 +35,35 @@ describe("dashboard payload validation", () => {
   it("rejects a timestamp without a timezone, which would render in the wrong hour", () => {
     const bad = { ...dashboardFixture(NOW), generatedAt: "2027-02-10T12:00:00" };
     expect(parseDashboard(bad).ok).toBe(false);
+  });
+
+  it("accepts a payload without the daily series, which today's pipeline does not send yet", () => {
+    const { daily: _d, ...older } = dashboardFixture(NOW);
+    expect(parseDashboard(older).ok).toBe(true);
+  });
+
+  it("rejects a daily entry whose date is not YYYY-MM-DD", () => {
+    const f = dashboardFixture(NOW);
+    const bad = { ...f, daily: [{ date: "2027-02-10T00:00:00Z", matched: 1, open: 1 }] };
+    expect(parseDashboard(bad).ok).toBe(false);
+  });
+});
+
+describe("open matches chart", () => {
+  it("needs at least two days to draw a line", () => {
+    expect(buildOpenChart([])).toBeNull();
+    expect(buildOpenChart([{ date: "2027-02-10", matched: 1, open: 1 }])).toBeNull();
+  });
+
+  it("scales to an even ceiling, ends the line on today's open count and draws a bar only for days with matches", () => {
+    const daily = dashboardFixture(NOW).daily!;
+    const c = buildOpenChart(daily, 720, 176)!;
+    expect(c.ticks[0] % 2).toBe(0);
+    expect(c.ticks[c.ticks.length - 1]).toBe(0);
+    const lastY = Math.round(c.yFor(daily[daily.length - 1].open) * 10) / 10;
+    expect(c.line.endsWith(`720,${lastY}`)).toBe(true);
+    expect(c.bars).toHaveLength(daily.filter((d) => d.matched > 0).length);
+    expect(c.bars.every((b) => b.x >= 0 && b.x + 4 <= 720)).toBe(true);
   });
 });
 

@@ -198,3 +198,27 @@ export function formatHours(hours: number | null): string {
   if (hours === null) return "–";
   return `${Number.isInteger(hours) ? hours : hours.toFixed(1)} hr`;
 }
+
+/** "now", "12 min", "4 h", "3 d". The compact form for a timestamp column. */
+export function formatAgoShort(iso: string, now: Date): string {
+  const ms = now.getTime() - new Date(iso).getTime();
+  if (ms < MIN) return "now";
+  if (ms < HOUR) return `${Math.floor(ms / MIN)} min`;
+  if (ms < DAY_MS) return `${Math.floor(ms / HOUR)} h`;
+  return `${Math.floor(ms / DAY_MS)} d`;
+}
+
+/**
+ * Time left on a reporting deadline: "14:52" (hours:minutes) inside two days,
+ * "3 d 4 h" beyond that, null once it has passed.
+ */
+export function formatCountdown(iso: string, now: Date): string | null {
+  const ms = new Date(iso).getTime() - now.getTime();
+  if (ms < 0) return null;
+  if (ms < 2 * DAY_MS) {
+    const totalMin = Math.floor(ms / MIN);
+    return `${Math.floor(totalMin / 60)}:${String(totalMin % 60).padStart(2, "0")}`;
+  }
+  const days = Math.floor(ms / DAY_MS);
+  return `${days} d ${Math.floor((ms - days * DAY_MS) / HOUR)} h`;
+}

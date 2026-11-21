@@ -1,25 +1,27 @@
 import { notFound } from "next/navigation";
 import { getClient } from "@/content/clients";
-import type { Client, InvoiceDoc } from "@/content/clients/types";
+import type { Client, DashboardData, InvoiceDoc } from "@/content/clients/types";
 import { documents } from "@/config/documents";
-import { site } from "@/config/site";
 import { getDashboard } from "@/lib/portal/dashboard";
 import { getAgreementAcceptance, listCompletions, listUploads } from "@/lib/airtable";
 import { questionItemId, reportItemId } from "@/lib/portal/action-items";
 import { clientCanPayOnline, invoiceBalance, isSettled, stripePaidAmount } from "@/lib/portal/checkout";
-import { deriveActionItems } from "@/lib/portal/action-items";
+import { deriveActionItems, type ActionItem } from "@/lib/portal/action-items";
 import { formatMoney } from "@/lib/portal/format";
 import {
-  ActionItems,
   ActivityFeed,
   BillingCard,
   DataUnavailable,
+  DeadlinePanel,
   EngagementProgress,
-  KpiRow,
-  LiveStatus,
-  OpenReports,
+  Figures,
+  NeedsYou,
+  OpenMatchesChart,
+  Outcomes,
   type BillingSummary,
+  type Deadline,
 } from "@/components/portal/dashboard/Widgets";
+import { night } from "@/components/portal/night";
 
 /**
  * The client's landing page: what needs them, how monitoring is going, where
@@ -66,48 +68,73 @@ export default async function DashboardPage({ params }: { params: { client: stri
   }
   const items = deriveActionItems(client, data, now, signedDocs, settledInvoices, (await listUploads(client.slug)).length);
 
+  // The soonest open reporting deadline gets the clock; everything else that
+  // needs the client is listed beside it.
+  const deadline = data ? nextDeadline(data, items, now) : null;
+  const rest = items.filter((i) => i.id !== deadline?.itemId);
+  const hasChart = Boolean(data?.daily && data.daily.length > 1);
+  const live = Boolean(data?.monitoring);
+  const month = new Intl.DateTimeFormat("en-IE", { month: "long", year: "numeric", timeZone: "Europe/Dublin" }).format(now);
+
   return (
-    <div className="mx-auto max-w-6xl py-2 sm:py-4">
-      <header className="mb-8">
-        <p className="text-sm text-stone-500">Overview</p>
-        <h1 className="mt-2 font-display text-[2rem] font-semibold leading-[1.05] text-ink sm:text-[2.4rem]">
-          {client.business.name}
-        </h1>
-        <div className="mt-3">
-          <LiveStatus data={data} now={now} />
-        </div>
+    <div className="mx-auto max-w-[76rem]">
+      <header className="mb-7 flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+        <h1 className={night.h1}>{month}</h1>
+        {!deadline && rest.length === 0 && <p className="text-[0.84rem] text-night-dim">Nothing is waiting on you.</p>}
       </header>
 
-      <div className="space-y-5">
-        <ActionItems items={items} now={now} slug={client.slug} />
-
-        {data ? <KpiRow data={data} /> : <DataUnavailable reason={result.ok ? "invalid" : result.reason} />}
-
-        <div className="grid gap-5 lg:grid-cols-3">
-          <div className="space-y-5 lg:col-span-2">
-            {data && <OpenReports data={data} now={now} />}
-            {data && <ActivityFeed data={data} now={now} />}
-            {!data && (
-              <p className="px-1 text-sm text-stone-500">
-                Activity appears here once your figures load. Questions in the meantime:{" "}
-                <a href={`mailto:${site.legal.contactEmail}`} className="font-medium text-accent-700 hover:underline">
-                  {site.legal.contactEmail}
-                </a>
-              </p>
-            )}
+      <div className="space-y-4">
+        {(deadline || rest.length > 0) && (
+          <div className="grid gap-4 lg:grid-cols-3">
+            {deadline && <DeadlinePanel deadline={deadline} now={now} slug={client.slug} />}
+            {rest.length > 0 && <NeedsYou items={rest} now={now} slug={client.slug} wide={!deadline} />}
           </div>
-          <div className="space-y-5">
-            <EngagementProgress
-              steps={documents.onboardingSteps}
-              completed={client.engagement?.completedSteps ?? 0}
-              live={Boolean(data?.monitoring)}
-            />
+        )}
+
+        {data ? <Figures data={data} /> : <DataUnavailable reason={result.ok ? "invalid" : result.reason} />}
+
+        {data && hasChart && (
+          <div className="grid gap-4 lg:grid-cols-3">
+            <OpenMatchesChart data={data} />
+            <Outcomes data={data} />
+          </div>
+        )}
+
+        <div className="grid gap-4 lg:grid-cols-3">
+          {data && <ActivityFeed data={data} now={now} />}
+          <div className={`space-y-4 ${data ? "" : "lg:col-start-3"}`}>
+            {data && !hasChart && <Outcomes data={data} />}
+            {!live && (
+              <EngagementProgress steps={documents.onboardingSteps} completed={client.engagement?.completedSteps ?? 0} />
+            )}
             <BillingCard invoice={billingSummary(client, paidOnline)} documentsHref={`/portal/${client.slug}/documents`} />
           </div>
         </div>
       </div>
     </div>
   );
+}
+
+/** The soonest report draft still open, if it is also still in the client's list. */
+function nextDeadline(data: DashboardData, items: ActionItem[], now: Date): Deadline | null {
+  const open = data.reports
+    .filter((r) => r.dueAt && new Date(r.dueAt).getTime() >= now.getTime())
+    .sort((a, b) => a.dueAt!.localeCompare(b.dueAt!));
+  for (const r of open) {
+    const itemId = reportItemId(r);
+    if (!items.some((i) => i.id === itemId)) continue;
+    const f = data.findings.find((x) => x.cve === r.cve);
+    return {
+      cve: r.cve,
+      stage: r.stage,
+      dueAt: r.dueAt!,
+      itemId,
+      component: f?.component,
+      product: f?.product,
+      exploited: Boolean(f?.exploited),
+    };
+  }
+  return null;
 }
 
 /** The invoice that matters now: the earliest unpaid one, else the latest. */

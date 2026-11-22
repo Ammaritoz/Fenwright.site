@@ -24,9 +24,11 @@ export const exampleManufacturer: Client = {
   currency: "EUR",
   passcodeSalt: "a4756d609d1821b7982ad5578602106f",
   passcodeHash: "0d01733f11afcc0bd6008630e280cdb6bb23237d2d6d7d5d20312677a5ec642d",
-  // A fictional client, and the production Stripe key is live: never let a real
-  // card be charged from this demo.
-  onlinePayment: false,
+  // On so the owner can walk the client payment flow on the live site (22 Nov
+  // 2026). The production Stripe key is LIVE: paying here charges a real card
+  // the full invoice amount. Refund it from the Stripe dashboard, and set this
+  // back to false before showing the demo to anyone else.
+  onlinePayment: true,
 
   business: {
     name: "Lowmoor Controls",

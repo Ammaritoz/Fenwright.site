@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getClient, getDoc } from "@/content/clients";
 import { createInvoiceCheckout, returnBaseUrl, stripePaidAmount } from "@/lib/portal/checkout";
+import { createBillingPortal, createSubscriptionCheckout } from "@/lib/portal/subscription";
+import { BILLING_INTERVALS, type BillingInterval } from "@/config/plans";
 import { normalisePasscode, verifyPasscode } from "@/lib/portal/auth";
 import {
   SESSION_MAX_AGE_SECONDS,
@@ -267,6 +269,45 @@ export async function startPayment(_prev: ActionState, formData: FormData): Prom
   if (!result.ok) return { error: result.error };
 
   // redirect() works by throwing, so it must stay outside any try/catch.
+  redirect(result.url);
+}
+
+const subscribeSchema = z.object({
+  slug: z.string().min(1).max(120),
+  interval: z.enum(Object.keys(BILLING_INTERVALS) as [BillingInterval, ...BillingInterval[]]),
+});
+
+/**
+ * "Set up automatic payment". Session-gated. The browser sends only the slug
+ * and the interval the client picked; the plan and the price come from the
+ * client file and config/plans.ts on the server.
+ */
+export async function startSubscription(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const parsed = subscribeSchema.safeParse({ slug: formData.get("slug"), interval: formData.get("interval") });
+  if (!parsed.success) return { error: "Choose monthly or quarterly." };
+
+  const { slug, interval } = parsed.data;
+  const client = getClient(slug);
+  if (!client) return { error: "Something went wrong. Refresh and try again." };
+  if (!(await hasSession(slug))) return { error: SESSION_ERROR };
+
+  const result = await createSubscriptionCheckout({ client, interval, returnBase: returnBaseUrl(headers().get("host")) });
+  if (!result.ok) return { error: result.error };
+  redirect(result.url);
+}
+
+const billingSchema = z.object({ slug: z.string().min(1).max(120) });
+
+/** "Change payment method": Stripe's own billing page for this client's customer record. */
+export async function openBillingPortal(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const parsed = billingSchema.safeParse({ slug: formData.get("slug") });
+  if (!parsed.success) return { error: "Something went wrong. Refresh and try again." };
+  const client = getClient(parsed.data.slug);
+  if (!client) return { error: "Something went wrong. Refresh and try again." };
+  if (!(await hasSession(client.slug))) return { error: SESSION_ERROR };
+
+  const result = await createBillingPortal({ client, returnBase: returnBaseUrl(headers().get("host")) });
+  if (!result.ok) return { error: result.error };
   redirect(result.url);
 }
 

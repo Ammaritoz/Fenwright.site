@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { PayNowForm } from "@/components/portal/PayNowForm";
+import { ManageBillingForm, SubscribeForm, type IntervalOption } from "@/components/portal/SubscribeForm";
+import type { Billing } from "@/lib/portal/subscription";
 import { MarkDoneForm } from "@/components/portal/MarkDoneForm";
 import { night } from "@/components/portal/night";
 import type { ActionItem } from "@/lib/portal/action-items";
@@ -576,6 +578,104 @@ export function BillingCard({ invoice, documentsHref }: { invoice: BillingSummar
               </div>
             )}
           </div>
+        </div>
+      )}
+    </Panel>
+  );
+}
+
+// --- Automatic billing (a plan) ---------------------------------------------
+
+/** Everything the plan card needs, already formatted on the server. */
+export type PlanBilling = {
+  slug: string;
+  planName: string;
+  startsOn: string;
+  billing: Billing;
+  options: IntervalOption[];
+  defaultInterval: string;
+  money: (minor: number) => string;
+  canPayOnline: boolean;
+  now: Date;
+};
+
+const day = (iso: string) => formatDate(iso.slice(0, 10));
+
+export function PlanCard({ plan }: { plan: PlanBilling }) {
+  const { billing } = plan;
+  return (
+    <Panel title="Your plan" action={<span className="text-[0.8rem] text-night-mute">{plan.planName}</span>}>
+      {billing.state === "unavailable" ? (
+        <p className="text-[0.84rem] text-night-mute">Your billing details could not be loaded just now. Refresh in a moment.</p>
+      ) : billing.state === "not-set-up" || billing.state === "ended" ? (
+        plan.canPayOnline ? (
+          <div className="flex flex-col gap-3">
+            <p className="text-[0.84rem] leading-relaxed text-night-dim">
+              {billing.state === "ended" ? "Your plan has ended. " : ""}Choose how often to pay and save a card or direct
+              debit. Nothing is charged before {day(plan.startsOn)}; after that it is collected automatically each period.
+            </p>
+            <SubscribeForm slug={plan.slug} options={plan.options} initialValue={plan.defaultInterval} />
+          </div>
+        ) : (
+          <p className="text-[0.84rem] text-night-mute">We will send your first {plan.planName} invoice by email.</p>
+        )
+      ) : (
+        <div className="flex flex-col gap-3">
+          <p className="font-mono text-[1.6rem] leading-none tracking-[-0.02em] text-night-text">
+            {plan.money(billing.amount)}
+            {billing.interval && (
+              <span className="ml-1 text-[0.8rem] tracking-normal text-night-mute">/{billing.interval === "monthly" ? "month" : "quarter"}</span>
+            )}
+          </p>
+          {billing.overdue ? (
+            <div className="rounded-lg border border-signal-amber/40 bg-signal-amber/[0.07] px-3.5 py-3 text-[0.82rem] leading-relaxed text-night-text">
+              {billing.overdue.paused ? (
+                <>
+                  <strong className="font-medium text-signal-amber">Monitoring is paused</strong> until{" "}
+                  {plan.money(billing.overdue.invoice.amount)} from {day(billing.overdue.invoice.created)} is paid. It resumes
+                  within one business day of payment.
+                </>
+              ) : (
+                <>
+                  <strong className="font-medium text-signal-amber">Payment did not go through.</strong> Pay{" "}
+                  {plan.money(billing.overdue.invoice.amount)} by {day(billing.overdue.pauseAt)} to keep monitoring running.
+                </>
+              )}
+            </div>
+          ) : (
+            <p className="flex items-center gap-2 text-[0.84rem] text-night-dim">
+              <span aria-hidden="true" className="h-[7px] w-[7px] rounded-full bg-signal-mint" />
+              {billing.nextChargeAt ? <>Paid automatically. Next charge {day(billing.nextChargeAt)}</> : <>Paid automatically</>}
+            </p>
+          )}
+          <div className="flex flex-col gap-2">
+            {billing.overdue?.invoice.hostedUrl && (
+              <a href={billing.overdue.invoice.hostedUrl} target="_blank" rel="noopener noreferrer" className={`${night.btnPrimary} w-full`}>
+                Pay now<span className="sr-only"> (opens in a new tab)</span>
+              </a>
+            )}
+            <ManageBillingForm slug={plan.slug} />
+          </div>
+          {billing.invoices.length > 0 && (
+            <ul className="mt-1 border-t border-night-rule">
+              {billing.invoices.slice(0, 4).map((inv) => (
+                <li key={inv.number ?? inv.created} className="flex items-center justify-between gap-3 border-b border-night-rule py-2 text-[0.8rem]">
+                  <span className="text-night-dim">{day(inv.periodStart ?? inv.created)}</span>
+                  <span className="font-mono text-night-text">{plan.money(inv.amount)}</span>
+                  <span className={inv.status === "paid" ? "text-night-mute" : "text-signal-amber"}>
+                    {inv.status === "paid" ? "Paid" : inv.status === "open" ? "Owing" : "Void"}
+                  </span>
+                  {inv.pdfUrl ? (
+                    <a href={inv.pdfUrl} target="_blank" rel="noopener noreferrer" className="text-night-dim hover:text-night-text">
+                      PDF<span className="sr-only"> for {inv.number ?? "this invoice"} (opens in a new tab)</span>
+                    </a>
+                  ) : (
+                    <span />
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </Panel>

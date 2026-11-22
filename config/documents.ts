@@ -59,7 +59,7 @@ export const documents = {
       },
       {
         title: "Fees and payment",
-        body: "The fees and payment schedule are set out above. Invoices are payable within {paymentTermDays} days of the invoice date. Where an onboarding fee is stated, onboarding begins once it clears. We do not begin work on an unsigned agreement.",
+        body: "The fees and payment schedule are set out above. Invoices are payable within {paymentTermDays} days of the invoice date. If an undisputed invoice is more than 14 days overdue, monitoring pauses: we warn your contacts in writing at least 7 days before, you remain responsible for your own CRA reporting while it is paused, and it resumes within one business day of payment. Where an onboarding fee is stated, onboarding begins once it clears. We do not begin work on an unsigned agreement.",
       },
       {
         title: "Late payment",
@@ -189,7 +189,7 @@ export const documents = {
       price: 75000,
       per: "month",
       badge: "Founding price",
-      suitedTo: "The full monthly service at a launch price for our first three clients. 12 months, billed quarterly, with a 90-day exit.",
+      suitedTo: "The full monthly service at a launch price for our first three clients. 12 months, billed monthly or quarterly, with a 90-day exit.",
       includes: [
         "Ingredients lists kept up to date for each release",
         "Exploited-vulnerability lists checked every hour",
@@ -217,7 +217,7 @@ export const documents = {
   ] as PackageTier[],
 
   packagesSmallPrint:
-    "Founding Core runs for 12 months at the founding price, billed quarterly in advance, and you can leave within the first 90 days of monitoring. Monitoring and its fee start only once your onboarding is finished and we confirm the start date in writing. The Sprint is a one-off fixed price, credited against Core if you continue within 90 days. Your ingredients lists and decision log are yours, in open formats, and we hand them over in full if we ever part ways. Extra product families are quoted separately, at a lower price than the first.",
+    "Founding Core runs for 12 months at the founding price, billed monthly or quarterly in advance (your choice, paid automatically by card or direct debit), and you can leave within the first 90 days of monitoring. Monitoring and its fee start only once your onboarding is finished and we confirm the start date in writing. The Sprint is a one-off fixed price, credited against Core if you continue within 90 days. Your ingredients lists and decision log are yours, in open formats, and we hand them over in full if we ever part ways. Extra product families are quoted separately, at a lower price than the first.",
 
   /**
    * Ready-made invoice lines for the first-client offer. Copy into a client

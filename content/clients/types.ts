@@ -344,6 +344,14 @@ export type Client = {
    */
   onlinePayment?: boolean;
   /**
+   * A plan this client pays for automatically (config/plans.ts). Set it once:
+   * the portal asks the client to choose monthly or quarterly and save a card
+   * or SEPA direct debit, and Stripe invoices and charges every period from
+   * `startsOn` (the Monitoring Start Date, YYYY-MM-DD) with nobody generating
+   * anything. Nothing is charged before that date.
+   */
+  subscription?: { plan: import("@/config/plans").PlanId; startsOn: string };
+  /**
    * Legacy: a one-off link from `npm run intake:link`. Only needed to point a
    * client at somewhere other than the built-in Upload page.
    */

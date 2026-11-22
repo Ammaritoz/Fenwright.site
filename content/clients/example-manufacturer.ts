@@ -29,6 +29,10 @@ export const exampleManufacturer: Client = {
   // the full invoice amount. Refund it from the Stripe dashboard, and set this
   // back to false before showing the demo to anyone else.
   onlinePayment: true,
+  // On Founding Core so the automatic-billing card shows. Setting it up saves a
+  // card only; the first real charge is on startsOn. Cancel the subscription in
+  // the Stripe dashboard after testing, before that date.
+  subscription: { plan: "founding-core", startsOn: "2027-01-04" },
 
   business: {
     name: "Lowmoor Controls",

@@ -41,9 +41,14 @@ const { createInvoiceCheckout } = vi.hoisted(() => ({
   createInvoiceCheckout: vi.fn(async (..._a: unknown[]) => ({ ok: true as const, url: "https://checkout.stripe.com/c/pay/cs_test_1" })),
 }));
 vi.mock("@/lib/portal/checkout", () => ({ createInvoiceCheckout, returnBaseUrl: () => "https://www.fenwright.ie", stripePaidAmount: async () => 0 }));
+const { createSubscriptionCheckout, createBillingPortal } = vi.hoisted(() => ({
+  createSubscriptionCheckout: vi.fn(async (..._a: unknown[]) => ({ ok: true as const, url: "https://checkout.stripe.com/c/pay/cs_test_2" })),
+  createBillingPortal: vi.fn(async (..._a: unknown[]) => ({ ok: true as const, url: "https://billing.stripe.com/p/session/test_1" })),
+}));
+vi.mock("@/lib/portal/subscription", () => ({ createSubscriptionCheckout, createBillingPortal }));
 vi.mock("@/lib/ratelimit", () => ({ rateLimit: vi.fn(async () => ({ success: true })) }));
 
-import { acceptAgreement, markItemDone, markReportSubmitted, startPayment, submitFeedback, unlockPortal } from "@/app/portal/[client]/actions";
+import { acceptAgreement, markItemDone, markReportSubmitted, openBillingPortal, startPayment, startSubscription, submitFeedback, unlockPortal } from "@/app/portal/[client]/actions";
 import { rateLimit } from "@/lib/ratelimit";
 import { questionItemId, reportItemId } from "@/lib/portal/action-items";
 import { redirect } from "next/navigation";
@@ -392,5 +397,46 @@ describe("markReportSubmitted", () => {
     expect(arg.itemId).toBe(reportItemId({ cve: "CVE-2026-31337", stage: "early_warning" }));
     expect(arg.kind).toBe("report");
     expect(arg.title).toMatch(/Submitted the 24-hour early warning/);
+  });
+});
+
+describe("automatic billing actions", () => {
+  function form(over: Record<string, string>) {
+    const f = new FormData();
+    for (const [k, v] of Object.entries({ slug: SLUG, ...over })) f.set(k, v);
+    return f;
+  }
+
+  it("refuse to start a subscription without a session", async () => {
+    cookieJar.clear();
+    createSubscriptionCheckout.mockClear();
+    const res = await startSubscription({}, form({ interval: "quarterly" }));
+    expect(res.error).toMatch(/session/i);
+    expect(createSubscriptionCheckout).not.toHaveBeenCalled();
+  });
+
+  it("refuse an interval that is not offered", async () => {
+    cookieJar.set(sessionCookieName(SLUG), await signSession(SLUG));
+    createSubscriptionCheckout.mockClear();
+    const res = await startSubscription({}, form({ interval: "weekly" }));
+    expect(res.error).toBeDefined();
+    expect(createSubscriptionCheckout).not.toHaveBeenCalled();
+  });
+
+  it("send a signed-in client to Stripe with only the chosen interval", async () => {
+    cookieJar.set(sessionCookieName(SLUG), await signSession(SLUG));
+    await startSubscription({}, form({ interval: "monthly", amount: "1" }));
+    const arg = createSubscriptionCheckout.mock.calls.at(-1)![0] as { interval: string; client: { slug: string } };
+    expect(arg.interval).toBe("monthly");
+    expect(arg.client.slug).toBe(SLUG);
+    expect(redirect).toHaveBeenCalledWith("https://checkout.stripe.com/c/pay/cs_test_2");
+  });
+
+  it("refuse the billing page without a session", async () => {
+    cookieJar.clear();
+    createBillingPortal.mockClear();
+    const res = await openBillingPortal({}, form({}));
+    expect(res.error).toMatch(/session/i);
+    expect(createBillingPortal).not.toHaveBeenCalled();
   });
 });

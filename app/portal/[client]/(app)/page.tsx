@@ -8,6 +8,8 @@ import { questionItemId, reportHref, reportItemId } from "@/lib/portal/action-it
 import { clientCanPayOnline, invoiceBalance, isSettled, stripePaidAmount } from "@/lib/portal/checkout";
 import { deriveActionItems, type ActionItem } from "@/lib/portal/action-items";
 import { formatMoney } from "@/lib/portal/format";
+import { getBilling } from "@/lib/portal/subscription";
+import { BILLING_INTERVALS, DEFAULT_INTERVAL, PLANS, periodPrice, type BillingInterval } from "@/config/plans";
 import {
   ActivityFeed,
   BillingCard,
@@ -18,6 +20,8 @@ import {
   NeedsYou,
   OpenMatchesChart,
   Outcomes,
+  PlanCard,
+  type PlanBilling,
   SupportCard,
   type BillingSummary,
   type Deadline,
@@ -75,6 +79,8 @@ export default async function DashboardPage({
     if (d.payload.type === "invoice" && isSettled(d.payload, paidOnline.get(d.slug) ?? 0)) settledInvoices.add(d.slug);
   }
   const items = deriveActionItems(client, data, now, signedDocs, settledInvoices, (await listUploads(client.slug)).length);
+  const invoice = billingSummary(client, paidOnline);
+  const plan = await planBilling(client, now);
 
   // The soonest open reporting deadline gets the clock; everything else that
   // needs the client is listed beside it.
@@ -118,7 +124,10 @@ export default async function DashboardPage({
             {!live && (
               <EngagementProgress steps={documents.onboardingSteps} completed={client.engagement?.completedSteps ?? 0} />
             )}
-            <BillingCard invoice={billingSummary(client, paidOnline)} documentsHref={`/portal/${client.slug}/documents`} />
+            {plan && <PlanCard plan={plan} />}
+            {(!plan || (invoice && !invoice.paid)) && (
+              <BillingCard invoice={invoice} documentsHref={`/portal/${client.slug}/documents`} />
+            )}
             <SupportCard slug={client.slug} />
           </div>
         </div>
@@ -172,5 +181,29 @@ function billingSummary(client: Client, paidOnline: ReadonlyMap<string, number>)
     slug: client.slug,
     docSlug: pick.slug,
     canPayOnline: clientCanPayOnline(client),
+  };
+}
+
+/** The plan card's data, when this client is on a plan (config/plans.ts). */
+async function planBilling(client: Client, now: Date): Promise<PlanBilling | null> {
+  const sub = client.subscription;
+  if (!sub) return null;
+  const money = (minor: number) => formatMoney(minor, client.currency);
+  const intervals = [DEFAULT_INTERVAL, ...(Object.keys(BILLING_INTERVALS) as BillingInterval[]).filter((k) => k !== DEFAULT_INTERVAL)];
+  return {
+    slug: client.slug,
+    planName: PLANS[sub.plan].name,
+    startsOn: sub.startsOn,
+    billing: await getBilling(client, now),
+    options: intervals.map((k) => ({
+      value: k,
+      label: BILLING_INTERVALS[k].label,
+      price: money(periodPrice(sub.plan, k)),
+      per: BILLING_INTERVALS[k].per,
+    })),
+    defaultInterval: DEFAULT_INTERVAL,
+    money,
+    canPayOnline: clientCanPayOnline(client),
+    now,
   };
 }

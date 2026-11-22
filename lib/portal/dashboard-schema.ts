@@ -99,6 +99,10 @@ export const dashboardSchema = z.object({
       })
     )
     .optional(),
+  history: z
+    .array(z.object({ period: z.string().regex(/^\d{4}-\d{2}$/), metrics }))
+    .max(12)
+    .optional(),
   monthly: z
     .object({
       period: z.string().regex(/^\d{4}-\d{2}$/),

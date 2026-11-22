@@ -418,6 +418,12 @@ export type DashboardData = {
    * decision at the end of it. Optional: the chart is left out without it.
    */
   daily?: { date: string; matched: number; open: number }[];
+  /**
+   * The month picker's figures: oldest first, ending with this month, only
+   * months the client was monitored in, at most 12. Optional: without it the
+   * dashboard offers this month only.
+   */
+  history?: { period: string; metrics: ReportMetrics }[];
   /** The monthly report numbers for the current month and the one before. */
   monthly?: {
     period: string;

@@ -255,3 +255,34 @@ describe("server-only boundaries", () => {
     expect(src).toMatch(/^import "server-only";/);
   });
 });
+
+describe("month picker", () => {
+  it("offers only the months the pipeline sends, newest first, and falls back to now", async () => {
+    const { monthOptions, pickMonth } = await import("@/lib/portal/periods");
+    const data = dashboardFixture(NOW);
+    expect(monthOptions(data, NOW)).toEqual(["2027-02", "2027-01", "2026-12"]);
+    expect(pickMonth(monthOptions(data, NOW), "2027-01")).toBe("2027-01");
+    // Not on offer (before onboarding, or junk): back to the current month.
+    expect(pickMonth(monthOptions(data, NOW), "2026-06")).toBe("2027-02");
+    expect(pickMonth(monthOptions(data, NOW), "drop table")).toBe("2027-02");
+    const { history: _h, ...noHistory } = data;
+    expect(monthOptions(noHistory, NOW)).toEqual(["2027-02"]);
+  });
+
+  it("gives a past month its own days and compares it with the month before", async () => {
+    const { monthView } = await import("@/lib/portal/periods");
+    const data = dashboardFixture(NOW);
+    const jan = monthView(data, "2027-01", NOW);
+    expect(jan.isCurrent).toBe(false);
+    expect(jan.points).toHaveLength(31);
+    expect(jan.points.every((p) => p.date.startsWith("2027-01-"))).toBe(true);
+    expect(jan.metrics?.vulnerabilitiesMatched).toBe(22);
+    expect(jan.previous?.period).toBe("2026-12");
+    const now = monthView(data, "2027-02", NOW);
+    expect(now.isCurrent).toBe(true);
+    expect(now.points).toHaveLength(30); // the rolling 30 days, not month-to-date
+    expect(now.points.at(-1)?.open).toBe(5);
+    // The oldest month has nothing before it to compare with.
+    expect(monthView(data, "2026-12", NOW).previous).toBeNull();
+  });
+});

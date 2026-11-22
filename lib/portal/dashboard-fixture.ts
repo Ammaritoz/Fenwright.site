@@ -94,12 +94,43 @@ export function dashboardFixture(now: Date = new Date()): DashboardData {
         askedAt: at(9),
       },
     ],
-    // 30 days, oldest first, ending today with the 5 matches still open.
-    daily: [0, 1, 0, 2, 0, 0, 1, 3, 0, 1, 0, 0, 2, 1, 0, 0, 1, 0, 4, 1, 0, 0, 1, 0, 2, 0, 1, 0, 1, 2].map((matched, i) => ({
-      date: new Date(now.getTime() - (29 - i) * 86_400_000).toISOString().slice(0, 10),
-      matched,
-      open: [3, 4, 2, 3, 2, 1, 1, 3, 2, 2, 1, 0, 2, 2, 1, 0, 1, 1, 4, 3, 2, 1, 1, 1, 2, 1, 1, 1, 3, 5][i],
-    })),
+    daily: fixtureDaily(now),
+    // Monitored for three months: two months back, last month and this one.
+    history: [
+      {
+        period: monthOffset(now, -2),
+        metrics: {
+          componentsMonitored: 584,
+          vulnerabilitiesMatched: 31,
+          assessedNotAffected: 28,
+          assessedAffected: 1,
+          reportableEvents: 0,
+          medianHoursToAssessment: 14,
+        },
+      },
+      {
+        period: monthOffset(now, -1),
+        metrics: {
+          componentsMonitored: 598,
+          vulnerabilitiesMatched: 22,
+          assessedNotAffected: 21,
+          assessedAffected: 0,
+          reportableEvents: 0,
+          medianHoursToAssessment: 9,
+        },
+      },
+      {
+        period: now.toISOString().slice(0, 7),
+        metrics: {
+          componentsMonitored: 611,
+          vulnerabilitiesMatched: 18,
+          assessedNotAffected: 14,
+          assessedAffected: 1,
+          reportableEvents: 1,
+          medianHoursToAssessment: 6.5,
+        },
+      },
+    ],
     monthly: {
       period: now.toISOString().slice(0, 7),
       current: {
@@ -120,4 +151,29 @@ export function dashboardFixture(now: Date = new Date()): DashboardData {
       },
     },
   };
+}
+
+/** "YYYY-MM" for the month `offset` months from `now` (UTC). */
+function monthOffset(now: Date, offset: number): string {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + offset, 1)).toISOString().slice(0, 7);
+}
+
+/**
+ * Daily points from the 1st of two months back to today, as the pipeline sends
+ * them for the month picker. The last 30 days are hand-written (ending with the
+ * 5 matches still open); earlier days follow a fixed pattern so tests stay stable.
+ */
+function fixtureDaily(now: Date): { date: string; matched: number; open: number }[] {
+  const recentMatched = [0, 1, 0, 2, 0, 0, 1, 3, 0, 1, 0, 0, 2, 1, 0, 0, 1, 0, 4, 1, 0, 0, 1, 0, 2, 0, 1, 0, 1, 2];
+  const recentOpen = [3, 4, 2, 3, 2, 1, 1, 3, 2, 2, 1, 0, 2, 2, 1, 0, 1, 1, 4, 3, 2, 1, 1, 1, 2, 1, 1, 1, 3, 5];
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const start = Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 2, 1);
+  const days = Math.max(30, Math.round((today - start) / 86_400_000) + 1);
+  return Array.from({ length: days }, (_, i) => {
+    const fromEnd = days - 1 - i;
+    const date = new Date(today - fromEnd * 86_400_000).toISOString().slice(0, 10);
+    if (fromEnd < 30) return { date, matched: recentMatched[29 - fromEnd], open: recentOpen[29 - fromEnd] };
+    const matched = [0, 2, 1, 0, 3, 0, 1, 0, 0, 2, 1][i % 11];
+    return { date, matched, open: [2, 4, 3, 2, 5, 3, 2, 1, 1, 3, 2][i % 11] };
+  });
 }

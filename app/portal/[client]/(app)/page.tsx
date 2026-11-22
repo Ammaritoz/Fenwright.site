@@ -21,7 +21,8 @@ import {
   type BillingSummary,
   type Deadline,
 } from "@/components/portal/dashboard/Widgets";
-import { night } from "@/components/portal/night";
+import { MonthPicker } from "@/components/portal/dashboard/MonthPicker";
+import { monthLabel, monthOptions, monthView, pickMonth } from "@/lib/portal/periods";
 
 /**
  * The client's landing page: what needs them, how monitoring is going, where
@@ -31,7 +32,13 @@ import { night } from "@/components/portal/night";
  * the client's own file. If Neon cannot be read, the client-file parts still
  * render, so a database blip never locks a client out of signing or paying.
  */
-export default async function DashboardPage({ params }: { params: { client: string } }) {
+export default async function DashboardPage({
+  params,
+  searchParams,
+}: {
+  params: { client: string };
+  searchParams: { month?: string };
+}) {
   const client = getClient(params.client);
   if (!client) notFound();
 
@@ -72,14 +79,17 @@ export default async function DashboardPage({ params }: { params: { client: stri
   // needs the client is listed beside it.
   const deadline = data ? nextDeadline(data, items, now) : null;
   const rest = items.filter((i) => i.id !== deadline?.itemId);
-  const hasChart = Boolean(data?.daily && data.daily.length > 1);
+  // The month picker: ?month=YYYY-MM, only months the pipeline offers (monitored, at most 12).
+  const options = data ? monthOptions(data, now) : [now.toISOString().slice(0, 7)];
+  const selected = pickMonth(options, searchParams.month);
+  const view = data ? monthView(data, selected, now) : null;
+  const hasChart = Boolean(view && view.points.length > 1);
   const live = Boolean(data?.monitoring);
-  const month = new Intl.DateTimeFormat("en-IE", { month: "long", year: "numeric", timeZone: "Europe/Dublin" }).format(now);
 
   return (
     <div className="mx-auto max-w-[76rem]">
       <header className="mb-7 flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
-        <h1 className={night.h1}>{month}</h1>
+        <MonthPicker slug={client.slug} options={options.map((p) => [p, monthLabel(p)])} selected={selected} />
         {!deadline && rest.length === 0 && <p className="text-[0.84rem] text-night-dim">Nothing is waiting on you.</p>}
       </header>
 
@@ -91,11 +101,11 @@ export default async function DashboardPage({ params }: { params: { client: stri
           </div>
         )}
 
-        {data ? <Figures data={data} /> : <DataUnavailable reason={result.ok ? "invalid" : result.reason} />}
+        {data && view ? <Figures data={data} view={view} /> : <DataUnavailable reason={result.ok ? "invalid" : result.reason} />}
 
         {data && hasChart && (
           <div className="grid gap-4 lg:grid-cols-3">
-            <OpenMatchesChart data={data} />
+            <OpenMatchesChart data={data} view={view!} now={now} />
             <Outcomes data={data} />
           </div>
         )}

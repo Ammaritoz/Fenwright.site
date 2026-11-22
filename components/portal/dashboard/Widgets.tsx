@@ -5,7 +5,8 @@ import { MarkDoneForm } from "@/components/portal/MarkDoneForm";
 import { night } from "@/components/portal/night";
 import type { ActionItem } from "@/lib/portal/action-items";
 import type { DashboardData } from "@/content/clients/types";
-import { buildOpenChart } from "@/lib/portal/chart";
+import { OpenChart } from "@/components/portal/dashboard/OpenChart";
+import { monthLabel, type MonthView } from "@/lib/portal/periods";
 import {
   formatAgoShort,
   formatCountdown,
@@ -230,12 +231,6 @@ export function NeedsYou({ items, now, slug, wide }: { items: ActionItem[]; now:
 
 // --- Figures strip -----------------------------------------------------------
 
-function monthShort(period: string, offset: number): string {
-  const [y, m] = period.split("-").map(Number);
-  const d = new Date(Date.UTC(y, m - 1 + offset, 1));
-  return new Intl.DateTimeFormat("en-IE", { month: "short", timeZone: "UTC" }).format(d);
-}
-
 function Change({
   current,
   previous,
@@ -274,19 +269,18 @@ function Figure({ label, value, unit, foot }: { label: string; value: string; un
   );
 }
 
-export function Figures({ data }: { data: DashboardData }) {
-  const m = data.monthly;
-  const cur = m?.current;
-  const prev = m?.previous ?? null;
-  const vs = m ? monthShort(m.period, -1) : "";
+export function Figures({ data, view }: { data: DashboardData; view: MonthView }) {
+  const cur = view.metrics;
+  const prev = view.previous?.metrics ?? null;
+  const vs = view.previous ? monthLabel(view.previous.period, "short") : "";
   const median = cur?.medianHoursToAssessment ?? null;
   const decided = cur ? cur.assessedAffected + cur.assessedNotAffected : data.totals.affected + data.totals.notAffected;
-  const componentsNow = cur?.componentsMonitored ?? data.totals.components;
+  const components = cur?.componentsMonitored ?? data.totals.components;
   const componentDelta = cur && prev ? cur.componentsMonitored - prev.componentsMonitored : null;
   const products = `${data.products.length} ${data.products.length === 1 ? "product" : "products"}`;
 
   return (
-    <section className={`${night.panel} grid sm:grid-cols-2 xl:grid-cols-4`} aria-label={m ? "This month" : "To date"}>
+    <section className={`${night.panel} grid sm:grid-cols-2 xl:grid-cols-4`} aria-label={`Figures for ${monthLabel(view.period)}`}>
       <Figure
         label="Median time to assessment"
         value={median === null ? "–" : Number.isInteger(median) ? String(median) : median.toFixed(1)}
@@ -300,12 +294,13 @@ export function Figures({ data }: { data: DashboardData }) {
         }
       />
       <Figure
-        label={m ? "New matches" : "Matches to date"}
+        label={cur ? "New matches" : "Matches to date"}
         value={(cur?.vulnerabilitiesMatched ?? data.totals.matches).toLocaleString("en-IE")}
         foot={
           <>
-            {prev ? `${prev.vulnerabilitiesMatched.toLocaleString("en-IE")} in ${vs} · ` : ""}
-            {data.totals.exploited} exploited
+            {prev ? `${prev.vulnerabilitiesMatched.toLocaleString("en-IE")} in ${vs}` : ""}
+            {prev && view.isCurrent ? " · " : ""}
+            {view.isCurrent ? `${data.totals.exploited} exploited` : ""}
           </>
         }
       />
@@ -321,7 +316,7 @@ export function Figures({ data }: { data: DashboardData }) {
       />
       <Figure
         label="Components watched"
-        value={componentsNow.toLocaleString("en-IE")}
+        value={components.toLocaleString("en-IE")}
         foot={
           <>
             {componentDelta ? `${componentDelta > 0 ? "+" : "−"}${Math.abs(componentDelta)} since ${vs} · ` : ""}
@@ -335,33 +330,25 @@ export function Figures({ data }: { data: DashboardData }) {
 
 // --- Open matches over time --------------------------------------------------
 
-function shortDate(iso: string): string {
-  return new Intl.DateTimeFormat("en-IE", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
-}
-
-export function OpenMatchesChart({ data }: { data: DashboardData }) {
-  const daily = data.daily ?? [];
-  const chart = buildOpenChart(daily);
-  if (!chart) return null;
-  const open = data.totals.underInvestigation + data.totals.unassessed;
-  const n = daily.length;
-  // Five evenly spaced date labels, the last one "Today".
-  const labels = [0, 0.25, 0.5, 0.75, 1].map((f, i, all) => {
-    const idx = Math.round(f * (n - 1));
-    return i === all.length - 1 ? "Today" : shortDate(daily[idx].date);
-  });
+export function OpenMatchesChart({ data, view, now }: { data: DashboardData; view: MonthView; now: Date }) {
+  if (view.points.length < 2) return null;
+  const last = view.points[view.points.length - 1];
+  const newInPeriod = view.points.reduce((sum, p) => sum + p.matched, 0);
+  const span = view.isCurrent ? "last 30 days" : monthLabel(view.period);
 
   return (
     <section className={`${night.panel} min-w-0 px-5 py-5 sm:px-6 lg:col-span-2`} aria-labelledby="open-title">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="open-title" className={night.label}>
-            Open matches
+            Open matches · {span}
           </h2>
           <p className="mt-2 font-mono text-[1.6rem] leading-none tracking-[-0.02em] text-night-text">
-            {open}
+            {view.isCurrent ? data.totals.underInvestigation + data.totals.unassessed : last.open}
             <span className="ml-2.5 text-[0.75rem] tracking-normal text-night-mute">
-              {data.totals.underInvestigation} being checked · {data.totals.unassessed} queued
+              {view.isCurrent
+                ? `${data.totals.underInvestigation} being checked · ${data.totals.unassessed} queued`
+                : `open at month end · ${newInPeriod} new in the month`}
             </span>
           </p>
         </div>
@@ -376,56 +363,12 @@ export function OpenMatchesChart({ data }: { data: DashboardData }) {
           </span>
         </div>
       </div>
-
-      <div className="mt-5 grid grid-cols-[1.5rem_minmax(0,1fr)] gap-2.5">
-        <div aria-hidden="true" className="relative h-44 font-mono text-[0.66rem] text-night-faint">
-          {chart.ticks.map((t) => (
-            <span key={t} className="absolute right-0 -translate-y-1/2" style={{ top: `${(chart.yFor(t) / chart.height) * 100}%` }}>
-              {t}
-            </span>
-          ))}
-        </div>
-        <div className="min-w-0">
-          <svg
-            viewBox={`0 0 ${chart.width} ${chart.height}`}
-            preserveAspectRatio="none"
-            role="img"
-            aria-label={`Open matches over the last ${n} days, now ${open}.`}
-            className="block h-44 w-full overflow-visible"
-          >
-            <defs>
-              <linearGradient id="open-fill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stopColor="#6FD6A8" stopOpacity="0.2" />
-                <stop offset="1" stopColor="#6FD6A8" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            {chart.ticks.map((t) => (
-              <line
-                key={t}
-                x1="0"
-                x2={chart.width}
-                y1={chart.yFor(t)}
-                y2={chart.yFor(t)}
-                stroke={t === 0 ? "#2A2C32" : "#1F2125"}
-                strokeWidth="1"
-                vectorEffect="non-scaling-stroke"
-              />
-            ))}
-            <g fill="#3A3D44">
-              {chart.bars.map((b) => (
-                <rect key={b.x} x={b.x} y={b.y} width="4" height={b.h} rx="1" />
-              ))}
-            </g>
-            <path d={chart.area} fill="url(#open-fill)" />
-            <path d={chart.line} fill="none" stroke="#6FD6A8" strokeWidth="1.75" vectorEffect="non-scaling-stroke" />
-          </svg>
-          <div aria-hidden="true" className="mt-2 flex justify-between font-mono text-[0.66rem] text-night-faint">
-            {labels.map((l, i) => (
-              <span key={`${l}-${i}`}>{l}</span>
-            ))}
-          </div>
-        </div>
-      </div>
+      <OpenChart
+        key={view.period}
+        points={view.points}
+        todayIso={now.toISOString().slice(0, 10)}
+        caption={`Open matches per day, ${span}`}
+      />
     </section>
   );
 }

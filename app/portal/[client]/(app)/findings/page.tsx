@@ -8,6 +8,9 @@ import { colorForProduct, productColor, productLabel } from "@/lib/portal/produc
 import { DataUnavailable } from "@/components/portal/dashboard/Widgets";
 import { night } from "@/components/portal/night";
 import { REPORT_STAGES, REPORT_STAGE_TITLES, reportHref } from "@/lib/portal/action-items";
+import { getMessages } from "@/lib/portal/message-data";
+import { findingTopic, threadsByTopic } from "@/lib/portal/messages";
+import { Thread } from "@/components/portal/Thread";
 
 /**
  * Every open or notable finding, with the written reason behind each
@@ -62,11 +65,18 @@ function hiddenCount(data: DashboardData): number {
   return Math.max(0, openCount(data) - data.findings.length);
 }
 
-export default async function FindingsPage({ params }: { params: { client: string } }) {
+export default async function FindingsPage({
+  params,
+  searchParams,
+}: {
+  params: { client: string };
+  searchParams?: { open?: string };
+}) {
   const client = getClient(params.client);
   if (!client) notFound();
 
-  const result = await getDashboard(client.slug);
+  const [result, messages] = await Promise.all([getDashboard(client.slug), getMessages(client.slug)]);
+  const threads = threadsByTopic(messages);
   const now = new Date();
 
   return (
@@ -123,9 +133,10 @@ export default async function FindingsPage({ params }: { params: { client: strin
                     {result.data.findings.map((f) => {
                       const st = STATUS[f.status];
                       const dot = colorForProduct(result.data, f.product);
+                      const thread = threads.get(findingTopic(f.cve));
                       return (
                         <li key={`${f.cve}-${f.component}-${f.product}`} id={f.cve} className="scroll-mt-24 border-t border-night-rule">
-                          <details className="group open:bg-night-raised/50">
+                          <details className="group open:bg-night-raised/50" open={searchParams?.open === f.cve || undefined}>
                             <summary
                               className={`${COLS} cursor-pointer list-none px-5 py-3.5 hover:bg-night-raised/40 sm:px-6 [&::-webkit-details-marker]:hidden`}
                             >
@@ -154,6 +165,10 @@ export default async function FindingsPage({ params }: { params: { client: strin
                               <span className={`inline-flex items-center gap-2 text-[0.82rem] ${st.text}`}>
                                 <span aria-hidden="true" className={`h-2 w-2 rounded-sm ${st.dot}`} />
                                 {st.label}
+                                {thread?.openRecheck && <span className="text-[0.72rem] text-signal-blue">· recheck</span>}
+                                {!thread?.openRecheck && thread?.last.author === "Fenwright" && (
+                                  <span className="text-[0.72rem] text-signal-mint">· reply</span>
+                                )}
                               </span>
                               <span className="text-right font-mono text-[0.72rem] text-night-mute">
                                 {f.decidedAt ? formatAgoShort(f.decidedAt, now) : "–"}
@@ -188,6 +203,9 @@ export default async function FindingsPage({ params }: { params: { client: strin
                                     })}
                                   </div>
                                 )}
+                                <div className="mt-6 border-t border-night-rule pt-5">
+                                  <Thread slug={client.slug} topic={findingTopic(f.cve)} thread={thread} allowRecheck />
+                                </div>
                               </div>
                               <dl className="grid grid-cols-[auto_1fr] content-start gap-x-4 gap-y-2 text-[0.8rem]">
                                 <dt className="text-night-mute">Review</dt>

@@ -12,7 +12,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // vi.mock calls are hoisted above module-level variables, so anything the
 // factories use has to come from vi.hoisted.
-const { cookieJar, getAgreementAcceptance, getFeedbackSubmission, logAgreementAcceptance, logClientFeedback, logCompletion } = vi.hoisted(() => ({
+const { cookieJar, getAgreementAcceptance, getFeedbackSubmission, logAgreementAcceptance, logClientFeedback, logCompletion, logMessage } = vi.hoisted(() => ({
+  logMessage: vi.fn(async (..._args: unknown[]) => {}),
   logCompletion: vi.fn(async (..._args: unknown[]) => {}),
   cookieJar: new Map<string, string>(),
   getFeedbackSubmission: vi.fn(async (..._args: unknown[]) => null as null | { name: string; at: string }),
@@ -30,7 +31,7 @@ vi.mock("next/headers", () => ({
 }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 
-vi.mock("@/lib/airtable", () => ({ getAgreementAcceptance, getFeedbackSubmission, logAgreementAcceptance, logClientFeedback, logCompletion }));
+vi.mock("@/lib/airtable", () => ({ getAgreementAcceptance, getFeedbackSubmission, logAgreementAcceptance, logClientFeedback, logCompletion, logMessage }));
 vi.mock("@/lib/portal/dashboard", () => ({
   getDashboard: async () => {
     const { dashboardFixture } = await import("@/lib/portal/dashboard-fixture");
@@ -48,7 +49,7 @@ const { createSubscriptionCheckout, createBillingPortal } = vi.hoisted(() => ({
 vi.mock("@/lib/portal/subscription", () => ({ createSubscriptionCheckout, createBillingPortal }));
 vi.mock("@/lib/ratelimit", () => ({ rateLimit: vi.fn(async () => ({ success: true })) }));
 
-import { acceptAgreement, markItemDone, markReportSubmitted, openBillingPortal, startPayment, startSubscription, submitFeedback, unlockPortal } from "@/app/portal/[client]/actions";
+import { acceptAgreement, markItemDone, markReportSubmitted, openBillingPortal, postMessage, startPayment, startSubscription, submitFeedback, unlockPortal } from "@/app/portal/[client]/actions";
 import { rateLimit } from "@/lib/ratelimit";
 import { questionItemId, reportItemId } from "@/lib/portal/action-items";
 import { redirect } from "next/navigation";
@@ -438,5 +439,49 @@ describe("automatic billing actions", () => {
     const res = await openBillingPortal({}, form({}));
     expect(res.error).toMatch(/session/i);
     expect(createBillingPortal).not.toHaveBeenCalled();
+  });
+});
+
+describe("postMessage", () => {
+  async function send(over: Record<string, string>) {
+    const f = new FormData();
+    for (const [k, v] of Object.entries({ slug: SLUG, topic: "", body: "Please look again", ...over })) f.set(k, v);
+    return postMessage({}, f);
+  }
+  const fixtureCve = async () => (await import("@/lib/portal/dashboard-fixture")).dashboardFixture().findings[0].cve;
+
+  it("refuses without a session", async () => {
+    cookieJar.clear();
+    logMessage.mockClear();
+    const res = await send({ topic: await fixtureCve() });
+    expect(res.error).toMatch(/session/i);
+    expect(logMessage).not.toHaveBeenCalled();
+  });
+
+  it("refuses a topic that is not this client's", async () => {
+    cookieJar.set(sessionCookieName(SLUG), await signSession(SLUG));
+    logMessage.mockClear();
+    const res = await send({ topic: "CVE-1999-0001" });
+    expect(res.error).toBeDefined();
+    expect(logMessage).not.toHaveBeenCalled();
+  });
+
+  it("refuses an empty or over-long message, and a recheck with no reason", async () => {
+    cookieJar.set(sessionCookieName(SLUG), await signSession(SLUG));
+    logMessage.mockClear();
+    const topic = await fixtureCve();
+    expect((await send({ topic, body: "   " })).error).toMatch(/write/i);
+    expect((await send({ topic, body: "x".repeat(2001) })).error).toMatch(/2,000/);
+    expect((await send({ topic, wantsRecheck: "on" })).error).toMatch(/reason/i);
+    expect(logMessage).not.toHaveBeenCalled();
+  });
+
+  it("saves a recheck request for a signed-in client", async () => {
+    cookieJar.set(sessionCookieName(SLUG), await signSession(SLUG));
+    logMessage.mockClear();
+    const topic = await fixtureCve();
+    const res = await send({ topic, wantsRecheck: "on", recheck: "Does not affect us" });
+    expect(res.ok).toBe(true);
+    expect(logMessage).toHaveBeenCalledWith(expect.objectContaining({ clientSlug: SLUG, topic, recheck: "Does not affect us", body: "Please look again" }));
   });
 });

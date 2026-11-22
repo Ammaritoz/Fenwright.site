@@ -6,6 +6,7 @@ import {
   FEEDBACK_TABLE,
   UPLOADS_TABLE,
   COMPLETIONS_TABLE,
+  MESSAGES_TABLE,
   SITE_LEADS_TABLE,
 } from "@/lib/airtable-schema";
 
@@ -427,5 +428,87 @@ export async function listCompletions(clientSlug: string): Promise<Set<string>> 
   } catch (err) {
     console.error("[fenwright] completion list failed:", err instanceof Error ? err.message : errMeta(err));
     return new Set();
+  }
+}
+
+// --- Portal messages ---------------------------------------------------------
+
+export type RecheckReason = "Does not affect us" | "Does affect us" | "Our build changed" | "Other";
+export type MessageRow = {
+  id: string;
+  topic: string;
+  author: "Client" | "Fenwright";
+  body: string;
+  recheck: RecheckReason | null;
+  outcome: "Decision kept" | "Decision changed" | null;
+  at: string;
+};
+
+/**
+ * A client's message on a finding or report thread. Fenwright replies by
+ * adding a row in Airtable with Author = Fenwright and the same ClientSlug and
+ * Topic. Throws on failure so the client is told to try again.
+ */
+export async function logMessage(input: {
+  clientSlug: string;
+  topic: string;
+  body: string;
+  recheck: RecheckReason | null;
+  ip: string;
+}): Promise<void> {
+  const b = getRecordsBase();
+  if (!b) throw new Error("AIRTABLE_RECORDS_BASE_ID is not set; cannot record message.");
+  try {
+    await b(MESSAGES_TABLE).create(
+      [
+        {
+          fields: {
+            Body: deFormula(input.body),
+            ClientSlug: deFormula(input.clientSlug),
+            Topic: deFormula(input.topic),
+            Author: "Client",
+            ...(input.recheck ? { Recheck: input.recheck } : {}),
+            CreatedAt: new Date().toISOString(),
+            Ip: deFormula(input.ip),
+          },
+        },
+      ],
+      { typecast: false },
+    );
+  } catch (err) {
+    throw recordsWriteError(err, "message");
+  }
+}
+
+/**
+ * Every message for this client, oldest first. Empty when none or when
+ * Airtable cannot be read. Pages read it through getMessages (cached per request).
+ */
+export async function listMessages(clientSlug: string): Promise<MessageRow[]> {
+  const b = getRecordsBase();
+  if (!b) return [];
+  try {
+    const rows = await b(MESSAGES_TABLE)
+      .select({
+        maxRecords: 500,
+        fields: ["Body", "Topic", "Author", "Recheck", "Outcome", "CreatedAt"],
+        filterByFormula: `{ClientSlug}='${formulaString(clientSlug)}'`,
+        sort: [{ field: "CreatedAt", direction: "asc" }],
+      })
+      .all();
+    return rows
+      .map((r) => ({
+        id: r.id,
+        topic: String(r.fields.Topic ?? ""),
+        author: (r.fields.Author === "Fenwright" ? "Fenwright" : "Client") as MessageRow["author"],
+        body: String(r.fields.Body ?? ""),
+        recheck: (r.fields.Recheck as RecheckReason | undefined) ?? null,
+        outcome: (r.fields.Outcome as MessageRow["outcome"] | undefined) ?? null,
+        at: String(r.fields.CreatedAt ?? ""),
+      }))
+      .filter((m) => m.topic && m.body && m.at);
+  } catch (err) {
+    console.error("[fenwright] message list failed:", err instanceof Error ? err.message : errMeta(err));
+    return [];
   }
 }

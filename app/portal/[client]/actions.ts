@@ -14,7 +14,8 @@ import {
   signSession,
   verifySession,
 } from "@/lib/portal/cookie";
-import { getAgreementAcceptance, getFeedbackSubmission, logAgreementAcceptance, logClientFeedback, logCompletion } from "@/lib/airtable";
+import { getAgreementAcceptance, getFeedbackSubmission, logAgreementAcceptance, logClientFeedback, logCompletion, logMessage } from "@/lib/airtable";
+import { MAX_MESSAGE, RECHECK_REASONS, topicBelongs } from "@/lib/portal/messages";
 import { getDashboard } from "@/lib/portal/dashboard";
 import { deriveActionItems, reportItemId, stageLabel } from "@/lib/portal/action-items";
 import { rateLimit } from "@/lib/ratelimit";
@@ -397,6 +398,56 @@ export async function markReportSubmitted(_prev: ActionState, formData: FormData
   } catch (err) {
     console.error("[fenwright] report submission save failed:", err instanceof Error ? err.message : errMeta(err));
     return { error: "We could not save that just now. Please try again in a moment." };
+  }
+  return { ok: true };
+}
+
+const messageSchema = z.object({
+  slug: z.string().min(1).max(120),
+  topic: z.string().min(1).max(120),
+  body: z.string().trim().min(1).max(MAX_MESSAGE),
+  recheck: z.enum(RECHECK_REASONS as [string, ...string[]]).nullable(),
+});
+
+/**
+ * A client message on a finding or report thread, optionally asking us to
+ * recheck the decision. Session-gated and rate-limited; the topic must name a
+ * finding or report this client actually has.
+ */
+export async function postMessage(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const wantsRecheck = formData.get("wantsRecheck") === "on";
+  if (wantsRecheck && !formData.get("recheck")) return { error: "Choose a reason for the recheck." };
+  const parsed = messageSchema.safeParse({
+    slug: formData.get("slug"),
+    topic: formData.get("topic"),
+    body: formData.get("body") ?? "",
+    recheck: wantsRecheck ? formData.get("recheck") : null,
+  });
+  if (!parsed.success) {
+    const body = String(formData.get("body") ?? "").trim();
+    if (!body) return { error: "Write a message first." };
+    if (body.length > MAX_MESSAGE) return { error: `Keep it under ${MAX_MESSAGE.toLocaleString("en-IE")} characters.` };
+    if (wantsRecheck) return { error: "Choose a reason for the recheck." };
+    return { error: "Something went wrong. Refresh and try again." };
+  }
+  const { slug, topic, body, recheck } = parsed.data;
+  if (!getClient(slug)) return { error: "Something went wrong. Refresh and try again." };
+  if (!(await hasSession(slug))) return { error: SESSION_ERROR };
+
+  const ip = clientIpFromHeaders(headers());
+  const limit = await rateLimit("portal-message", `${slug}:${ip}`, 20, "1 h");
+  if (!limit.success) return { error: "That is a lot of messages in a short time. Please wait a little, or book a call." };
+
+  const dashboard = await getDashboard(slug);
+  if (!dashboard.ok || !topicBelongs(dashboard.data, topic)) {
+    return { error: "That item is no longer available. Refresh the page." };
+  }
+
+  try {
+    await logMessage({ clientSlug: slug, topic, body, recheck: recheck as Parameters<typeof logMessage>[0]["recheck"], ip });
+  } catch (err) {
+    console.error("[fenwright] message save failed:", err instanceof Error ? err.message : errMeta(err));
+    return { error: "We could not send that just now. Please try again in a moment." };
   }
   return { ok: true };
 }

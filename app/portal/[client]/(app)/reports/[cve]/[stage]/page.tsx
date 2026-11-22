@@ -9,6 +9,9 @@ import { formatCountdown, formatDateTime } from "@/lib/portal/format";
 import { CopyButton } from "@/components/portal/CopyButton";
 import { PrintButton } from "@/components/portal/PrintButton";
 import { ReportSubmittedForm } from "@/components/portal/ReportSubmittedForm";
+import { Thread } from "@/components/portal/Thread";
+import { getMessages } from "@/lib/portal/message-data";
+import { reportTopic, threadsByTopic } from "@/lib/portal/messages";
 import { DataUnavailable } from "@/components/portal/dashboard/Widgets";
 import { night } from "@/components/portal/night";
 
@@ -38,7 +41,7 @@ export default async function ReportPage({ params }: { params: { client: string;
   const cve = decodeURIComponent(params.cve);
   const stage = decodeURIComponent(params.stage);
 
-  const result = await getDashboard(client.slug);
+  const [result, messages] = await Promise.all([getDashboard(client.slug), getMessages(client.slug)]);
   if (!result.ok) {
     return (
       <div className="mx-auto max-w-[52rem]">
@@ -227,6 +230,16 @@ export default async function ReportPage({ params }: { params: { client: string;
             <ReportSubmittedForm slug={client.slug} cve={cve} stage={stage} />
           </>
         )}
+      </section>
+
+      <section id="thread" className={`${night.panel} mt-4 scroll-mt-24 px-5 py-5 sm:px-6 print:hidden`} aria-label="Questions about this draft">
+        <Thread
+          slug={client.slug}
+          topic={reportTopic(cve, stage)}
+          thread={threadsByTopic(messages).get(reportTopic(cve, stage))}
+          allowRecheck={false}
+          title="Questions about this draft"
+        />
       </section>
 
       <div className="mt-5 flex justify-end">

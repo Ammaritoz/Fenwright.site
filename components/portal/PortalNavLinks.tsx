@@ -17,7 +17,7 @@ import { useEffect, useRef } from "react";
 type IconName = "grid" | "shield" | "file" | "upload";
 type Item = { href: string; label: string; icon: IconName; count?: string; match: (p: string) => boolean };
 
-type Counts = { openFindings?: number | null; documents?: number };
+type Counts = { openFindings?: number | null; documents?: number; replies?: number };
 
 function items(slug: string, counts: Counts): Item[] {
   const base = `/portal/${slug}`;
@@ -27,7 +27,10 @@ function items(slug: string, counts: Counts): Item[] {
       href: `${base}/findings`,
       label: "Findings",
       icon: "shield",
-      count: counts.openFindings ? `${counts.openFindings} open` : undefined,
+      count:
+        [counts.openFindings ? `${counts.openFindings} open` : "", counts.replies ? `${counts.replies} new ${counts.replies === 1 ? "reply" : "replies"}` : ""]
+          .filter(Boolean)
+          .join(" · ") || undefined,
       // A report draft belongs to its finding.
       match: (p) => p.startsWith(`${base}/findings`) || p.startsWith(`${base}/reports/`),
     },

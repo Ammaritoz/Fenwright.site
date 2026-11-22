@@ -4,6 +4,8 @@ import type { Client, DashboardData, InvoiceDoc } from "@/content/clients/types"
 import { documents } from "@/config/documents";
 import { getDashboard } from "@/lib/portal/dashboard";
 import { getAgreementAcceptance, listCompletions, listUploads } from "@/lib/airtable";
+import { getMessages } from "@/lib/portal/message-data";
+import { freshReplies, threadHref, threadsByTopic, topicLabel } from "@/lib/portal/messages";
 import { questionItemId, reportHref, reportItemId } from "@/lib/portal/action-items";
 import { clientCanPayOnline, invoiceBalance, isSettled, stripePaidAmount } from "@/lib/portal/checkout";
 import { deriveActionItems, type ActionItem } from "@/lib/portal/action-items";
@@ -78,7 +80,22 @@ export default async function DashboardPage({
   for (const d of client.docs) {
     if (d.payload.type === "invoice" && isSettled(d.payload, paidOnline.get(d.slug) ?? 0)) settledInvoices.add(d.slug);
   }
-  const items = deriveActionItems(client, data, now, signedDocs, settledInvoices, (await listUploads(client.slug)).length);
+  const items = [
+    // Our replies first: the client asked something and is waiting to hear.
+    ...freshReplies(threadsByTopic(await getMessages(client.slug)), now).map(
+      (t): ActionItem => ({
+        id: `reply:${t.topic}`,
+        kind: "reply",
+        title: t.outcome && t.outcome === t.last ? `Recheck done: ${t.outcome.outcome?.toLowerCase()}` : "We replied",
+        detail: topicLabel(t.topic),
+        href: threadHref(client.slug, t.topic),
+        external: false,
+        urgency: "normal",
+        completable: false,
+      })
+    ),
+    ...deriveActionItems(client, data, now, signedDocs, settledInvoices, (await listUploads(client.slug)).length),
+  ];
   const invoice = billingSummary(client, paidOnline);
   const plan = await planBilling(client, now);
 

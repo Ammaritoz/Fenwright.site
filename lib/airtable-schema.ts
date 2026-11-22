@@ -74,6 +74,12 @@ export const airtableExpectations: readonly TableExpectation[] = [
   },
   {
     base: "records",
+    table: "Messages",
+    fields: ["Body", "ClientSlug", "Topic", "Author", "Recheck", "Outcome", "CreatedAt", "Ip"],
+    writtenBy: "logMessage()",
+  },
+  {
+    base: "records",
     table: "Uploads",
     fields: ["ClientSlug", "ObjectKey", "SizeBytes", "ReceivedAt"],
     writtenBy: "logUpload()",
@@ -86,3 +92,4 @@ export const AGREEMENTS_TABLE = "Agreements";
 export const FEEDBACK_TABLE = "Feedback";
 export const UPLOADS_TABLE = "Uploads";
 export const COMPLETIONS_TABLE = "Completions";
+export const MESSAGES_TABLE = "Messages";

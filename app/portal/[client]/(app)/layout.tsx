@@ -3,6 +3,8 @@ import { getClient, visibleDocs } from "@/content/clients";
 import { Logo } from "@/components/Logo";
 import { PortalCrumb, PortalMobileMenu, PortalNavLinks } from "@/components/portal/PortalNavLinks";
 import { getDashboard } from "@/lib/portal/dashboard";
+import { getMessages } from "@/lib/portal/message-data";
+import { freshReplies, threadsByTopic } from "@/lib/portal/messages";
 import { formatAgo, formatDateTime } from "@/lib/portal/format";
 import { productColor, productLabel } from "@/lib/portal/product-colors";
 import { site } from "@/config/site";
@@ -35,7 +37,8 @@ export default async function PortalAppLayout({
   const client = getClient(params.client);
   if (!client) notFound();
   const email = site.legal.contactEmail;
-  const result = await getDashboard(client.slug);
+  const [result, messages] = await Promise.all([getDashboard(client.slug), getMessages(client.slug)]);
+  const replies = freshReplies(threadsByTopic(messages), new Date()).length;
   const data = result.ok ? result.data : null;
   const open = data ? Math.max(0, data.totals.underInvestigation + data.totals.unassessed) : null;
   const { live, upcoming } = visibleDocs(client);
@@ -52,7 +55,7 @@ export default async function PortalAppLayout({
 
         <nav aria-label="Portal">
           <p className="mb-1.5 px-2.5 text-[0.78rem] text-night-mute">Workspace</p>
-          <PortalNavLinks slug={client.slug} openFindings={open} documents={live.length} />
+          <PortalNavLinks slug={client.slug} openFindings={open} documents={live.length} replies={replies} />
         </nav>
 
         {data && data.products.length > 0 && (
@@ -107,7 +110,7 @@ export default async function PortalAppLayout({
                 </span>
               </p>
             )}
-            <PortalMobileMenu slug={client.slug} contactEmail={email} openFindings={open} documents={live.length} />
+            <PortalMobileMenu slug={client.slug} contactEmail={email} openFindings={open} documents={live.length} replies={replies} />
           </div>
         </header>
 

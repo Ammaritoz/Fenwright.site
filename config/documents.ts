@@ -58,12 +58,16 @@ export const documents = {
         body: "Our work is only as complete as what you give us. You will send us firmware images or build files for every product and version in scope, tell us promptly about new products, versions and component changes, and give us an hour or two with an engineer during onboarding. A product or version we have not been given is not one we are watching.",
       },
       {
+        title: "Questions and rechecks",
+        body: "You can message us about any finding or report draft in your portal, and ask us to recheck any decision we made on a finding. Both are included. We aim to reply to a message within one business day and to finish a recheck within two, and we record each recheck's outcome and our reasons in your decision log. Portal messages are not for urgent matters while a reporting deadline is running: call us instead. A full manual review of a firmware image, as opposed to rechecking a decision, is quoted separately.",
+      },
+      {
         title: "Fees and payment",
-        body: "The fees and payment schedule are set out above. Invoices are payable within {paymentTermDays} days of the invoice date. If an undisputed invoice is more than 14 days overdue, monitoring pauses: we warn your contacts in writing at least 7 days before, you remain responsible for your own CRA reporting while it is paused, and it resumes within one business day of payment. Where an onboarding fee is stated, onboarding begins once it clears. We do not begin work on an unsigned agreement.",
+        body: "The fees and payment schedule are set out above. Invoices are payable within {paymentTermDays} days of the invoice date. Where an onboarding fee is stated, onboarding begins once it clears. We do not begin work on an unsigned agreement.",
       },
       {
         title: "Late payment",
-        body: "Where an invoice is overdue we may pause the service, after giving you at least seven days written notice and a chance to settle. We will tell you in writing the date monitoring stops, because a paused service means nobody is watching your products. We reserve our statutory right to interest and reasonable recovery costs on late commercial payments under the European Communities (Late Payment in Commercial Transactions) Regulations 2012. We would always rather ring you than invoke this.",
+        body: "If an undisputed invoice is more than 14 days overdue, monitoring pauses. We warn your contacts in writing at least 7 days before, with the date it stops, because a paused service means nobody is watching your products. While it is paused you remain responsible for your own CRA reporting, and it resumes within one business day of payment. We reserve our statutory right to interest and reasonable recovery costs on late commercial payments under the European Communities (Late Payment in Commercial Transactions) Regulations 2012. We would always rather ring you than invoke this.",
       },
       {
         title: "Your files and confidentiality",

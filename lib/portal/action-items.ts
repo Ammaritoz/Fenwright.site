@@ -13,7 +13,7 @@ import type { Client, DashboardData, InvoiceDoc } from "@/content/clients/types"
 
 export type ActionItem = {
   id: string;
-  kind: "agreement" | "invoice" | "upload" | "report" | "question";
+  kind: "agreement" | "invoice" | "upload" | "report" | "question" | "reply";
   title: string;
   detail: string;
   href: string;

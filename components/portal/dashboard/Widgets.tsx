@@ -175,6 +175,7 @@ const KIND_ICON: Record<ActionItem["kind"], string> = {
   upload: "M12 16V4m0 0l-4 4m4-4l4 4M5 16v3h14v-3",
   report: "M12 3l7.5 3v5.5c0 4.4-3.1 8.2-7.5 9.5-4.4-1.3-7.5-5.1-7.5-9.5V6L12 3zM12 8v4m0 3.5v.01",
   question: "M9.5 9a2.5 2.5 0 115 .5c0 1.5-2.5 2-2.5 3.5M12 17v.01M12 21a9 9 0 110-18 9 9 0 010 18z",
+  reply: "M4 5h16v11H8l-4 4V5zM8 9h8M8 12h5",
 };
 
 function DueLabel({ item, now }: { item: ActionItem; now: Date }) {

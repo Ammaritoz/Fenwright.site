@@ -174,11 +174,13 @@ export const exampleManufacturer: Client = {
     // ---- 5. Invoice -----------------------------------------------------
     {
       slug: "invoice-001",
-      title: "Invoice INV-001",
+      title: "Invoice INV-002",
       blurb: "Readiness Sprint invoice.",
       payload: {
         type: "invoice",
-        number: "INV-001",
+        // Renumbered from INV-001 on 22 Nov 2026 to reset the demo to unpaid: a
+        // Stripe test payment is recorded against INV-001. Bump it again to reset.
+        number: "INV-002",
         issued: "2027-01-11",
         due: "2027-01-25",
         projectReference: "CRA Readiness Sprint",

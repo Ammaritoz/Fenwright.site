@@ -18,6 +18,7 @@ import {
   NeedsYou,
   OpenMatchesChart,
   Outcomes,
+  SupportCard,
   type BillingSummary,
   type Deadline,
 } from "@/components/portal/dashboard/Widgets";
@@ -112,12 +113,13 @@ export default async function DashboardPage({
 
         <div className="grid gap-4 lg:grid-cols-3">
           {data && <ActivityFeed data={data} now={now} />}
-          <div className={`space-y-4 ${data ? "" : "lg:col-start-3"}`}>
+          <div className={`flex flex-col gap-4 ${data ? "" : "lg:col-start-3"}`}>
             {data && !hasChart && <Outcomes data={data} />}
             {!live && (
               <EngagementProgress steps={documents.onboardingSteps} completed={client.engagement?.completedSteps ?? 0} />
             )}
             <BillingCard invoice={billingSummary(client, paidOnline)} documentsHref={`/portal/${client.slug}/documents`} />
+            <SupportCard slug={client.slug} />
           </div>
         </div>
       </div>

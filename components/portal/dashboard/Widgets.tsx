@@ -607,3 +607,23 @@ export function DataUnavailable({ reason }: { reason: "not-configured" | "no-dat
     </Panel>
   );
 }
+
+// --- Book a call ---------------------------------------------------------------
+
+export function SupportCard({ slug }: { slug: string }) {
+  return (
+    <Panel title="Need a hand?" className="flex flex-1 flex-col">
+      <p className="mb-4 text-[0.84rem] leading-relaxed text-night-dim">
+        Something looks wrong, or a question about a finding, a report or your bill? Book a call and tell us what it is
+        about, so we come prepared.
+      </p>
+      <Link href={`/portal/${slug}/call`} className={`${night.btn} mt-auto w-full`}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="4" y="5.5" width="16" height="14.5" rx="2" stroke="currentColor" strokeWidth="1.7" />
+          <path d="M8 3.5v4M16 3.5v4M4 10h16" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+        </svg>
+        Book a call
+      </Link>
+    </Panel>
+  );
+}

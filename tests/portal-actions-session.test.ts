@@ -222,7 +222,7 @@ describe("startPayment", () => {
     const arg = createInvoiceCheckout.mock.calls[0][0] as { client: { slug: string }; docSlug: string; invoice: { number: string } };
     expect(arg.client.slug).toBe(SLUG);
     expect(arg.docSlug).toBe("invoice-001");
-    expect(arg.invoice.number).toBe("INV-001");
+    expect(arg.invoice.number).toBe("INV-002");
     expect(redirect).toHaveBeenCalledWith("https://checkout.stripe.com/c/pay/cs_test_1");
   });
 });

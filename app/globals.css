@@ -81,6 +81,11 @@
   .portal-night .portal-paper :focus-visible {
     outline-color: #1F6B4E;
   }
+  /* Native controls (radios, checkboxes, scrollbars) follow the dark workspace,
+     except on documents, which are white sheets. */
+  .portal-night .portal-paper {
+    color-scheme: light;
+  }
 
   ::selection {
     background: #7FD1AE;

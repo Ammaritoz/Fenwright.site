@@ -46,7 +46,7 @@ export default function PortalLayout({
   // root layout, so the marketing site never pays for it.
   return (
     <div
-      className={`${GeistSans.variable} ${GeistMono.variable} portal-night flex min-h-screen flex-col bg-night font-ui text-night-text antialiased print:bg-white print:text-black`}
+      className={`${GeistSans.variable} ${GeistMono.variable} portal-night flex min-h-screen flex-col bg-night font-ui [color-scheme:dark] text-night-text antialiased print:bg-white print:text-black`}
     >
       {children}
     </div>

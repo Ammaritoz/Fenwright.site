@@ -43,7 +43,7 @@ const { createInvoiceCheckout } = vi.hoisted(() => ({
 vi.mock("@/lib/portal/checkout", () => ({ createInvoiceCheckout, returnBaseUrl: () => "https://www.fenwright.ie", stripePaidAmount: async () => 0 }));
 vi.mock("@/lib/ratelimit", () => ({ rateLimit: vi.fn(async () => ({ success: true })) }));
 
-import { acceptAgreement, markItemDone, startPayment, submitFeedback, unlockPortal } from "@/app/portal/[client]/actions";
+import { acceptAgreement, markItemDone, markReportSubmitted, startPayment, submitFeedback, unlockPortal } from "@/app/portal/[client]/actions";
 import { rateLimit } from "@/lib/ratelimit";
 import { questionItemId, reportItemId } from "@/lib/portal/action-items";
 import { redirect } from "next/navigation";
@@ -349,5 +349,48 @@ describe("unlockPortal", () => {
     const r = await unlockPortal({}, f);
     expect(r.error).toBeTruthy();
     expect(redirect).not.toHaveBeenCalled();
+  });
+});
+
+describe("markReportSubmitted", () => {
+  const form = (over: Record<string, string> = {}) => {
+    const f = new FormData();
+    for (const [k, v] of Object.entries({ slug: SLUG, cve: "CVE-2026-31337", stage: "early_warning", confirmed: "yes", ...over })) {
+      f.set(k, v);
+    }
+    return f;
+  };
+
+  it("records nothing without a session", async () => {
+    const r = await markReportSubmitted({}, form());
+    expect(r.error).toMatch(/session/i);
+    expect(logCompletion).not.toHaveBeenCalled();
+  });
+
+  it("needs the confirmation tick", async () => {
+    cookieJar.set(sessionCookieName(SLUG), await signSession(SLUG));
+    const f = form();
+    f.delete("confirmed");
+    const r = await markReportSubmitted({}, f);
+    expect(r.error).toMatch(/tick/i);
+    expect(logCompletion).not.toHaveBeenCalled();
+  });
+
+  it("refuses a draft that is not in this client's snapshot", async () => {
+    cookieJar.set(sessionCookieName(SLUG), await signSession(SLUG));
+    const r = await markReportSubmitted({}, form({ cve: "CVE-2099-0001" }));
+    expect(r.error).toMatch(/no longer available/i);
+    expect(logCompletion).not.toHaveBeenCalled();
+  });
+
+  it("records the submission against the dashboard item's id, so the deadline clears", async () => {
+    cookieJar.set(sessionCookieName(SLUG), await signSession(SLUG));
+    const r = await markReportSubmitted({}, form());
+    expect(r.ok).toBe(true);
+    expect(logCompletion).toHaveBeenCalledOnce();
+    const arg = logCompletion.mock.calls[0][0] as { itemId: string; kind: string; title: string };
+    expect(arg.itemId).toBe(reportItemId({ cve: "CVE-2026-31337", stage: "early_warning" }));
+    expect(arg.kind).toBe("report");
+    expect(arg.title).toMatch(/Submitted the 24-hour early warning/);
   });
 });

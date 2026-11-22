@@ -393,6 +393,28 @@ export async function logCompletion(input: {
   }
 }
 
+/**
+ * When the client marked one item done (ISO timestamp), or null if they have
+ * not, or Airtable cannot be read. Used to show "submitted on ..." on a report.
+ */
+export async function getCompletion(clientSlug: string, itemId: string): Promise<string | null> {
+  const b = getRecordsBase();
+  if (!b) return null;
+  try {
+    const rows = await b(COMPLETIONS_TABLE)
+      .select({
+        maxRecords: 1,
+        fields: ["CompletedAt"],
+        filterByFormula: `AND({ClientSlug}='${formulaString(clientSlug)}',{ItemId}='${formulaString(itemId)}')`,
+      })
+      .firstPage();
+    return rows.length ? String(rows[0].fields.CompletedAt ?? "") || null : null;
+  } catch (err) {
+    console.error("[fenwright] completion lookup failed:", err instanceof Error ? err.message : errMeta(err));
+    return null;
+  }
+}
+
 /** Ids of the items this client has marked done. Empty when none, or when Airtable cannot be read. */
 export async function listCompletions(clientSlug: string): Promise<Set<string>> {
   const b = getRecordsBase();

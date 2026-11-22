@@ -361,6 +361,9 @@ export type Client = {
  */
 export type FindingStatus = "affected" | "not_affected" | "under_investigation" | "unassessed";
 
+/** One field of an Article 14 draft. A value containing "[CLIENT TO CONFIRM: ...]" is a gap for the client to fill. */
+export type ReportField = { label: string; requirement: "required" | "if available" | "optional"; value: string };
+
 export type DashboardData = {
   generatedAt: string;
   /** True once every product in scope is under continuous monitoring. */
@@ -394,8 +397,20 @@ export type DashboardData = {
     reasoning?: string;
     decidedAt?: string;
   }[];
-  /** Article 14 drafts. `dueAt` is the reporting deadline the draft serves. */
-  reports: { cve: string; stage: string; createdAt: string | null; dueAt?: string }[];
+  /**
+   * Article 14 drafts, the latest per CVE and stage. `dueAt` is the reporting
+   * deadline the draft serves. `fields` is the paste-ready text in ENISA's form
+   * order (label as on the Single Reporting Platform); older drafts have none.
+   */
+  reports: {
+    cve: string;
+    stage: string;
+    createdAt: string | null;
+    dueAt?: string;
+    awareAt?: string;
+    fields?: ReportField[];
+    checks?: string[];
+  }[];
   log: {
     at: string;
     event: string;

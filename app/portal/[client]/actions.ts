@@ -14,7 +14,7 @@ import {
 } from "@/lib/portal/cookie";
 import { getAgreementAcceptance, getFeedbackSubmission, logAgreementAcceptance, logClientFeedback, logCompletion } from "@/lib/airtable";
 import { getDashboard } from "@/lib/portal/dashboard";
-import { deriveActionItems } from "@/lib/portal/action-items";
+import { deriveActionItems, reportItemId, stageLabel } from "@/lib/portal/action-items";
 import { rateLimit } from "@/lib/ratelimit";
 import { clientIpFromHeaders } from "@/lib/request";
 import { errMeta } from "@/lib/log";
@@ -307,6 +307,54 @@ export async function markItemDone(_prev: ActionState, formData: FormData): Prom
     });
   } catch (err) {
     console.error("[fenwright] completion save failed:", err instanceof Error ? err.message : errMeta(err));
+    return { error: "We could not save that just now. Please try again in a moment." };
+  }
+  return { ok: true };
+}
+
+const submittedSchema = z.object({
+  slug: z.string().min(1).max(120),
+  cve: z.string().min(1).max(40),
+  stage: z.string().min(1).max(40),
+  confirmed: z.literal("yes"),
+});
+
+/**
+ * The client says they have submitted a report draft on ENISA's platform.
+ *
+ * Recorded as a completion against the same id as the dashboard item, so the
+ * deadline leaves "Needs you", with a timestamp the report page then shows.
+ * Unlike "Mark as done" this accepts an overdue draft too: a late filing still
+ * needs recording. The draft must exist in this client's own snapshot.
+ */
+export async function markReportSubmitted(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const parsed = submittedSchema.safeParse({
+    slug: formData.get("slug"),
+    cve: formData.get("cve"),
+    stage: formData.get("stage"),
+    confirmed: formData.get("confirmed"),
+  });
+  if (!parsed.success) {
+    return { error: formData.get("confirmed") ? "Something went wrong. Refresh and try again." : "Tick the box to confirm first." };
+  }
+  const { slug, cve, stage } = parsed.data;
+  if (!getClient(slug)) return { error: "Something went wrong. Refresh and try again." };
+  if (!(await hasSession(slug))) return { error: SESSION_ERROR };
+
+  const dashboard = await getDashboard(slug);
+  const report = dashboard.ok ? dashboard.data.reports.find((r) => r.cve === cve && r.stage === stage) : undefined;
+  if (!report) return { error: "That draft is no longer available. Refresh the page." };
+
+  try {
+    await logCompletion({
+      clientSlug: slug,
+      itemId: reportItemId(report),
+      kind: "report",
+      title: `Submitted the ${stageLabel(stage)} for ${cve}`,
+      ip: clientIpFromHeaders(headers()),
+    });
+  } catch (err) {
+    console.error("[fenwright] report submission save failed:", err instanceof Error ? err.message : errMeta(err));
     return { error: "We could not save that just now. Please try again in a moment." };
   }
   return { ok: true };

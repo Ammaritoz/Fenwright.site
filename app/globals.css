@@ -405,3 +405,16 @@
     animation: none;
   }
 }
+
+/* --- Client portal pages in print ---
+   The workspace is dark on screen; on paper everything is black on white, so a
+   report draft saved as PDF is legible and costs no toner. */
+@media print {
+  .portal-night,
+  .portal-night * {
+    color: #000 !important;
+    background: transparent !important;
+    border-color: #ccc !important;
+    box-shadow: none !important;
+  }
+}

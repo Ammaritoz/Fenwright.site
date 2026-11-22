@@ -28,7 +28,8 @@ function items(slug: string, counts: Counts): Item[] {
       label: "Findings",
       icon: "shield",
       count: counts.openFindings ? `${counts.openFindings} open` : undefined,
-      match: (p) => p.startsWith(`${base}/findings`),
+      // A report draft belongs to its finding.
+      match: (p) => p.startsWith(`${base}/findings`) || p.startsWith(`${base}/reports/`),
     },
     { href: `${base}/upload`, label: "Upload firmware", icon: "upload", match: (p) => p.startsWith(`${base}/upload`) },
     {
@@ -37,7 +38,8 @@ function items(slug: string, counts: Counts): Item[] {
       icon: "file",
       count: counts.documents ? String(counts.documents) : undefined,
       // A document page counts as being in Documents.
-      match: (p) => p !== base && !p.startsWith(`${base}/findings`) && !p.startsWith(`${base}/upload`),
+      match: (p) =>
+        p !== base && !p.startsWith(`${base}/findings`) && !p.startsWith(`${base}/upload`) && !p.startsWith(`${base}/reports/`),
     },
   ];
 }
@@ -115,6 +117,11 @@ export function PortalCrumb({ slug, docTitles }: { slug: string; docTitles: Reco
   else if (rest === "findings") trail = [{ label: "Overview", href: base }, { label: "Findings" }];
   else if (rest === "upload") trail = [{ label: "Overview", href: base }, { label: "Upload firmware" }];
   else if (rest === "documents") trail = [{ label: "Overview", href: base }, { label: "Documents" }];
+  else if (rest.startsWith("reports/")) {
+    const [, cve, stage] = rest.split("/").map(decodeURIComponent);
+    const stageName = { early_warning: "Early warning", notification: "Notification", final: "Final report" }[stage] ?? "Report";
+    trail = [{ label: "Findings", href: `${base}/findings` }, { label: `${stageName} · ${cve}` }];
+  }
   else trail = [{ label: "Documents", href: `${base}/documents` }, { label: docTitles[rest] ?? "Document" }];
 
   return (

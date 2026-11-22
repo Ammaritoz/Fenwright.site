@@ -4,7 +4,7 @@ import type { Client, DashboardData, InvoiceDoc } from "@/content/clients/types"
 import { documents } from "@/config/documents";
 import { getDashboard } from "@/lib/portal/dashboard";
 import { getAgreementAcceptance, listCompletions, listUploads } from "@/lib/airtable";
-import { questionItemId, reportItemId } from "@/lib/portal/action-items";
+import { questionItemId, reportHref, reportItemId } from "@/lib/portal/action-items";
 import { clientCanPayOnline, invoiceBalance, isSettled, stripePaidAmount } from "@/lib/portal/checkout";
 import { deriveActionItems, type ActionItem } from "@/lib/portal/action-items";
 import { formatMoney } from "@/lib/portal/format";
@@ -77,7 +77,7 @@ export default async function DashboardPage({
 
   // The soonest open reporting deadline gets the clock; everything else that
   // needs the client is listed beside it.
-  const deadline = data ? nextDeadline(data, items, now) : null;
+  const deadline = data ? nextDeadline(data, items, now, client.slug) : null;
   const rest = items.filter((i) => i.id !== deadline?.itemId);
   // The month picker: ?month=YYYY-MM, only months the pipeline offers (monitored, at most 12).
   const options = data ? monthOptions(data, now) : [now.toISOString().slice(0, 7)];
@@ -126,7 +126,7 @@ export default async function DashboardPage({
 }
 
 /** The soonest report draft still open, if it is also still in the client's list. */
-function nextDeadline(data: DashboardData, items: ActionItem[], now: Date): Deadline | null {
+function nextDeadline(data: DashboardData, items: ActionItem[], now: Date, slug: string): Deadline | null {
   const open = data.reports
     .filter((r) => r.dueAt && new Date(r.dueAt).getTime() >= now.getTime())
     .sort((a, b) => a.dueAt!.localeCompare(b.dueAt!));
@@ -142,6 +142,7 @@ function nextDeadline(data: DashboardData, items: ActionItem[], now: Date): Dead
       component: f?.component,
       product: f?.product,
       exploited: Boolean(f?.exploited),
+      draftHref: r.fields?.length ? reportHref(slug, r) : null,
     };
   }
   return null;

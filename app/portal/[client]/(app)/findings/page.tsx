@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getClient } from "@/content/clients";
 import type { DashboardData, FindingStatus } from "@/content/clients/types";
@@ -6,6 +7,7 @@ import { formatAgoShort, formatDateTime } from "@/lib/portal/format";
 import { colorForProduct, productColor, productLabel } from "@/lib/portal/product-colors";
 import { DataUnavailable } from "@/components/portal/dashboard/Widgets";
 import { night } from "@/components/portal/night";
+import { REPORT_STAGES, REPORT_STAGE_TITLES, reportHref } from "@/lib/portal/action-items";
 
 /**
  * Every open or notable finding, with the written reason behind each
@@ -174,6 +176,18 @@ export default async function FindingsPage({ params }: { params: { client: strin
                                   {f.reasoning ??
                                     (f.justification ? f.justification.replace(/_/g, " ") : "Not assessed yet. It is in the queue.")}
                                 </p>
+                                {result.data.reports.some((r) => r.cve === f.cve && r.fields?.length) && (
+                                  <div className="mt-4 flex flex-wrap gap-2">
+                                    {REPORT_STAGES.map((s) => {
+                                      const r = result.data.reports.find((x) => x.cve === f.cve && x.stage === s && x.fields?.length);
+                                      return r ? (
+                                        <Link key={s} href={reportHref(client.slug, r)} className={night.btn}>
+                                          {REPORT_STAGE_TITLES[s]} draft
+                                        </Link>
+                                      ) : null;
+                                    })}
+                                  </div>
+                                )}
                               </div>
                               <dl className="grid grid-cols-[auto_1fr] content-start gap-x-4 gap-y-2 text-[0.8rem]">
                                 <dt className="text-night-mute">Review</dt>

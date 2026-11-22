@@ -52,6 +52,25 @@ export function stageLabel(stage: string): string {
   return STAGE_LABELS[stage] ?? stage.replace(/_/g, " ");
 }
 
+/** The three Article 14 stages, in order, as the report page names them. */
+export const REPORT_STAGES = ["early_warning", "notification", "final"] as const;
+
+export const REPORT_STAGE_TITLES: Record<string, string> = {
+  early_warning: "Early warning",
+  notification: "Vulnerability notification",
+  final: "Final report",
+};
+
+/**
+ * Where a report draft opens: its own page when the pipeline sent the
+ * paste-ready fields, otherwise the finding (older drafts, advisories).
+ */
+export function reportHref(slug: string, r: { cve: string; stage: string; fields?: unknown[] }): string {
+  return r.fields && r.fields.length > 0
+    ? `/portal/${slug}/reports/${encodeURIComponent(r.cve)}/${encodeURIComponent(r.stage)}`
+    : `/portal/${slug}/findings#${r.cve}`;
+}
+
 const DAY = 86_400_000;
 
 function dueTime(due: string): number {
@@ -144,8 +163,11 @@ export function deriveActionItems(
         id: reportItemId(r),
         kind: "report",
         title: `Approve the ${stageLabel(r.stage)} for ${r.cve}`,
-        detail: "We have sent you the draft. Approve it and submit it on ENISA's Single Reporting Platform.",
-        href: `${base}/findings#${r.cve}`,
+        detail:
+          r.fields && r.fields.length > 0
+            ? "The draft is ready. Check it, copy each field into ENISA's Single Reporting Platform and submit it there."
+            : "We have sent you the draft. Approve it and submit it on ENISA's Single Reporting Platform.",
+        href: reportHref(client.slug, r),
         external: false,
         due: r.dueAt,
         urgency: urgencyFor(r.dueAt, now, 6 * 3_600_000),

@@ -75,7 +75,42 @@ export function dashboardFixture(now: Date = new Date()): DashboardData {
       },
     ],
     reports: [
-      { cve: "CVE-2026-31337", stage: "early_warning", createdAt: at(4), dueAt: new Date(now.getTime() + 15 * 3_600_000).toISOString() },
+      {
+        cve: "CVE-2026-31337",
+        stage: "early_warning",
+        createdAt: at(4),
+        dueAt: new Date(now.getTime() + 15 * 3_600_000).toISOString(),
+        awareAt: at(9),
+        fields: [
+          { label: "Notification type", requirement: "required", value: "Vulnerability (actively exploited)" },
+          { label: "Name of manufacturer or open-source software steward", requirement: "required", value: "Lowmoor Controls Ltd" },
+          { label: "Title", requirement: "required", value: "Actively exploited CVE-2026-31337 in busybox affects LC-GW building gateway" },
+          {
+            label: "Summary",
+            requirement: "required",
+            value:
+              "CVE-2026-31337 in busybox 1.31.1, a third-party component in the firmware of LC-GW building gateway 1.9, is actively exploited: listed in CISA's Known Exploited Vulnerabilities catalogue. Severity: CVSS 8.8 (high). The manufacturer has confirmed the product is affected. A command injection in the busybox httpd applet lets an attacker on the local network run commands on the device.",
+          },
+          { label: "Product name", requirement: "required", value: "LC-GW building gateway" },
+          { label: "Product version", requirement: "required", value: "1.9" },
+          { label: "Product type", requirement: "optional", value: "Default" },
+          { label: "Product category", requirement: "optional", value: "(optional: leave blank)" },
+          {
+            label: "Member States where the product is available",
+            requirement: "required",
+            value: "[CLIENT TO CONFIRM: EU member states where this product is sold]",
+          },
+          { label: "CVE ID", requirement: "optional", value: "CVE-2026-31337" },
+          { label: "EUVD ID", requirement: "optional", value: "(none)" },
+        ],
+        checks: [
+          "Component found in the firmware: busybox 1.31.1 at /bin/busybox",
+          "Vulnerability matched to that version: CVE-2026-31337",
+          "Actively exploited: listed in CISA's Known Exploited Vulnerabilities catalogue",
+          "Decision: affected, approved by ammar",
+          "Evidence: the httpd applet is enabled on the local configuration interface",
+        ],
+      },
     ],
     log: [
       { at: at(4), event: "report_drafted", by: "fenwright", detail: "Early warning draft sent for approval", product: "LC-GW building gateway 1.9", cve: "CVE-2026-31337" },

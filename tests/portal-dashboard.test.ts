@@ -286,3 +286,24 @@ describe("month picker", () => {
     expect(monthView(data, "2026-12", NOW).previous).toBeNull();
   });
 });
+
+describe("report drafts in the portal", () => {
+  it("opens a draft with fields on its own page, and an older one on its finding", async () => {
+    const { reportHref } = await import("@/lib/portal/action-items");
+    expect(reportHref("acme", { cve: "CVE-1", stage: "early_warning", fields: [{}] })).toBe("/portal/acme/reports/CVE-1/early_warning");
+    expect(reportHref("acme", { cve: "CVE-1", stage: "early_warning" })).toBe("/portal/acme/findings#CVE-1");
+  });
+
+  it("points the dashboard's report item at the draft page", () => {
+    const client = getClient("lowmoor-controls-222d0f7e")!;
+    const items = deriveActionItems(client, dashboardFixture(NOW), NOW);
+    const report = items.find((i) => i.kind === "report")!;
+    expect(report.href).toBe("/portal/lowmoor-controls-222d0f7e/reports/CVE-2026-31337/early_warning");
+  });
+
+  it("rejects a field with an unknown requirement level", () => {
+    const f = dashboardFixture(NOW);
+    const bad = { ...f, reports: [{ ...f.reports[0], fields: [{ label: "x", requirement: "mandatory", value: "y" }] }] };
+    expect(parseDashboard(bad).ok).toBe(false);
+  });
+});

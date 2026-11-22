@@ -67,6 +67,18 @@ export const dashboardSchema = z.object({
       stage: z.string(),
       createdAt: isoTs.nullable(),
       dueAt: isoTs.optional(),
+      awareAt: isoTs.optional(),
+      fields: z
+        .array(
+          z.object({
+            label: z.string().max(200),
+            requirement: z.enum(["required", "if available", "optional"]),
+            value: z.string().max(5000),
+          })
+        )
+        .max(30)
+        .optional(),
+      checks: z.array(z.string().max(500)).max(20).optional(),
     })
   ),
   log: z.array(

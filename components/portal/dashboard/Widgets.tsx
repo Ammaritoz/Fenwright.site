@@ -78,6 +78,8 @@ export type Deadline = {
   component?: string;
   product?: string;
   exploited: boolean;
+  /** The draft's own page when the pipeline sent its fields; otherwise null. */
+  draftHref: string | null;
 };
 
 export function DeadlinePanel({ deadline, now, slug }: { deadline: Deadline; now: Date; slug: string }) {
@@ -107,14 +109,29 @@ export function DeadlinePanel({ deadline, now, slug }: { deadline: Deadline; now
           </p>
           <p className="mt-2.5 max-w-md text-[0.86rem] leading-relaxed text-night-dim">
             {deadline.exploited ? "On an exploited list. " : ""}
-            The draft is with you. Approve it, then submit it on ENISA&apos;s Single Reporting Platform; we never file for you.
+            {deadline.draftHref
+              ? "The draft is ready to copy into ENISA's Single Reporting Platform. You submit it there; we never file for you."
+              : "The draft is with you. Approve it, then submit it on ENISA's Single Reporting Platform; we never file for you."}
           </p>
         </div>
         <div className="flex flex-wrap items-start gap-2">
-          <MarkDoneForm slug={slug} itemId={deadline.itemId} />
-          <Link href={`/portal/${slug}/findings#${deadline.cve}`} className={night.btnPrimary}>
-            Open finding
-          </Link>
+          {deadline.draftHref ? (
+            <>
+              <Link href={`/portal/${slug}/findings#${deadline.cve}`} className={night.btn}>
+                Open finding
+              </Link>
+              <Link href={deadline.draftHref} className={night.btnPrimary}>
+                Open draft
+              </Link>
+            </>
+          ) : (
+            <>
+              <MarkDoneForm slug={slug} itemId={deadline.itemId} />
+              <Link href={`/portal/${slug}/findings#${deadline.cve}`} className={night.btnPrimary}>
+                Open finding
+              </Link>
+            </>
+          )}
         </div>
       </div>
 

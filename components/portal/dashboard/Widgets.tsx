@@ -112,8 +112,8 @@ export function DeadlinePanel({ deadline, now, slug }: { deadline: Deadline; now
           <p className="mt-2.5 max-w-md text-[0.86rem] leading-relaxed text-night-dim">
             {deadline.exploited ? "On an exploited list. " : ""}
             {deadline.draftHref
-              ? "The draft is ready to copy into ENISA's Single Reporting Platform. You submit it there; we never file for you."
-              : "The draft is with you. Approve it, then submit it on ENISA's Single Reporting Platform; we never file for you."}
+              ? "The draft is ready to copy into ENISA's Single Reporting Platform. Nothing is submitted without your approval."
+              : "The draft is with you. Approve it, then submit it on ENISA's Single Reporting Platform, or tell us to if we submit for you."}
           </p>
         </div>
         <div className="flex flex-wrap items-start gap-2">

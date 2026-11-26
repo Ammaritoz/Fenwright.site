@@ -18,6 +18,8 @@ describe("plans", () => {
   it("charge the same monthly price whether billed monthly or quarterly", () => {
     expect(periodPrice("founding-core", "monthly")).toBe(75000);
     expect(periodPrice("founding-core", "quarterly")).toBe(225000);
+    expect(periodPrice("founding-assured", "monthly")).toBe(140000);
+    expect(periodPrice("founding-assured", "quarterly")).toBe(420000);
     expect(BILLING_INTERVALS.quarterly.months).toBe(3);
   });
 });

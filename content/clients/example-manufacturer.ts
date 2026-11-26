@@ -65,7 +65,7 @@ export const exampleManufacturer: Client = {
         ],
         exclusions: [
           "Submitting reports to ENISA or any authority. You approve and submit every report.",
-          "Evening and weekend cover. Signals outside working hours are checked at the start of the next working period.",
+          "Evening and weekend cover (that is the Assured plan). Signals outside working hours are checked at the start of the next working period.",
           "Fixing vulnerabilities, writing patches or changing your firmware.",
           "Security testing or penetration testing of your products.",
           "Legal advice, and any guarantee that your products comply with the Cyber Resilience Act.",

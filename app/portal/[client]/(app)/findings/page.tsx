@@ -92,8 +92,8 @@ export default async function FindingsPage({
           )}
         </div>
         <p className="mt-3 max-w-2xl text-[0.86rem] leading-relaxed text-night-dim">
-          Each vulnerability that matched a component in your products, what we decided, and why. You approve and
-          submit any report; we never file on your behalf.
+          Each vulnerability that matched a component in your products, what we decided, and why. Nothing is
+          submitted without your approval.
         </p>
       </header>
 

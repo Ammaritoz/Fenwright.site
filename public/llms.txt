@@ -6,7 +6,9 @@ Fenwright helps mid-sized manufacturers (50 to 249 staff) of connected products 
 Resilience Act's reporting rules. We build a software bill of materials (SBOM) for each product,
 watch actively exploited vulnerability feeds every day, check whether each one affects the product,
 and draft the Article 14 reports (24-hour early warning, 72-hour notification, final report). The
-manufacturer approves and submits on ENISA's Single Reporting Platform.
+manufacturer approves every report and submits it on ENISA's Single Reporting Platform. The Assured
+plan adds evening, weekend and bank-holiday cover and, for manufacturers that report through Ireland,
+submitting approved reports on their behalf.
 
 - [Homepage](https://www.fenwright.ie/): what we do, the free first look, how it works
 - [About](https://www.fenwright.ie/#about): who runs Fenwright

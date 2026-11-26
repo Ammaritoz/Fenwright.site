@@ -105,7 +105,7 @@ export const templateClient: Client = {
         successCriteria: ["[e.g. Every exploited match assessed within 8 working hours]"],
         responsibilities: {
           fenwright: ["Build and update the ingredients lists", "Watch the feeds every day", "Check each match and record the decision", "Draft reports and customer advisories"],
-          // The client always approves and submits. Never move that line across.
+          // The client always approves. Submitting moves to Fenwright only for an Assured client that reports through Ireland and agreed it in writing.
           client: ["Send firmware and build files for every version in scope", "Tell us about new releases", "Approve every report, and submit it on ENISA's platform", "Name a backup approver"],
         },
       },

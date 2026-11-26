@@ -136,7 +136,7 @@ export type BriefDoc = {
   }[];
   /** Written success criteria, agreed up front. Pilots are judged against these. */
   successCriteria: string[];
-  /** Who does what. The client always approves and submits reports. */
+  /** Who does what. The client always approves reports; it submits them unless it is on Assured, reports through Ireland and has agreed Fenwright does. */
   responsibilities: { fenwright: string[]; client: string[] };
   constraints?: string[];
 };

@@ -42,10 +42,10 @@ export const site = {
     headline: "Never miss",
     headlineEmphasis: "a CRA report.",
     // Short line under the hero headline.
-    lede: "We watch, check and draft every Cyber Resilience Act vulnerability report for makers of connected products. You approve and submit.",
+    lede: "We watch, check and draft every Cyber Resilience Act vulnerability report for makers of connected products. Nothing is submitted without your approval.",
     // Longer statement: the page's opening paragraph and the meta description.
     subhead:
-      "Since September 2026, every maker of connected products sold in the EU has 24 hours to report an actively exploited security hole. Fenwright builds the ingredients list for each of your products, watches for exploited holes every day, checks whether each one really affects you, and drafts the report. You approve it and press submit.",
+      "Since September 2026, every maker of connected products sold in the EU has 24 hours to report an actively exploited security hole. Fenwright builds the ingredients list for each of your products, watches for exploited holes every day, checks whether each one really affects you, and drafts the report. You approve it and press submit. Need weekend cover? Our Assured plan works evenings, weekends and bank holidays, and if you report through Ireland we can submit for you.",
     primaryCta: { label: "Get a free first look", href: "#first-look" },
     secondaryCta: { label: "How it works", href: "#how-it-works" },
     // The strip along the bottom of the hero. Facts about the law and who we
@@ -56,11 +56,12 @@ export const site = {
       { value: "50 to 249 staff", label: "Built for mid-sized manufacturers" },
     ],
     // The "example week" sheet. Illustrative, not a client: keep the label
-    // saying so. Weekdays only: no weekend or out-of-hours promises until an
-    // on-call rota exists (see cra-action-plan.md, "Claims to avoid").
+    // saying so. Weekend rows must say Assured: Core is working days only.
+    // Never write "24/7" or promise a response time beyond the 12-hour draft
+    // target (see cra-action-plan.md, "Claims to avoid").
     ledger: {
       label: "An example week",
-      range: "Mon to Fri",
+      range: "Mon to Sat",
       columns: { before: "What happens now", after: "With Fenwright" },
       entries: [
         {
@@ -92,6 +93,12 @@ export const site = {
           time: "16:30",
           leak: "A big customer asks for proof you handle vulnerabilities",
           fix: "Decision log and ingredients lists, exported for them",
+        },
+        {
+          day: "Sat",
+          time: "10:00",
+          leak: "Friday evening's exploited hole needs an early warning by 18:00. Your engineers are off",
+          fix: "On Assured: checked and drafted overnight, ready for you to approve",
         },
       ],
       footnote: "Most weeks nothing needs reporting. We still check every signal and write down why.",
@@ -147,7 +154,7 @@ export const site = {
       },
       {
         title: "We watch, you approve",
-        body: "We match new exploited holes to your products every day, check each one, and send you a draft when one needs reporting. You submit.",
+        body: "We match new exploited holes to your products every day, check each one, and send you a draft when one needs reporting. You submit it, or on Assured, if you report through Ireland, we can once you approve.",
       },
     ],
   },
@@ -249,7 +256,7 @@ export const site = {
         bullets: [
           {
             title: "Every report drafted",
-            body: "Paste-ready text for each field of ENISA's form: the 24-hour early warning, the 72-hour notification and the final report. You approve and submit.",
+            body: "Paste-ready text for each field of ENISA's form: the 24-hour early warning, the 72-hour notification and the final report. You approve and submit, or on Assured, if you report through Ireland, we can submit once you approve.",
           },
           {
             title: "Your customer notice",
@@ -293,7 +300,7 @@ export const site = {
 
   footer: {
     blurb:
-      "Fenwright helps makers of connected products meet the Cyber Resilience Act's reporting rules: we watch, check and draft, and you approve and submit.",
+      "Fenwright helps makers of connected products meet the Cyber Resilience Act's reporting rules: we watch, check and draft, and nothing is submitted without your approval.",
     email: "contact@fenwright.ie",
     // Extra footer links after the nav ones.
     links: [{ label: "Security", href: "/security" }],

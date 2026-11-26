@@ -21,8 +21,9 @@ import { night } from "@/components/portal/night";
  * The fields come in the platform's own order and labels (fenwright-watch's
  * article14.fields()), each with a copy button, so the client fills the form
  * field by field instead of reformatting a document. "[CLIENT TO CONFIRM: ...]"
- * gaps are marked: those are facts only the client has. Fenwright never files;
- * the client submits and records it here, with a timestamp.
+ * gaps are marked: those are facts only the client has. The client submits and
+ * records it here, with a timestamp, unless it is on Assured, reports through
+ * Ireland and has agreed in writing that Fenwright submits the approved version.
  *
  * Gated like every portal page by middleware.ts; the draft is read from this
  * client's own snapshot only.
@@ -139,7 +140,7 @@ export default async function ReportPage({ params }: { params: { client: string;
             Submit it there, then record it at the bottom of this page.
           </li>
         </ol>
-        <p className="mt-3 text-[0.8rem] text-night-mute">We prepare the report; you submit it. Fenwright never files on your behalf.</p>
+        <p className="mt-3 text-[0.8rem] text-night-mute">We prepare the report; you submit it. If you are on Assured and have agreed that we submit for you, reply below to approve this draft and we will submit it.</p>
       </section>
 
       <section className={`${night.panel} mt-4 overflow-hidden`} aria-labelledby="fields-title">

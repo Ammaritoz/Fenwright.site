@@ -9,9 +9,13 @@
  * The service: Fenwright builds each product's ingredients list (SBOM), watches
  * for actively exploited vulnerabilities, checks whether each one affects the
  * product, and drafts the EU Cyber Resilience Act Article 14 reports. The
- * client approves and submits. Never write that we file for the client, that
- * we guarantee compliance, or that we cover evenings and weekends, until those
- * are true (see cra-action-plan.md, "Claims to avoid").
+ * client approves every report and submits it. On Assured, where the client
+ * reports through Ireland (CSIRT-IE), we can submit an approved report for them
+ * as a Secondary Assigned Representative; never offer that for other countries. Never write
+ * that we guarantee compliance, or anything else, until
+ * those are true (see cra-action-plan.md, "Claims to avoid"). Seven-day cover
+ * (evenings, weekends, public holidays) is Assured only (26 Nov 2026); Core is
+ * working days. It stays a 12-hour draft target, never "24/7" or a guarantee.
  *
  * No em dashes in client-facing copy (matches config/site.ts).
  */
@@ -47,11 +51,11 @@ export const documents = {
       },
       {
         title: "Your reporting obligations stay yours",
-        body: "Under the Cyber Resilience Act the duty to report actively exploited vulnerabilities and severe incidents rests with you, as the manufacturer, and cannot be transferred to us. We watch, check and draft. You decide whether to report, approve every report, and submit it yourself on ENISA's Single Reporting Platform. Nothing in this agreement means we act as your representative before ENISA or any authority.",
+        body: "Under the Cyber Resilience Act the duty to report actively exploited vulnerabilities and severe incidents rests with you, as the manufacturer, and cannot be transferred to us. We watch, check and draft. You decide whether to report and you approve every report. You submit it on ENISA's Single Reporting Platform unless you are on Assured and we have agreed in writing to submit for you, which we offer only where your coordinating CSIRT is Ireland's. In that case your employee remains your Primary Assigned Representative and invites a named person of ours as a Secondary Assigned Representative, and we submit only the version you have approved in writing. We submit on any day, including weekends and public holidays, but we cannot guarantee a submission by any deadline, so you must always be able to submit yourself. Submitting for you does not move your legal responsibility to us, and you can remove our access at any time. Otherwise, nothing in this agreement means we act as your representative before ENISA or any authority.",
       },
       {
         title: "Response times",
-        body: "We check new matches against your products on working days (Monday to Friday, 09:00 to 18:00 Irish time, excluding Irish public holidays). Where a match is likely to be reportable, we aim to put a reviewed assessment and, if needed, a draft early warning in your hands within the response time stated in your service brief. Signals that arrive outside those hours are picked up at the start of the next working period. Tell us about anything you hear of directly, at any hour, so the clock starts with us as early as possible.",
+        body: "On Core, we check new matches against your products on working days (Monday to Friday, 09:00 to 18:00 Irish time, excluding Irish public holidays), and signals that arrive outside those hours are picked up at the start of the next working period. On Assured, we check every day of the year, including evenings, weekends and Irish public holidays. Where a match is likely to be reportable, we aim to put a reviewed assessment and, if needed, a draft early warning in your hands within the response time stated in your service brief. This is a target, not a guarantee. Tell us about anything you hear of directly, at any hour, so the clock starts with us as early as possible.",
       },
       {
         title: "What we rely on from you",
@@ -154,7 +158,7 @@ export const documents = {
     },
     {
       title: "Reporting setup",
-      body: "We help you register on ENISA's Single Reporting Platform: choosing the coordinating CSIRT, registering your primary reporting person and a backup. Then we agree a short playbook for who approves and submits a report.",
+      body: "We help you register on ENISA's Single Reporting Platform: choosing the coordinating CSIRT, registering your primary reporting person and a backup, and, if you report through Ireland and want us to submit for you, inviting us as a Secondary Assigned Representative. Then we agree a short playbook for who approves and submits a report.",
     },
     {
       title: "Practice run",
@@ -162,15 +166,17 @@ export const documents = {
     },
     {
       title: "Monitoring live",
-      body: "From here we watch every day, check each new match, and send you a monthly report of what we saw and decided. When something needs reporting, you get a draft to approve and submit.",
+      body: "From here we watch every day, check each new match, and send you a monthly report of what we saw and decided. When something needs reporting, you get a draft to approve. You submit it, or on Assured we can, where we have agreed that in writing.",
     },
   ],
 
   /**
    * Default package menu: the first-client offer agreed 19 Nov 2026
    * (cra-action-plan.md, "First-client offer"). Founding Core is the one ask;
-   * the Sprint is the fallback; Assured is not sold until there is evening and
-   * weekend cover. A zero price renders as a bracketed blank, never as free.
+   * the Sprint is the fallback. Founding Assured (26 Nov 2026) adds seven-day
+   * cover and submitting for Irish-reporting clients; list price EUR 1,900.
+   * Keep prices in step with config/plans.ts (a test checks it). A zero price
+   * renders as a bracketed blank, never as free.
    * Keep these in step with the Services Agreement draft.
    */
   packageTiers: [
@@ -197,7 +203,7 @@ export const documents = {
       includes: [
         "Ingredients lists kept up to date for each release",
         "Exploited-vulnerability lists checked every hour",
-        "Every match checked, with a written reason",
+        "Every match checked on working days, with a written reason",
         "Every Article 14 report drafted: 24-hour, 72-hour and final",
         "Customer advisory drafts",
         "Timestamped decision log and a monthly report",
@@ -206,22 +212,23 @@ export const documents = {
       highlighted: true,
     },
     {
-      name: "Assured",
-      price: 0,
-      priceLabel: "Coming 2027",
-      suitedTo: "For makers who need evening and weekend cover with a contractual response time.",
+      name: "Founding Assured",
+      price: 140000,
+      per: "month",
+      badge: "Founding price",
+      suitedTo: "For makers who want cover when a deadline lands on a weekend. Launch price for our first three clients (normally €1,900 a month), on the same terms as Founding Core.",
       includes: [
         "Everything in Core",
-        "Seven-day cover with a stated response time and service credits",
+        "Evenings, weekends and public holidays covered, with a 12-hour draft target",
+        "If you report through Ireland, we submit each report once you approve it",
         "Chasing your suppliers for their component lists",
         "Answering your customers' CRA questionnaires",
-        "Delivery in German as well as English",
       ],
     },
   ] as PackageTier[],
 
   packagesSmallPrint:
-    "Founding Core runs for 12 months at the founding price, billed monthly or quarterly in advance (your choice, paid automatically by card or direct debit), and you can leave within the first 90 days of monitoring. Monitoring and its fee start only once your onboarding is finished and we confirm the start date in writing. The Sprint is a one-off fixed price, credited against Core if you continue within 90 days. Your ingredients lists and decision log are yours, in open formats, and we hand them over in full if we ever part ways. Extra product families are quoted separately, at a lower price than the first.",
+    "Founding Core and Founding Assured run for 12 months at the founding price, billed monthly or quarterly in advance (your choice, paid automatically by card or direct debit), and you can leave within the first 90 days of monitoring. Monitoring and its fee start only once your onboarding is finished and we confirm the start date in writing. The Sprint is a one-off fixed price, credited against Core if you continue within 90 days. Your ingredients lists and decision log are yours, in open formats, and we hand them over in full if we ever part ways. Extra product families are quoted separately, at a lower price than the first.",
 
   /**
    * Ready-made invoice lines for the first-client offer. Copy into a client

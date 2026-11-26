@@ -18,6 +18,12 @@ export const PLANS = {
     monthly: 75000,
     description: "CRA vulnerability monitoring and Article 14 report drafting",
   },
+  "founding-assured": {
+    name: "Founding Assured",
+    tier: "Founding Assured",
+    monthly: 140000,
+    description: "CRA vulnerability monitoring and Article 14 reporting, seven days a week",
+  },
 } as const;
 
 export type PlanId = keyof typeof PLANS;

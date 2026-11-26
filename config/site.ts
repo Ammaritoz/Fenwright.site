@@ -303,7 +303,10 @@ export const site = {
       "Fenwright helps makers of connected products meet the Cyber Resilience Act's reporting rules: we watch, check and draft, and nothing is submitted without your approval.",
     email: "contact@fenwright.ie",
     // Extra footer links after the nav ones.
-    links: [{ label: "Security", href: "/security" }],
+    links: [
+      { label: "ENISA platform guide", href: "/guides/enisa-single-reporting-platform" },
+      { label: "Security", href: "/security" },
+    ],
     copyright: `© ${new Date().getFullYear()} Fenwright. All rights reserved.`,
   },
 

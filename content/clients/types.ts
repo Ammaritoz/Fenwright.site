@@ -348,9 +348,11 @@ export type Client = {
    * the portal asks the client to choose monthly or quarterly and save a card
    * or SEPA direct debit, and Stripe invoices and charges every period from
    * `startsOn` (the Monitoring Start Date, YYYY-MM-DD) with nobody generating
-   * anything. Nothing is charged before that date.
+   * anything. Nothing is charged before that date. `sprintCredit` (cents) is a
+   * paid Sprint fee taken off the Core invoices until used up (Services
+   * Agreement 4.4: only when monitoring starts within 90 days of the Sprint).
    */
-  subscription?: { plan: import("@/config/plans").PlanId; startsOn: string };
+  subscription?: { plan: import("@/config/plans").PlanId; startsOn: string; sprintCredit?: number };
   /**
    * Legacy: a one-off link from `npm run intake:link`. Only needed to point a
    * client at somewhere other than the built-in Upload page.

@@ -32,7 +32,7 @@ export const exampleManufacturer: Client = {
   // On Founding Core so the automatic-billing card shows. Setting it up saves a
   // card only; the first real charge is on startsOn. Cancel the subscription in
   // the Stripe dashboard after testing, before that date.
-  subscription: { plan: "founding-core", startsOn: "2027-01-04" },
+  subscription: { plan: "founding-core", startsOn: "2027-01-04", sprintCredit: 200000 },
 
   business: {
     name: "Lowmoor Controls",

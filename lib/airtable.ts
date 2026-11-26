@@ -7,6 +7,7 @@ import {
   UPLOADS_TABLE,
   COMPLETIONS_TABLE,
   MESSAGES_TABLE,
+  OUTBOX_TABLE,
   SITE_LEADS_TABLE,
 } from "@/lib/airtable-schema";
 
@@ -455,6 +456,8 @@ export async function logMessage(input: {
   body: string;
   recheck: RecheckReason | null;
   ip: string;
+  /** Where the "we replied" email goes (an Airtable automation sends it). */
+  clientEmail?: string;
 }): Promise<void> {
   const b = getRecordsBase();
   if (!b) throw new Error("AIRTABLE_RECORDS_BASE_ID is not set; cannot record message.");
@@ -468,6 +471,7 @@ export async function logMessage(input: {
             Topic: deFormula(input.topic),
             Author: "Client",
             ...(input.recheck ? { Recheck: input.recheck } : {}),
+            ...(input.clientEmail ? { ClientEmail: input.clientEmail } : {}),
             CreatedAt: new Date().toISOString(),
             Ip: deFormula(input.ip),
           },
@@ -510,5 +514,39 @@ export async function listMessages(clientSlug: string): Promise<MessageRow[]> {
   } catch (err) {
     console.error("[fenwright] message list failed:", err instanceof Error ? err.message : errMeta(err));
     return [];
+  }
+}
+
+// --- Outbox: emails to clients, sent by an Airtable automation ----------------
+
+/**
+ * Queue one email to a client. An Airtable automation sends each new Outbox row
+ * (with a copy to us). `key` makes it once-only: a key already in the Outbox is
+ * skipped, so a job that runs daily never sends the same notice twice.
+ * Returns true when a new row was written. Throws on failure.
+ */
+export async function queueClientEmail(input: { to: string; subject: string; body: string; clientSlug: string; key: string }): Promise<boolean> {
+  const b = getRecordsBase();
+  if (!b) throw new Error("AIRTABLE_RECORDS_BASE_ID is not set; cannot queue email.");
+  try {
+    const found = await b(OUTBOX_TABLE)
+      .select({ maxRecords: 1, fields: ["Key"], filterByFormula: `{Key}='${formulaString(input.key)}'` })
+      .firstPage();
+    if (found.length > 0) return false;
+    await b(OUTBOX_TABLE).create([
+      {
+        fields: {
+          Subject: deFormula(input.subject.slice(0, 200)),
+          To: input.to,
+          Body: deFormula(input.body),
+          ClientSlug: deFormula(input.clientSlug),
+          Key: deFormula(input.key),
+          CreatedAt: new Date().toISOString(),
+        },
+      },
+    ]);
+    return true;
+  } catch (err) {
+    throw recordsWriteError(err, "outbox email");
   }
 }

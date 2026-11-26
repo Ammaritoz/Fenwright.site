@@ -649,6 +649,11 @@ export function PlanCard({ plan }: { plan: PlanBilling }) {
               {billing.nextChargeAt ? <>Paid automatically. Next charge {day(billing.nextChargeAt)}</> : <>Paid automatically</>}
             </p>
           )}
+          {billing.creditLeft > 0 && (
+            <p className="text-[0.8rem] text-night-mute">
+              Sprint credit left: <span className="font-mono text-night-dim">{plan.money(billing.creditLeft)}</span>, taken off your next invoices.
+            </p>
+          )}
           <div className="flex flex-col gap-2">
             {billing.overdue?.invoice.hostedUrl && (
               <a href={billing.overdue.invoice.hostedUrl} target="_blank" rel="noopener noreferrer" className={`${night.btnPrimary} w-full`}>

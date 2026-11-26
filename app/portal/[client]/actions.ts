@@ -431,7 +431,8 @@ export async function postMessage(_prev: ActionState, formData: FormData): Promi
     return { error: "Something went wrong. Refresh and try again." };
   }
   const { slug, topic, body, recheck } = parsed.data;
-  if (!getClient(slug)) return { error: "Something went wrong. Refresh and try again." };
+  const client = getClient(slug);
+  if (!client) return { error: "Something went wrong. Refresh and try again." };
   if (!(await hasSession(slug))) return { error: SESSION_ERROR };
 
   const ip = clientIpFromHeaders(headers());
@@ -444,7 +445,14 @@ export async function postMessage(_prev: ActionState, formData: FormData): Promi
   }
 
   try {
-    await logMessage({ clientSlug: slug, topic, body, recheck: recheck as Parameters<typeof logMessage>[0]["recheck"], ip });
+    await logMessage({
+      clientSlug: slug,
+      topic,
+      body,
+      recheck: recheck as Parameters<typeof logMessage>[0]["recheck"],
+      ip,
+      clientEmail: client.business.contact.email,
+    });
   } catch (err) {
     console.error("[fenwright] message save failed:", err instanceof Error ? err.message : errMeta(err));
     return { error: "We could not send that just now. Please try again in a moment." };

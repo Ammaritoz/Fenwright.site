@@ -71,7 +71,7 @@ export function ManageBillingForm({ slug }: { slug: string }) {
   return (
     <form action={action}>
       <input type="hidden" name="slug" value={slug} />
-      <Submit label="Change payment method" busy="Opening..." />
+      <Submit label="Manage billing" busy="Opening..." />
       {state.error && (
         <p role="alert" className="mt-2 text-sm text-signal-orange">
           {state.error}

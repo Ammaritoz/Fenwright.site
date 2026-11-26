@@ -622,10 +622,10 @@ export function PlanCard({ plan }: { plan: PlanBilling }) {
         )
       ) : (
         <div className="flex flex-col gap-3">
-          <p className="font-mono text-[1.6rem] leading-none tracking-[-0.02em] text-night-text">
+          <p className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1 font-mono text-[1.6rem] leading-none tracking-[-0.02em] text-night-text">
             {plan.money(billing.amount)}
             {billing.interval && (
-              <span className="ml-1 text-[0.8rem] tracking-normal text-night-mute">/{billing.interval === "monthly" ? "month" : "quarter"}</span>
+              <span className="text-[0.8rem] tracking-normal text-night-mute">per {billing.interval === "monthly" ? "month" : "quarter"}</span>
             )}
           </p>
           {billing.overdue ? (

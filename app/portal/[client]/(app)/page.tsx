@@ -141,10 +141,9 @@ export default async function DashboardPage({
             {!live && (
               <EngagementProgress steps={documents.onboardingSteps} completed={client.engagement?.completedSteps ?? 0} />
             )}
-            {plan && <PlanCard plan={plan} />}
-            {(!plan || (invoice && !invoice.paid)) && (
-              <BillingCard invoice={invoice} documentsHref={`/portal/${client.slug}/documents`} />
-            )}
+            {/* One billing card: a client on a plan sees the plan; anyone else sees their latest invoice.
+                A one-off invoice still shows in Needs you and Documents. */}
+            {plan ? <PlanCard plan={plan} /> : <BillingCard invoice={invoice} documentsHref={`/portal/${client.slug}/documents`} />}
             <SupportCard slug={client.slug} />
           </div>
         </div>

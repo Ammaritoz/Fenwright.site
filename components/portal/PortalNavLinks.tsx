@@ -15,7 +15,7 @@ import { useEffect, useRef } from "react";
  */
 
 type IconName = "grid" | "shield" | "file" | "upload";
-type Item = { href: string; label: string; icon: IconName; count?: string; match: (p: string) => boolean };
+type Item = { href: string; label: string; icon: IconName; count?: string; countLabel?: string; dot?: string; match: (p: string) => boolean };
 
 type Counts = { openFindings?: number | null; documents?: number; replies?: number };
 
@@ -27,10 +27,10 @@ function items(slug: string, counts: Counts): Item[] {
       href: `${base}/findings`,
       label: "Findings",
       icon: "shield",
-      count:
-        [counts.openFindings ? `${counts.openFindings} open` : "", counts.replies ? `${counts.replies} new ${counts.replies === 1 ? "reply" : "replies"}` : ""]
-          .filter(Boolean)
-          .join(" · ") || undefined,
+      count: counts.openFindings ? String(counts.openFindings) : undefined,
+      countLabel: counts.openFindings ? `${counts.openFindings} open` : undefined,
+      // A new reply from us is a dot, not more words beside the count.
+      dot: counts.replies ? `${counts.replies} new ${counts.replies === 1 ? "reply" : "replies"}` : undefined,
       // A report draft belongs to its finding.
       match: (p) => p.startsWith(`${base}/findings`) || p.startsWith(`${base}/reports/`),
     },
@@ -104,7 +104,17 @@ export function PortalNavLinks({ slug, ...counts }: { slug: string } & Counts) {
                 <NavIcon name={item.icon} />
               </span>
               <span className="flex-1">{item.label}</span>
-              {item.count && <span className="font-mono text-[0.72rem] text-night-mute">{item.count}</span>}
+              {item.dot && (
+                <span title={item.dot} className="h-[7px] w-[7px] rounded-full bg-signal-mint">
+                  <span className="sr-only">{item.dot}</span>
+                </span>
+              )}
+              {item.count && (
+                <span className="font-mono text-[0.72rem] text-night-mute">
+                  <span aria-hidden="true">{item.count}</span>
+                  <span className="sr-only">{item.countLabel ?? item.count}</span>
+                </span>
+              )}
             </Link>
           </li>
         );
